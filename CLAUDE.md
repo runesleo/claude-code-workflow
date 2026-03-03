@@ -2,7 +2,7 @@
 
 > Auto-loaded = rules/ (behaviors.md, capture.md, skill-triggers.md, memory-flush.md)
 > On-demand = docs/ (agents.md, content-safety.md, task-routing.md, behaviors-extended.md, ...)
-> Hot data layer → memory/today.md + memory/yesterday.md + memory/active-tasks.json
+> Hot data layer → memory/today.md + memory/active-tasks.json
 
 ---
 
@@ -144,10 +144,8 @@ Routes determine write targets. Unlisted projects share the main MEMORY.md.
 | Behavior reference details | `Read docs/behaviors-reference.md` |
 | Extended behaviors (Obsidian, etc.) | `Read docs/behaviors-extended.md` |
 | X platform guardrails | `Read docs/x-guardrails.md` |
-| Infrastructure/VPS | `Read memory/infra.md` |
 | Cross-day goals/todos | `Read memory/goals.md` |
-| Pattern library | `Read skills/leo-evolution/learned/patterns.md` |
-| **AI says "can't do it"/unsure if feature exists** | `Read memory/capabilities.md` |
+| Pattern library | `Read patterns.md` |
 
 ---
 

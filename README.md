@@ -227,4 +227,4 @@ MIT — Use it, fork it, make it yours.
 
 ---
 
-Built by [@runes_leo](https://x.com/runes_leo) | More at [leolabs.me](https://leolabs.me)
+Built by [@runes_leo](https://x.com/runes_leo)
