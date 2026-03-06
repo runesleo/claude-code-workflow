@@ -1,0 +1,1096 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "fileutils"
+require "json"
+require "optparse"
+require "time"
+require "yaml"
+
+class VibeCLI
+  TARGET_ALIASES = {
+    "claude" => "claude-code",
+    "claude-code" => "claude-code",
+    "codex" => "codex-cli",
+    "codex-cli" => "codex-cli",
+    "cursor" => "cursor",
+    "opencode" => "opencode"
+  }.freeze
+
+  SUPPORTED_TARGETS = %w[claude-code codex-cli cursor opencode].freeze
+  COPY_RUNTIME_ENTRIES = %w[CLAUDE.md rules docs skills agents commands].freeze
+  MARKER_FILENAME = ".vibe-target.json"
+
+  def initialize(repo_root)
+    @repo_root = repo_root
+    @tiers_doc = read_yaml("core/models/tiers.yaml")
+    @providers = read_yaml("core/models/providers.yaml")
+    @skills_doc = read_yaml("core/skills/registry.yaml")
+    @security_doc = read_yaml("core/security/policy.yaml")
+    @policies_doc = read_yaml("core/policies/behaviors.yaml")
+  end
+
+  def run(argv)
+    command = argv.shift
+
+    case command
+    when "build"
+      run_build(argv)
+    when "use"
+      run_use(argv, switch_mode: false)
+    when "switch"
+      run_use(argv, switch_mode: true)
+    when "inspect"
+      run_inspect(argv)
+    when "targets"
+      puts SUPPORTED_TARGETS.join("
+")
+    when "help", "--help", "-h", nil
+      puts usage
+    else
+      abort "Unknown command: #{command}
+
+#{usage}"
+    end
+  end
+
+  private
+
+  def usage
+    <<~TEXT
+      Usage:
+        bin/vibe build TARGET [--profile PROFILE] [--output DIR]
+        bin/vibe use TARGET DESTINATION [--profile PROFILE] [--output DIR] [--force]
+        bin/vibe switch TARGET [--profile PROFILE] [--output DIR] [--force]
+        bin/vibe inspect [TARGET] [--json]
+        bin/vibe targets
+
+      Notes:
+        - TARGET may also be passed via --target TARGET.
+        - DESTINATION may also be passed via --destination DIR.
+        - switch defaults to the repository root for codex-cli/cursor/opencode,
+          and ~/.claude for claude-code.
+
+      Supported targets:
+        #{SUPPORTED_TARGETS.join(", ")}
+    TEXT
+  end
+
+  def run_build(argv)
+    options, remaining = parse_common_options(
+      argv,
+      banner: "Usage: bin/vibe build TARGET [--profile PROFILE] [--output DIR]"
+    )
+    extract_target_from_remaining!(options, remaining)
+    ensure_no_remaining_args!(remaining)
+
+    target = require_target!(options)
+    profile_name, profile = resolve_profile(target, options[:profile])
+    output_root = File.expand_path(options[:output] || default_output_root(target))
+
+    build_target(
+      target: target,
+      profile_name: profile_name,
+      profile: profile,
+      output_root: output_root
+    )
+
+    puts "Built #{target} (#{profile_name}) -> #{output_root}"
+  end
+
+  def run_use(argv, switch_mode:)
+    banner = if switch_mode
+      "Usage: bin/vibe switch TARGET [--profile PROFILE] [--output DIR] [--force]"
+    else
+      "Usage: bin/vibe use TARGET DESTINATION [--profile PROFILE] [--output DIR] [--force]"
+    end
+
+    options, remaining = parse_common_options(argv, banner: banner)
+    extract_target_from_remaining!(options, remaining)
+    extract_destination_from_remaining!(options, remaining) unless switch_mode
+    ensure_no_remaining_args!(remaining)
+
+    target = require_target!(options)
+    options[:destination] ||= default_destination_for_target(target) if switch_mode
+    destination = options[:destination]
+    abort "Missing required destination. Pass DESTINATION or --destination DIR." if destination.nil? || destination.strip.empty?
+
+    profile_name, profile = resolve_profile(target, options[:profile])
+    output_root = File.expand_path(options[:output] || default_output_root(target))
+    destination_root = File.expand_path(destination)
+
+    build_target(
+      target: target,
+      profile_name: profile_name,
+      profile: profile,
+      output_root: output_root
+    )
+    enforce_safe_destination!(output_root, destination_root, options[:force])
+
+    FileUtils.mkdir_p(destination_root)
+    copy_tree_contents(output_root, destination_root)
+
+    manifest = read_json(File.join(output_root, ".vibe", "manifest.json"))
+    write_marker(
+      File.join(destination_root, MARKER_FILENAME),
+      destination_root: destination_root,
+      manifest: manifest,
+      output_root: output_root,
+      mode: switch_mode ? "switch" : "use"
+    )
+
+    puts "Applied #{target} (#{profile_name}) -> #{destination_root}"
+  end
+
+  def run_inspect(argv)
+    options = { json: false }
+    parser = OptionParser.new do |opts|
+      opts.banner = "Usage: bin/vibe inspect [TARGET] [--json]"
+
+      opts.on("--target TARGET", "Limit inspection to one target") do |value|
+        options[:target] = normalize_target(value)
+      end
+
+      opts.on("--json", "Output machine-readable JSON") do
+        options[:json] = true
+      end
+
+      opts.on("-h", "--help", "Show help") do
+        puts opts
+        exit 0
+      end
+    end
+
+    remaining = parser.parse(argv)
+    if options[:target].nil? && !remaining.empty?
+      options[:target] = normalize_target(remaining.shift)
+    end
+    ensure_no_remaining_args!(remaining)
+
+    payload = inspect_payload(target: options[:target])
+    if options[:json]
+      puts JSON.pretty_generate(payload)
+    else
+      puts render_inspect(payload)
+    end
+  end
+
+  def parse_common_options(argv, banner:)
+    options = { force: false }
+
+    parser = OptionParser.new do |opts|
+      opts.banner = banner
+
+      opts.on("--target TARGET", "Target name (#{SUPPORTED_TARGETS.join(', ')})") do |value|
+        options[:target] = normalize_target(value)
+      end
+
+      opts.on("--profile PROFILE", "Explicit profile name from core/models/providers.yaml") do |value|
+        options[:profile] = value
+      end
+
+      opts.on("--output DIR", "Write generated files to DIR instead of generated/<target>") do |value|
+        options[:output] = value
+      end
+
+      opts.on("--destination DIR", "Destination root for `use`") do |value|
+        options[:destination] = value
+      end
+
+      opts.on("--force", "Allow overwriting existing generated target files at the destination") do
+        options[:force] = true
+      end
+
+      opts.on("-h", "--help", "Show help") do
+        puts opts
+        exit 0
+      end
+    end
+
+    remaining = parser.parse(argv)
+    [options, remaining]
+  end
+
+  def extract_target_from_remaining!(options, remaining)
+    return unless options[:target].nil?
+    return if remaining.empty?
+
+    candidate = remaining.first
+    return if candidate.start_with?("-")
+
+    options[:target] = normalize_target(remaining.shift)
+  end
+
+  def extract_destination_from_remaining!(options, remaining)
+    return unless options[:destination].nil?
+    return if remaining.empty?
+
+    candidate = remaining.first
+    return if candidate.start_with?("-")
+
+    options[:destination] = remaining.shift
+  end
+
+  def ensure_no_remaining_args!(remaining)
+    return if remaining.empty?
+
+    abort "Unexpected arguments: #{remaining.join(' ')}"
+  end
+
+  def require_target!(options)
+    target = options[:target]
+    abort "Missing required target. Pass TARGET or --target TARGET." if target.nil?
+
+    target
+  end
+
+  def normalize_target(value)
+    normalized = TARGET_ALIASES[value]
+    abort "Unsupported target: #{value}" if normalized.nil? || !SUPPORTED_TARGETS.include?(normalized)
+
+    normalized
+  end
+
+  def default_output_root(target)
+    File.join(@repo_root, "generated", target)
+  end
+
+  def default_destination_for_target(target)
+    if target == "claude-code"
+      File.join(Dir.home, ".claude")
+    else
+      @repo_root
+    end
+  end
+
+  def resolve_profile(target, requested_profile)
+    profiles = @providers.fetch("profiles")
+
+    if requested_profile
+      profile = profiles[requested_profile]
+      abort "Unknown profile: #{requested_profile}" if profile.nil?
+      abort "Profile #{requested_profile} does not target #{target}" unless profile["target"] == target
+
+      return [requested_profile, profile]
+    end
+
+    default_profile_for_target(target)
+  end
+
+  def default_profile_for_target(target)
+    profiles = @providers.fetch("profiles").select { |_name, profile| profile["target"] == target }
+    abort "No profile found for target #{target}" if profiles.empty?
+
+    profiles.sort_by do |_name, profile|
+      case profile["maturity"]
+      when "active" then 0
+      when "planned" then 1
+      else 2
+      end
+    end.first
+  end
+
+  def build_target(target:, profile_name:, profile:, output_root:)
+    manifest = build_manifest(
+      target: target,
+      profile_name: profile_name,
+      profile: profile,
+      output_root: output_root
+    )
+
+    FileUtils.rm_rf(output_root)
+    FileUtils.mkdir_p(output_root)
+
+    case target
+    when "claude-code"
+      render_claude(output_root, manifest)
+    when "codex-cli"
+      render_codex(output_root, manifest)
+    when "cursor"
+      render_cursor(output_root, manifest)
+    when "opencode"
+      render_opencode(output_root, manifest)
+    else
+      abort "Target renderer not implemented: #{target}"
+    end
+
+    vibe_dir = File.join(output_root, ".vibe")
+    FileUtils.mkdir_p(vibe_dir)
+    write_json(File.join(vibe_dir, "manifest.json"), manifest)
+    File.write(File.join(vibe_dir, "target-summary.md"), render_target_summary(manifest))
+  end
+
+  def build_manifest(target:, profile_name:, profile:, output_root:)
+    {
+      "schema_version" => 3,
+      "generated_at" => Time.now.utc.iso8601,
+      "source_repo" => @repo_root,
+      "output_root" => File.expand_path(output_root),
+      "target" => target,
+      "profile" => profile_name,
+      "profile_maturity" => profile["maturity"],
+      "profile_notes" => profile["notes"] || [],
+      "profile_mapping" => profile.fetch("mapping"),
+      "routing_defaults" => @tiers_doc["routing_defaults"],
+      "tiers" => @tiers_doc.fetch("tiers").transform_values do |tier|
+        {
+          "description" => tier["description"],
+          "default_role" => tier["default_role"],
+          "route_when" => tier["route_when"] || [],
+          "avoid_when" => tier["avoid_when"] || []
+        }
+      end,
+      "skills" => @skills_doc.fetch("skills").map do |skill|
+        {
+          "id" => skill["id"],
+          "namespace" => skill["namespace"],
+          "intent" => skill["intent"],
+          "trigger_mode" => skill["trigger_mode"],
+          "priority" => skill["priority"],
+          "target_support" => skill.fetch("supported_targets", {})[target]
+        }
+      end,
+      "policies" => @policies_doc.fetch("policies").map do |policy|
+        {
+          "id" => policy["id"],
+          "category" => policy["category"],
+          "enforcement" => policy["enforcement"],
+          "target_render_group" => policy["target_render_group"],
+          "summary" => policy["summary"],
+          "source_refs" => policy["source_refs"] || []
+        }
+      end,
+      "security" => {
+        "severity_levels" => @security_doc.fetch("severity_levels"),
+        "signal_categories" => @security_doc.fetch("signal_categories"),
+        "adjudication_factors" => @security_doc.fetch("adjudication_factors"),
+        "target_actions" => @security_doc.fetch("actions_by_target")[target]
+      }
+    }
+  end
+
+  def render_claude(output_root, manifest)
+    COPY_RUNTIME_ENTRIES.each do |entry|
+      source = File.join(@repo_root, entry)
+      destination = File.join(output_root, entry)
+
+      if File.directory?(source)
+        FileUtils.mkdir_p(destination)
+        copy_tree_contents(source, destination)
+      else
+        FileUtils.mkdir_p(File.dirname(destination))
+        FileUtils.cp(source, destination)
+      end
+    end
+
+    write_json(File.join(output_root, "settings.json"), claude_settings_config)
+
+    claude_dir = File.join(output_root, ".vibe", "claude-code")
+    FileUtils.mkdir_p(claude_dir)
+    File.write(File.join(claude_dir, "README.md"), <<~MD)
+      # Claude Code target
+
+      This output is intended to be copied into a Claude Code config directory such as `~/.claude`.
+
+      Included runtime assets:
+      - `CLAUDE.md`
+      - `rules/`
+      - `docs/`
+      - `skills/`
+      - `agents/`
+      - `commands/`
+      - `settings.json`
+
+      Active profile: `#{manifest["profile"]}`
+      Generated summary: `.vibe/target-summary.md`
+    MD
+    File.write(File.join(claude_dir, "behavior-policies.md"), render_behavior_doc(manifest, group: nil))
+    File.write(File.join(claude_dir, "safety.md"), render_safety_doc(manifest))
+  end
+
+  def render_codex(output_root, manifest)
+    codex_dir = File.join(output_root, ".vibe", "codex-cli")
+    FileUtils.mkdir_p(codex_dir)
+    File.write(File.join(codex_dir, "behavior-policies.md"), render_behavior_doc(manifest, group: nil))
+    File.write(File.join(codex_dir, "routing.md"), render_routing_doc(manifest))
+    File.write(File.join(codex_dir, "skills.md"), render_skills_doc(manifest))
+    File.write(File.join(codex_dir, "safety.md"), render_safety_doc(manifest))
+    File.write(File.join(codex_dir, "execution-policy.md"), render_execution_policy_doc(manifest))
+
+    File.write(File.join(output_root, "AGENTS.md"), <<~MD)
+      # Vibe workflow for Codex CLI
+
+      Generated from the portable `core/` spec with profile `#{manifest["profile"]}`.
+
+      ## Non-negotiable rules
+
+      #{bullet_policy_summary(filtered_policies(manifest, %w[always_on routing safety]))}
+
+      ## Capability routing
+
+      #{bullet_mapping(manifest["profile_mapping"])}
+
+      ## Mandatory portable skills
+
+      #{bullet_skill_summary(mandatory_skills(manifest))}
+
+      ## Execution model
+
+      - Use `.vibe/codex-cli/execution-policy.md` for the default flow and review protocol.
+      - Use `.vibe/codex-cli/routing.md` when task routing is ambiguous.
+      - Use `.vibe/codex-cli/safety.md` when a task touches risky behavior or permissions.
+      - Use `.vibe/codex-cli/behavior-policies.md` for the portable behavior baseline.
+
+      ## Safety floor
+
+      #{bullet_target_actions(manifest)}
+    MD
+  end
+
+  def render_cursor(output_root, manifest)
+    cursor_rules_dir = File.join(output_root, ".cursor", "rules")
+    cursor_support_dir = File.join(output_root, ".vibe", "cursor")
+    FileUtils.mkdir_p(cursor_rules_dir)
+    FileUtils.mkdir_p(cursor_support_dir)
+
+    File.write(File.join(output_root, "AGENTS.md"), <<~MD)
+      # Vibe workflow for Cursor
+
+      Generated from the portable `core/` spec with profile `#{manifest["profile"]}`.
+
+      Primary behavior is defined in `.cursor/rules/*.mdc`, with supporting notes under `.vibe/cursor/`.
+
+      Keep repository files as the SSOT, verify before claiming completion, and follow the generated routing + safety rules.
+    MD
+
+    write_json(File.join(output_root, ".cursor", "cli.json"), cursor_cli_permissions_config)
+    File.write(File.join(cursor_support_dir, "behavior-policies.md"), render_behavior_doc(manifest, group: nil))
+    File.write(File.join(cursor_support_dir, "routing.md"), render_routing_doc(manifest))
+    File.write(File.join(cursor_support_dir, "safety.md"), render_safety_doc(manifest))
+    File.write(File.join(cursor_support_dir, "skills.md"), render_skills_doc(manifest))
+
+    File.write(File.join(cursor_rules_dir, "00-vibe-core.mdc"), <<~MDC)
+      ---
+      description: Generated portable workflow core
+      alwaysApply: true
+      ---
+
+      # Portable workflow core
+
+      #{bullet_policy_summary(filtered_policies(manifest, ["always_on"]))}
+
+      ## Mandatory skills
+
+      #{bullet_skill_summary(mandatory_skills(manifest))}
+    MDC
+
+    File.write(File.join(cursor_rules_dir, "05-vibe-routing.mdc"), <<~MDC)
+      ---
+      description: Generated portable routing policy
+      alwaysApply: true
+      ---
+
+      # Capability routing
+
+      #{bullet_policy_summary(filtered_policies(manifest, ["routing"]))}
+
+      ## Active mapping
+
+      #{bullet_mapping(manifest["profile_mapping"])}
+    MDC
+
+    File.write(File.join(cursor_rules_dir, "08-vibe-safety.mdc"), <<~MDC)
+      ---
+      description: Generated portable safety policy
+      alwaysApply: true
+      ---
+
+      # Safety policy
+
+      #{bullet_policy_summary(filtered_policies(manifest, ["safety"]))}
+
+      ## Target actions
+
+      #{bullet_target_actions(manifest)}
+
+      See `.cursor/cli.json` and `.vibe/cursor/safety.md` for the generated safety baseline.
+    MDC
+
+    File.write(File.join(cursor_rules_dir, "20-vibe-optional-skills.mdc"), <<~MDC)
+      ---
+      description: Portable optional skill and workflow reference
+      alwaysApply: false
+      ---
+
+      # Optional workflow guidance
+
+      #{bullet_policy_summary(filtered_policies(manifest, ["optional"]))}
+
+      ## Optional skills
+
+      #{bullet_skill_summary(optional_skills(manifest))}
+    MDC
+  end
+
+  def render_opencode(output_root, manifest)
+    opencode_dir = File.join(output_root, ".vibe", "opencode")
+    FileUtils.mkdir_p(opencode_dir)
+
+    File.write(File.join(opencode_dir, "behavior-policies.md"), render_behavior_doc(manifest, group: nil))
+    File.write(File.join(opencode_dir, "general.md"), render_general_doc(manifest))
+    File.write(File.join(opencode_dir, "routing.md"), render_routing_doc(manifest))
+    File.write(File.join(opencode_dir, "skills.md"), render_skills_doc(manifest))
+    File.write(File.join(opencode_dir, "safety.md"), render_safety_doc(manifest))
+    File.write(File.join(opencode_dir, "execution.md"), render_execution_policy_doc(manifest))
+
+    File.write(File.join(output_root, "AGENTS.md"), <<~MD)
+      # Vibe workflow for OpenCode
+
+      Generated from the portable `core/` spec with profile `#{manifest["profile"]}`.
+
+      Project rules are split into modular instruction files loaded from `opencode.json`.
+
+      Keep repository files as the single source of truth, verify before claiming completion, and follow the generated safety policy.
+    MD
+
+    write_json(File.join(output_root, "opencode.json"), opencode_config)
+  end
+
+  def inspect_payload(target: nil)
+    targets = target ? [target] : SUPPORTED_TARGETS
+
+    {
+      "schema_version" => 1,
+      "repo_root" => @repo_root,
+      "current_repo_target" => read_json_if_exists(File.join(@repo_root, MARKER_FILENAME)),
+      "policy_count" => @policies_doc.fetch("policies").length,
+      "targets" => targets.map { |item| inspect_target_payload(item) }
+    }
+  end
+
+  def inspect_target_payload(target)
+    default_profile_name, default_profile = default_profile_for_target(target)
+    generated_manifest = read_json_if_exists(File.join(default_output_root(target), ".vibe", "manifest.json"))
+
+    {
+      "target" => target,
+      "default_profile" => default_profile_name,
+      "profile_maturity" => default_profile["maturity"],
+      "profile_notes" => default_profile["notes"] || [],
+      "generated_output" => File.expand_path(default_output_root(target)),
+      "generated_manifest_present" => !generated_manifest.nil?,
+      "generated_manifest" => generated_manifest
+    }
+  end
+
+  def render_inspect(payload)
+    lines = []
+    lines << "Vibe inspection"
+    lines << ""
+    lines << "Repository root: #{payload["repo_root"]}"
+    lines << "Portable behavior policies: #{payload["policy_count"]}"
+    lines << ""
+
+    marker = payload["current_repo_target"]
+    if marker
+      lines << "Current repo target marker:"
+      lines << "- target: #{marker["target"]}"
+      lines << "- profile: #{marker["profile"]}"
+      lines << "- destination: #{marker["destination_root"]}"
+      lines << "- applied_at: #{marker["applied_at"]}"
+    else
+      lines << "Current repo target marker: none"
+    end
+
+    lines << ""
+    lines << "Targets:"
+
+    payload["targets"].each do |target_info|
+      lines << "- #{target_info["target"]}"
+      lines << "  default_profile: #{target_info["default_profile"]} (#{target_info["profile_maturity"]})"
+      lines << "  generated_output: #{target_info["generated_output"]}"
+      lines << "  generated_manifest_present: #{target_info["generated_manifest_present"]}"
+      Array(target_info["profile_notes"]).each do |note|
+        lines << "  note: #{note}"
+      end
+    end
+
+    lines.join("
+")
+  end
+
+  def render_target_summary(manifest)
+    <<~MD
+      # Generated target summary
+
+      - Target: `#{manifest["target"]}`
+      - Profile: `#{manifest["profile"]}`
+      - Profile maturity: `#{manifest["profile_maturity"]}`
+      - Generated at: `#{manifest["generated_at"]}`
+      - Output root: `#{manifest["output_root"]}`
+
+      ## Capability mapping
+
+      #{bullet_mapping(manifest["profile_mapping"])}
+
+      ## Behavior policies
+
+      #{bullet_policy_summary(manifest["policies"])}
+
+      ## Skills
+
+      #{bullet_skill_summary(manifest["skills"])}
+    MD
+  end
+
+  def render_behavior_doc(manifest, group: nil)
+    selected = group.nil? ? manifest["policies"] : filtered_policies(manifest, [group])
+
+    body = selected.map do |policy|
+      refs = Array(policy["source_refs"]).map { |ref| "`#{ref}`" }.join(", ")
+      refs = refs.empty? ? "none" : refs
+      [
+        "- `#{policy["id"]}` (#{policy["category"]}, #{policy["enforcement"]}, group: #{policy["target_render_group"]})",
+        "  - #{policy["summary"]}",
+        "  - source refs: #{refs}"
+      ].join("
+")
+    end.join("
+")
+
+    <<~MD
+      # Behavior policies
+
+      Generated target: `#{manifest["target"]}`
+      #{group ? "Render group: `#{group}`" : "Render group: all"}
+
+      #{body}
+    MD
+  end
+
+  def render_general_doc(manifest)
+    <<~MD
+      # General workflow
+
+      Generated target: `#{manifest["target"]}`
+      Generated profile: `#{manifest["profile"]}`
+
+      ## Working rules
+
+      #{bullet_policy_summary(filtered_policies(manifest, %w[always_on routing safety]))}
+    MD
+  end
+
+  def render_routing_doc(manifest)
+    tier_descriptions = manifest["tiers"].map do |tier_id, tier|
+      [
+        "- `#{tier_id}` — #{tier["description"]} (role: `#{tier["default_role"]}`)",
+        indent_bullets("Route when", tier["route_when"]),
+        indent_bullets("Avoid when", tier["avoid_when"])
+      ].join("
+")
+    end.join("
+
+")
+
+    routing_defaults = manifest["routing_defaults"].map do |key, value|
+      "- `#{key}` = `#{value}`"
+    end.join("
+")
+
+    <<~MD
+      # Routing profile
+
+      Generated target: `#{manifest["target"]}`
+      Active profile: `#{manifest["profile"]}`
+
+      ## Routing behavior policies
+
+      #{bullet_policy_summary(filtered_policies(manifest, ["routing"]))}
+
+      ## Capability tiers
+
+      #{tier_descriptions}
+
+      ## Active mapping
+
+      #{bullet_mapping(manifest["profile_mapping"])}
+
+      ## Routing defaults
+
+      #{routing_defaults}
+    MD
+  end
+
+  def render_skills_doc(manifest)
+    skill_lines = manifest["skills"].map do |skill|
+      support = skill["target_support"] || "not-modeled"
+      "- `#{skill["id"]}` (`#{skill["namespace"]}`, `#{skill["priority"]}`, `#{skill["trigger_mode"]}`, support: `#{support}`) — #{skill["intent"]}"
+    end.join("
+")
+
+    <<~MD
+      # Portable skills
+
+      Generated target: `#{manifest["target"]}`
+
+      #{skill_lines}
+    MD
+  end
+
+  def render_safety_doc(manifest)
+    target_actions = manifest.fetch("security").fetch("target_actions")
+    severity_lines = manifest.fetch("security").fetch("severity_levels").map do |severity, rule|
+      examples = Array(rule["examples"]).map { |example| "  - #{example}" }.join("
+")
+      "- `#{severity}` — #{rule["meaning"]}
+#{examples}"
+    end.join("
+")
+
+    action_lines = target_actions.map do |severity, action|
+      "- `#{severity}` — #{action}"
+    end.join("
+")
+
+    signal_lines = manifest.fetch("security").fetch("signal_categories").map do |category|
+      indicators = Array(category["indicators"]).map { |indicator| "`#{indicator}`" }.join(", ")
+      upgrades = Array(category["upgrade_to_p0_when"]).map { |item| "`#{item}`" }.join(", ")
+      line = "- `#{category["id"]}` (base: `#{category["base_severity"]}`) — indicators: #{indicators}"
+      line += " | upgrade when: #{upgrades}" unless upgrades.empty?
+      line
+    end.join("
+")
+
+    adjudication = manifest.fetch("security").fetch("adjudication_factors").map do |item|
+      "- `#{item}`"
+    end.join("
+")
+
+    <<~MD
+      # Safety policy
+
+      ## Safety behavior policy
+
+      #{bullet_policy_summary(filtered_policies(manifest, ["safety"]))}
+
+      ## Severity semantics
+
+      #{severity_lines}
+
+      ## Target actions
+
+      #{action_lines}
+
+      ## Signal categories
+
+      #{signal_lines}
+
+      ## Adjudication factors
+
+      #{adjudication}
+    MD
+  end
+
+  def render_execution_policy_doc(manifest)
+    <<~MD
+      # Execution policy
+
+      Generated target: `#{manifest["target"]}`
+      Active profile: `#{manifest["profile"]}`
+
+      ## Default execution flow
+
+      1. Classify the task by capability tier.
+      2. Pick the mapped executor from the active profile.
+      3. Apply mandatory portable skills before claiming completion.
+      4. If risk appears, follow the generated safety policy.
+      5. For critical work, prefer maker-checker flow with `independent_verifier`.
+
+      ## Always-on behavior policies
+
+      #{bullet_policy_summary(filtered_policies(manifest, ["always_on"]))}
+
+      ## Mandatory portable skills
+
+      #{bullet_skill_summary(mandatory_skills(manifest))}
+
+      ## Optional portable skills
+
+      #{bullet_skill_summary(optional_skills(manifest))}
+
+      ## Safety actions
+
+      #{bullet_target_actions(manifest)}
+    MD
+  end
+
+  def filtered_policies(manifest, groups)
+    manifest["policies"].select { |policy| groups.include?(policy["target_render_group"]) }
+  end
+
+  def mandatory_skills(manifest)
+    manifest["skills"].select { |skill| skill["trigger_mode"] == "mandatory" }
+  end
+
+  def optional_skills(manifest)
+    manifest["skills"].reject { |skill| skill["trigger_mode"] == "mandatory" }
+  end
+
+  def bullet_mapping(mapping)
+    mapping.map { |tier, executor| "- `#{tier}` → `#{executor}`" }.join("
+")
+  end
+
+  def bullet_skill_summary(skills)
+    return "- none" if skills.empty?
+
+    skills.map do |skill|
+      "- `#{skill["id"]}` (`#{skill["priority"]}`, `#{skill["trigger_mode"]}`) — #{skill["intent"]}"
+    end.join("
+")
+  end
+
+  def bullet_policy_summary(policies)
+    return "- none" if policies.empty?
+
+    policies.map do |policy|
+      "- `#{policy["id"]}` (`#{policy["enforcement"]}`) — #{policy["summary"]}"
+    end.join("
+")
+  end
+
+  def bullet_target_actions(manifest)
+    manifest.fetch("security").fetch("target_actions").map do |severity, action|
+      "- `#{severity}` — #{action}"
+    end.join("
+")
+  end
+
+  def indent_bullets(title, items)
+    values = Array(items)
+    return "  #{title}: none" if values.empty?
+
+    ["  #{title}:"].concat(values.map { |item| "    - #{item}" }).join("
+")
+  end
+
+  def claude_settings_config
+    {
+      "permissions" => {
+        "defaultMode" => "default",
+        "disableBypassPermissionsMode" => "disable",
+        "ask" => [
+          "Bash(curl:*)",
+          "Bash(wget:*)",
+          "Bash(scp:*)",
+          "Bash(rsync:*)",
+          "Bash(git push:*)",
+          "Bash(npm publish:*)",
+          "Bash(base64:*)",
+          "Bash(eval:*)",
+          "Bash(exec:*)",
+          "WebFetch",
+          "Write(./production/**)"
+        ],
+        "deny" => [
+          "Bash(rm -rf:*)",
+          "Bash(shred:*)",
+          "Read(./.env)",
+          "Read(./.env.*)",
+          "Read(./secrets/**)",
+          "Read(./**/*.key)",
+          "Write(./**/.env*)",
+          "Write(./**/*.key)"
+        ]
+      }
+    }
+  end
+
+  def cursor_cli_permissions_config
+    {
+      "permissions" => {
+        "allow" => [
+          "Read(**)",
+          "Write(**)",
+          "Shell(ls)",
+          "Shell(cat)",
+          "Shell(grep)",
+          "Shell(rg)",
+          "Shell(find)",
+          "Shell(pwd)"
+        ],
+        "deny" => [
+          "Shell(rm)",
+          "Shell(shred)",
+          "Read(.env*)",
+          "Read(secrets/**)",
+          "Read(**/*.key)",
+          "Write(**/.env*)",
+          "Write(**/*.key)"
+        ]
+      }
+    }
+  end
+
+  def opencode_config
+    {
+      "$schema" => "https://opencode.ai/config.json",
+      "instructions" => [
+        ".vibe/opencode/behavior-policies.md",
+        ".vibe/opencode/general.md",
+        ".vibe/opencode/routing.md",
+        ".vibe/opencode/skills.md",
+        ".vibe/opencode/safety.md",
+        ".vibe/opencode/execution.md"
+      ],
+      "permission" => {
+        "read" => {
+          "*" => "allow",
+          "**/.env" => "deny",
+          "**/.env.*" => "deny",
+          "**/secrets/**" => "deny",
+          "**/*.key" => "deny"
+        },
+        "write" => {
+          "*" => "ask",
+          "**/.env*" => "deny",
+          "**/secrets/**" => "deny",
+          "**/*.key" => "deny"
+        },
+        "edit" => {
+          "*" => "ask",
+          "**/.env*" => "deny",
+          "**/secrets/**" => "deny",
+          "**/*.key" => "deny"
+        },
+        "list" => "allow",
+        "glob" => "allow",
+        "grep" => "allow",
+        "todoread" => "allow",
+        "todowrite" => "allow",
+        "bash" => {
+          "*" => "ask",
+          "pwd" => "allow",
+          "ls*" => "allow",
+          "cat *" => "allow",
+          "grep *" => "allow",
+          "rg *" => "allow",
+          "find *" => "allow",
+          "git status*" => "allow",
+          "git diff*" => "allow",
+          "git log*" => "allow",
+          "rm *" => "deny",
+          "shred *" => "deny",
+          "curl *" => "ask",
+          "wget *" => "ask",
+          "scp *" => "ask",
+          "rsync *" => "ask",
+          "git push *" => "ask",
+          "npm publish *" => "ask"
+        },
+        "webfetch" => "ask",
+        "websearch" => "ask",
+        "task" => "ask",
+        "skill" => "ask",
+        "external_directory" => "deny"
+      }
+    }
+  end
+
+  def enforce_safe_destination!(staging_root, destination_root, force)
+    return if force
+
+    conflicts = staged_file_paths(staging_root).select do |relative_path|
+      File.exist?(File.join(destination_root, relative_path))
+    end
+
+    return if conflicts.empty?
+
+    sample = conflicts.first(5).map { |path| "  - #{path}" }.join("
+")
+    abort <<~TEXT
+      Destination already contains #{conflicts.length} generated path(s).
+      Re-run with --force to overwrite them.
+
+      Sample conflicts:
+      #{sample}
+    TEXT
+  end
+
+  def write_marker(path, destination_root:, manifest:, output_root:, mode:)
+    write_json(
+      path,
+      {
+        "schema_version" => 3,
+        "mode" => mode,
+        "source_repo" => @repo_root,
+        "destination_root" => destination_root,
+        "generated_output" => File.expand_path(output_root),
+        "target" => manifest["target"],
+        "profile" => manifest["profile"],
+        "profile_mapping" => manifest["profile_mapping"],
+        "policy_count" => manifest["policies"].length,
+        "applied_at" => Time.now.utc.iso8601
+      }
+    )
+  end
+
+  def staged_file_paths(root, prefix = nil)
+    entries = Dir.glob(File.join(root, "*"), File::FNM_DOTMATCH).reject do |path|
+      [".", ".."].include?(File.basename(path))
+    end
+
+    entries.flat_map do |entry|
+      relative = [prefix, File.basename(entry)].compact.join("/")
+
+      if File.directory?(entry)
+        staged_file_paths(entry, relative)
+      else
+        relative
+      end
+    end
+  end
+
+  def copy_tree_contents(source_root, destination_root)
+    entries = Dir.glob(File.join(source_root, "*"), File::FNM_DOTMATCH).reject do |path|
+      [".", ".."].include?(File.basename(path))
+    end
+
+    entries.each do |entry|
+      destination = File.join(destination_root, File.basename(entry))
+
+      if File.directory?(entry)
+        FileUtils.mkdir_p(destination)
+        copy_tree_contents(entry, destination)
+      else
+        FileUtils.mkdir_p(File.dirname(destination))
+        FileUtils.cp(entry, destination)
+      end
+    end
+  end
+
+  def read_json(path)
+    JSON.parse(File.read(path))
+  end
+
+  def read_json_if_exists(path)
+    return nil unless File.exist?(path)
+
+    read_json(path)
+  end
+
+  def write_json(path, content)
+    FileUtils.mkdir_p(File.dirname(path))
+    File.write(path, JSON.pretty_generate(content) + "
+")
+  end
+
+  def read_yaml(relative_path)
+    path = File.join(@repo_root, relative_path)
+    YAML.safe_load(File.read(path), aliases: true)
+  end
+end
+
+repo_root = File.expand_path("..", __dir__)
+VibeCLI.new(repo_root).run(ARGV)

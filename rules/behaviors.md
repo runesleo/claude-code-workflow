@@ -12,29 +12,43 @@ Violating this = branch divergence → pull conflicts → 10x cleanup time. **No
 - Banned files: ROADMAP/FOCUS/TODO/TASKS/STATUS
 - Status SSOT: cross-project → `memory/projects.md`, project-level → `PROJECT_CONTEXT.md`
 
-## Task Routing (Three-tier Dispatch)
+## Portable Core SSOT
 
-**Sonnet as daily workhorse, evaluate whether to escalate to Opus or outsource to Codex.**
+- Provider-neutral workflow spec lives under `core/`
+- `core/policies/behaviors.yaml` is the portable source for behavior-level policy that target renderers consume
+- `rules/` and `docs/` are the current Claude Code renderings of that portable spec
+- When changing routing, skills, safety, or behavior policy: update `core/` first, then sync target-facing files
 
-### Tier 1: Sonnet Evaluates Escalation
+## Task Routing (Capability Tiers → Current Target Executors)
 
-**Immediately escalate to Opus (keyword match)**:
+**Route by capability tier first. Current tier definitions live in `core/models/tiers.yaml`; current target/profile mappings live in `core/models/providers.yaml`.**
+
+**Current Claude-oriented profile**:
+- `critical_reasoner` → Opus-class
+- `workhorse_coder` → Sonnet-class
+- `fast_router` → Haiku-class
+- `independent_verifier` → Codex / second-model family
+- `cheap_local` → local model
+
+### Current Default: Sonnet-class workhorse evaluates escalation
+
+**Immediately escalate to the critical_reasoner tier (keyword match)**:
 - Critical business logic/secrets/credentials
 - Data analysis/metrics/core business logic
 - Critical project core code modifications
 - Calculations involving important business metrics
 
-**Sonnet handles directly**:
+**workhorse_coder handles directly**:
 - Docs/comments/README/daily Q&A
 - UI/frontend development
 - Config files (non-critical parameters)
 - Data display/charts/logging tools
 - ≤50 line utility functions/bug fixes
 
-> Detailed routing table + model cost comparison → `Read docs/task-routing.md`
+> Detailed routing table + target profile mapping → `Read docs/task-routing.md`
 
 ### Execution Rules
-- On dispatch, output: `🔀 Route: [task summary] → [Sonnet/Opus/Haiku/Codex/Local]`
+- On dispatch, output: `🔀 Route: [task summary] → [capability tier] ([current executor])`
 - User can override: "I want Opus for this" / "Sonnet is enough"
 - Routing mistake corrected → immediately `memory_add` to record
 
@@ -137,7 +151,7 @@ Banned: mixed changes, meaningless messages, >100 lines without splitting.
 When user wants to do the following on non-Sundays, **intercept and remind**:
 - Optimize memory system / search index / hooks
 - Create or refactor skills / workflows / automation scripts
-- Adjust CLAUDE.md / rules / behavior specs
+- Adjust `core/` / `targets/` / CLAUDE.md / rules / behavior specs
 - Anything that "makes the system better" but doesn't directly produce output
 
 **Intercept message**:

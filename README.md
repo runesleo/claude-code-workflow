@@ -1,8 +1,8 @@
 # Claude Code Workflow
 
-A battle-tested workflow template for Claude Code — memory management, context engineering, and task routing from 3 months of daily usage across multiple projects.
+A battle-tested workflow foundation for Claude Code today, evolving into a portable vibe coding config base for Claude Code, Codex CLI, OpenCode, Cursor, and similar agentic tools.
 
-**Not a tutorial. Not a toy config. A production workflow that actually ships.**
+**Not a tutorial. Not a toy config. A production workflow that actually ships — now with a provider-neutral core spec in phase 1.**
 
 ## Why This Exists
 
@@ -10,30 +10,43 @@ Claude Code is powerful out of the box, but without structure it becomes a smart
 
 - Remembers past mistakes and applies lessons automatically
 - Manages context across long sessions without drifting
-- Routes tasks to the right model tier (Opus/Sonnet/Haiku/Codex/Local)
+- Routes tasks to the right capability tier and active provider profile
 - Forces verification before claiming completion (no more "should work now")
 - Auto-saves progress so closing the window doesn't lose work
 
-## Architecture: Three Layers
+## Phase 1-2 Direction: Portable Core + Target Adapters + Generator
 
-```
-┌─────────────────────────────────────────────────────────┐
-│  Layer 0: Auto-loaded Rules (always in context)         │
-│  ┌─────────────┐ ┌────────────┐ ┌───────────────┐     │
-│  │ behaviors.md │ │skill-      │ │memory-flush.md│     │
-│  │              │ │triggers.md │ │               │     │
-│  └─────────────┘ └────────────┘ └───────────────┘     │
-├─────────────────────────────────────────────────────────┤
-│  Layer 1: On-demand Docs (loaded when needed)           │
-│  agents.md · content-safety.md · task-routing.md        │
-│  behaviors-extended.md · scaffolding-checkpoint.md ...   │
-├─────────────────────────────────────────────────────────┤
-│  Layer 2: Hot Data (your working memory)                │
-│  today.md · projects.md · goals.md · active-tasks.json  │
-└─────────────────────────────────────────────────────────┘
+This repo now has two layers of concern:
+
+- `core/` — provider-neutral workflow semantics (model tiers, skill registry, safety policy)
+- current runtime files (`rules/`, `docs/`, `memory/`, `skills/`) — the first-class Claude Code target that remains fully usable today
+- `targets/` — mapping notes for Claude Code, Codex CLI, Cursor, and OpenCode
+
+Phase 1 established the portable SSOT and adapter contract. Phase 2-3 added a minimal `bin/vibe` generator with build/use/inspect/switch ergonomics. Phase 4 adds portable behavior policies plus deeper native config rendering for supported targets.
+
+## Architecture: Portable Core + Runtime Layers
+
+```text
+Portable core
+  core/models      -> capability tiers + provider profiles
+  core/skills      -> portable skill registry
+  core/security    -> severity policy + signal taxonomy
+  core/policies    -> portable behavior policies
+
+Target adapters
+  targets/*.md     -> Claude Code / Codex CLI / Cursor / OpenCode mapping docs
+
+Current first-class runtime target: Claude Code
+  Layer 0: rules/  (always loaded)
+  Layer 1: docs/   (on demand)
+  Layer 2: memory/ (hot data)
+  skills/, agents/, commands/ remain host-facing assets during transition
+
+Generator
+  bin/vibe         -> build/use portable targets into generated/<target>/
 ```
 
-**Why three layers?** Context window is expensive. Loading everything wastes tokens and degrades quality. This system loads rules always (~2K tokens), docs only when relevant (~1-3K each), and keeps your daily state hot for instant recall.
+**Why this split?** `core/` keeps the semantics portable, while the existing runtime layers keep Claude Code productive right now. That lets you generalize the workflow without throwing away the current working setup.
 
 ## What's Inside
 
@@ -41,6 +54,31 @@ Claude Code is powerful out of the box, but without structure it becomes a smart
 claude-code-workflow/
 ├── CLAUDE.md                     # Entry point — Claude reads this first
 ├── README.md                     # You are here
+│
+├── bin/
+│   └── vibe                      # Phase-2 generator CLI (build/use targets)
+│
+├── core/                         # Portable SSOT (phase 1)
+│   ├── README.md                 # Portable architecture + migration rules
+│   ├── models/
+│   │   ├── tiers.yaml            # Capability tiers (portable)
+│   │   └── providers.yaml        # Target/provider mappings
+│   ├── skills/
+│   │   └── registry.yaml         # Skill registry + namespace rules
+│   ├── security/
+│   │   └── policy.yaml           # P0/P1/P2 semantics + target actions
+│   └── policies/
+│       └── behaviors.yaml        # Portable behavior policy schema
+│
+├── targets/                      # Target adapter contracts
+│   ├── README.md                 # Shared adapter rules
+│   ├── claude-code.md            # Current first-class target mapping
+│   ├── codex-cli.md              # Planned Codex CLI mapping
+│   ├── cursor.md                 # Planned Cursor mapping
+│   └── opencode.md               # Planned OpenCode mapping
+│
+├── generated/                    # Build output (ignored by default)
+│   └── <target>/                 # Materialized target-specific config
 │
 ├── rules/                        # Layer 0: Always loaded
 │   ├── behaviors.md              # Core behavior rules (debugging, commits, routing)
@@ -53,7 +91,7 @@ claude-code-workflow/
 │   ├── behaviors-reference.md    # Detailed operation guides
 │   ├── content-safety.md         # AI hallucination prevention system
 │   ├── scaffolding-checkpoint.md # "Do you really need to self-host?" checklist
-│   └── task-routing.md           # Model tier routing + cost comparison
+│   └── task-routing.md           # Model tier routing + target profiles
 │
 ├── memory/                       # Layer 2: Your working state (templates)
 │   ├── today.md                  # Daily session log
@@ -82,7 +120,7 @@ claude-code-workflow/
 
 ## Quick Start
 
-### 1. Copy to your Claude Code config
+### 1. Copy to your Claude Code config (current first-class target)
 
 ```bash
 # Clone the template
@@ -114,10 +152,67 @@ claude
 
 Claude will automatically load your rules and start following the workflow. Try:
 
-- Start coding and notice the **task routing** ("🔀 Route: bug fix → Sonnet")
+- Start coding and notice the **task routing** (`🔀 Route: bug fix → workhorse_coder (Sonnet-class)`)
 - Hit a bug and watch **systematic debugging** kick in
 - Say "that's all for now" and see **session-end** auto-save everything
 - Come back tomorrow and find your context preserved in `today.md`
+
+Portable note: `core/` and `targets/` define the cross-tool contract, but Claude Code remains the directly runnable target in phase 1.
+
+## Phase 2-4: Build / Use / Inspect Generator
+
+The repository now ships a minimal generator CLI:
+
+```bash
+bin/vibe build --target claude-code
+bin/vibe build --target codex-cli
+bin/vibe build --target cursor
+bin/vibe build --target opencode
+bin/vibe inspect
+```
+
+By default, each build goes to `generated/<target>/`.
+
+Examples:
+
+```bash
+# Build a Claude Code config tree
+bin/vibe build --target claude-code
+# Positional shorthand also works
+bin/vibe build cursor
+
+# Build an OpenCode project config into a custom directory
+bin/vibe build --target opencode --output /tmp/vibe-opencode
+
+# Apply a generated Claude target into ~/.claude
+bin/vibe use --target claude-code --destination ~/.claude
+
+# Apply a generated Cursor target into a project root
+bin/vibe use --target cursor --destination /path/to/project
+
+# Quick-switch repo-local targets into the current repo
+bin/vibe switch cursor
+bin/vibe switch codex-cli
+bin/vibe switch opencode
+
+# Quick-switch Claude Code into ~/.claude
+bin/vibe switch claude-code
+
+# Inspect current defaults, generated outputs, and repo target state
+bin/vibe inspect
+bin/vibe inspect --json
+```
+
+Current phase-4 behavior:
+
+- `claude-code` → materializes `CLAUDE.md`, `rules/`, `docs/`, `skills/`, `agents/`, `commands/`, and a generated `settings.json` permission baseline
+- `codex-cli` → materializes `AGENTS.md` plus generated behavior / routing / safety / execution docs
+- `cursor` → materializes `AGENTS.md`, `.cursor/rules/*.mdc`, `.cursor/cli.json`, and supporting `.vibe/cursor/*` notes
+- `opencode` → materializes `AGENTS.md`, `opencode.json`, and modular behavior / routing / safety / execution instruction files with generated permissions
+- `inspect` → reports default profiles, generated target outputs, portable policy count, and any repo-level active target marker
+- `switch` → uses sensible defaults for destination (`~/.claude` for Claude, repo root for repo-local targets)
+
+`bin/vibe` is intentionally conservative: it only renders the parts that are already modeled in `core/` and documented in `targets/`.
 
 ## Key Concepts
 
@@ -133,20 +228,27 @@ Claude auto-saves progress on every task completion, every commit, and every exi
 
 The most impactful rule: Claude cannot claim work is done without running the verification command and reading the output. Eliminates the #1 AI coding failure mode — "should work now" without actually checking.
 
-### Three-Tier Task Routing
+### Capability-Tier Task Routing
 
-Not every task needs Opus. The routing system automatically matches task complexity to model tier:
-- **Opus**: Critical logic, security-sensitive, complex reasoning
-- **Sonnet**: Daily development, analysis, most coding tasks
-- **Haiku**: Simple queries, subagent tasks, quick lookups
-- **Codex**: Cross-verification, code review, second opinions
-- **Local**: Commit messages, formatting, offline work
+Route by capability first, then map it to the active provider profile:
+- **critical_reasoner**: Critical logic, security-sensitive, complex reasoning
+- **workhorse_coder**: Daily development, analysis, most coding tasks
+- **fast_router**: Simple queries, subagent tasks, quick lookups
+- **independent_verifier**: Cross-verification, code review, second opinions
+- **cheap_local**: Commit messages, formatting, offline work
 
 ### Sunday Rule
 
 System optimization happens on Sundays. On other days, if you try to tweak your workflow instead of shipping, Claude will intercept and remind you to focus on output. Configurable to any cadence you prefer.
 
 ## Customization Guide
+
+### Portable-first workflow
+
+1. Update the portable SSOT in `core/`
+2. Sync the active Claude-facing files in `rules/`, `docs/`, and `skills/`
+3. Keep the target adapter docs in `targets/` accurate
+4. Extend `bin/vibe` only after the portable schema stabilizes
 
 ### Adding a new project
 
@@ -173,6 +275,15 @@ allowed-tools:
 [Instructions for Claude when this skill is invoked]
 ```
 
+Then register its portable metadata in `core/skills/registry.yaml` before adding trigger rules.
+
+### Adding an external skill pack (e.g. Superpowers)
+
+1. Import the skill files under your preferred layout
+2. Register the namespace and skill metadata in `core/skills/registry.yaml`
+3. Review it against `core/security/policy.yaml`
+4. Only then add trigger rules in `rules/skill-triggers.md`
+
 ### Adding a new agent
 
 Create `agents/your-agent.md` with:
@@ -191,7 +302,7 @@ tools: Read, Grep, Glob, Bash
 
 ### Adjusting model routing
 
-Edit `rules/behaviors.md` → "Task Routing" section, and `docs/task-routing.md` for detailed tier definitions.
+Edit `core/models/tiers.yaml` and `core/models/providers.yaml` first, then sync `rules/behaviors.md` and `docs/task-routing.md` for the active target.
 
 ## Philosophy
 
@@ -208,6 +319,7 @@ This template encodes several principles learned from daily AI-assisted developm
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI (Claude Max or API subscription)
 - Optional: Codex CLI for cross-verification
 - Optional: Ollama for local model fallback
+- Optional: other targets via `targets/` adapter docs
 
 ## Prior Art & Credits
 

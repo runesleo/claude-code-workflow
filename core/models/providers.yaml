@@ -1,0 +1,69 @@
+schema_version: 1
+status: phase-1-manual
+
+profiles:
+  claude-code-default:
+    target: claude-code
+    maturity: active
+    current_role: first_class_target
+    mapping:
+      critical_reasoner: claude.opus-class
+      workhorse_coder: claude.sonnet-class
+      fast_router: claude.haiku-class
+      independent_verifier: second-model.cross-family
+      cheap_local: local.ollama-class
+    notes:
+      - Current repository files are optimized for this profile.
+      - Keep the verifier in a different model family when possible.
+
+  codex-cli-default:
+    target: codex-cli
+    maturity: planned
+    mapping:
+      critical_reasoner: openai.high-reasoning
+      workhorse_coder: openai.codex-workhorse
+      fast_router: openai.fast-agent
+      independent_verifier: second-model.cross-family
+      cheap_local: local.ollama-class
+    notes:
+      - Use AGENTS.md as the minimum common instruction surface.
+      - Map P0 or P1 actions to native approval or sandbox rules when available.
+
+  cursor-default:
+    target: cursor
+    maturity: planned
+    mapping:
+      critical_reasoner: cursor.primary-frontier-model
+      workhorse_coder: cursor.default-agent-model
+      fast_router: cursor.fast-model
+      independent_verifier: second-model.or.manual-review
+      cheap_local: local.external-runner
+    notes:
+      - Render portable instructions into rule types rather than assuming native skills.
+      - Treat tool-managed memories as cache, not as the workflow SSOT.
+
+  opencode-default:
+    target: opencode
+    maturity: planned
+    mapping:
+      critical_reasoner: configured.primary-high-reasoning
+      workhorse_coder: configured.primary-coder
+      fast_router: configured.fast-agent
+      independent_verifier: second-model.cross-family
+      cheap_local: local.ollama-class
+    notes:
+      - Prefer native OpenCode rules and permissions where possible.
+      - OpenCode can often reuse AGENTS.md and Claude-style skill assets with light adaptation.
+
+  glm-family-default:
+    target: generic-open-weight
+    maturity: exploratory
+    mapping:
+      critical_reasoner: glm.or.other.frontier-open-family
+      workhorse_coder: glm.or.other.coding-workhorse
+      fast_router: glm.or.other.fast-small-model
+      independent_verifier: separate-model-family
+      cheap_local: locally-hosted-default
+    notes:
+      - Benchmark each tier against your own tasks before enabling it by default.
+      - Keep local deployment concerns outside the portable routing policy.

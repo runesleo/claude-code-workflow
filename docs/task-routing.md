@@ -1,54 +1,67 @@
-# Task Routing Detailed Table (Tiers 2-4 + Cost Comparison)
+# Task Routing Detailed Table (Capability Tiers + Target Profiles)
 
-> On-demand loading. Tier 1 (Sonnet evaluates escalation) stays in rules/behaviors.md.
+> On-demand loading. Portable routing SSOT lives in `core/models/tiers.yaml` and `core/models/providers.yaml`. Current first-class runtime target remains Claude Code.
 
-## Tier 2: Opus Exclusive Scenarios
+## Capability Tiers
 
-| Task Type | Route | Notes |
-|-----------|-------|-------|
-| Critical logic/secrets/credentials | **Opus exclusive** | Safety floor, never outsource |
-| Data analysis/core metrics/business logic | **Opus exclusive** | Optional: Opus -> Codex verify |
-| Critical code review | **Opus lead -> Codex audit** | Multi-model cross-check |
-| New feature >50 lines (critical) | **Opus write -> Codex review** | Maker-checker |
-| Bug fix (critical) | **Opus fix -> Codex verify** | Prevent regression |
+| Tier ID | Legacy label in this repo | Use for | Avoid for |
+|---------|---------------------------|---------|-----------|
+| `critical_reasoner` | Opus | Critical logic, architecture, secrets, security review | Docs-only edits, repetitive cleanup |
+| `workhorse_coder` | Sonnet | Daily implementation, analysis, routine refactors | Highest-risk business logic |
+| `fast_router` | Haiku | Exploration, classification, quick lookups | Final decisions, broad edits |
+| `independent_verifier` | Codex / second model | Cross-checking critical conclusions | Trivial one-shot tasks |
+| `cheap_local` | Local | Offline or low-risk bulk tasks | Long-context, high-assurance work |
 
-## Tier 3: External Model Assistance
+## Current Default Profile: Claude Code
 
-| Task Type | Route | Notes |
-|-----------|-------|-------|
-| Code review (non-critical) | **Sonnet -> Codex** | Codex deep reasoning |
-| Complex refactor/cross-file changes | **Codex** | Suitable for >100 line non-sensitive refactors |
-| Cross-verification/second opinion | **Codex** (fallback: alternative) | Different model family, independent verification |
-| Simple queries/formatting/search | **Haiku (subagent)** | Fastest, cheapest |
-| Batch text analysis/filtering | **Alternative model** | For high-frequency scenarios |
+| Task Type | Portable route | Current executor hint | Notes |
+|-----------|----------------|-----------------------|-------|
+| Critical logic / secrets / credentials | `critical_reasoner` | Opus-class | Safety floor, never outsource blindly |
+| Critical code review | `critical_reasoner` + `independent_verifier` | Opus lead → Codex audit | Multi-model cross-check |
+| Daily feature work | `workhorse_coder` | Sonnet-class | Default implementation path |
+| Complex non-sensitive refactor | `workhorse_coder` or `independent_verifier` | Sonnet → Codex | Good for >100 line refactors |
+| Quick search / simple classification | `fast_router` | Haiku-class | Fastest and cheapest cloud tier |
+| Commit messages / formatting / offline fallback | `cheap_local` | Local model | Prefer local if quality is enough |
 
-## Tier 4: Local Models — Free Compute Pool (Ollama, fallback)
+## Other Target Profiles (Phase 1 Contract)
 
-**Principle: If a $0 model can do it, don't burn premium quota.**
+### Codex CLI
 
-| Task Type | Model | Method | Notes |
-|-----------|-------|--------|-------|
-| Commit message generation | Local 7B model | `curl localhost:11434/v1/...` | Replace main session generation |
-| Simple text formatting/translation | Local 7B model | curl | Replace Haiku subagent |
-| Diff classification (critical vs trivial) | Local 7B model | curl | Pre-filter before Codex review |
-| Batch/non-critical tasks | Local agent | configured agent | Zero-cost batch processing |
-| Offline work | Local model | ollama run | Only option when disconnected |
+- Use the `codex-cli-default` profile from `core/models/providers.yaml`
+- Treat `AGENTS.md` as the minimum common instruction surface
+- Keep `independent_verifier` cross-family when possible
 
-**Limitations**: 32K context, no MCP, weaker than Haiku. Complex tasks still need cloud models.
-**Fallback**: Ollama not running -> `ollama serve &` or fall back to Haiku subagent.
+### Cursor
 
-## Model Cost Overview
+- Use the `cursor-default` profile from `core/models/providers.yaml`
+- Render routing as rules and review conventions rather than assuming native skills
+- Keep repo files as SSOT; tool-managed memory is only cache
 
-| Tier | Model | Source | Monthly | Typical Scenario | Method | Status |
-|------|-------|--------|---------|-----------------|--------|--------|
-| **L1 Top** | Opus | Claude Max | $200-250 | Critical/complex reasoning | Main session | Active |
-| **L2 Workhorse** | Sonnet | Claude Max | Included | Daily dev/analysis | Main/subagent | Active |
-| **L3 Economy** | Haiku | Claude Max | Included | Simple queries/subagent | `Task(model="haiku")` | Active |
-| **L3 Audit** | Codex (GPT) | ChatGPT Plus | $20 | Code review/cross-verify | MCP or CLI | Active |
-| **L4 Local** | Ollama 7B | Local | $0 | Offline/simple/fallback | `curl localhost:11434` | Standby |
+### OpenCode
 
-**Prompt Caching**: Anthropic API auto-enables, cache hits reduce cost 90%. Continuous conversations (<5min gap) work best.
+- Use the `opencode-default` profile from `core/models/providers.yaml`
+- Prefer native permission controls and reusable agent or skill constructs
+- Use this as an early proving ground for cross-target portability
 
----
+### Generic Open-Weight / GLM-family
 
-*Customize models and costs based on your subscriptions and available tools.*
+- Use the `glm-family-default` profile from `core/models/providers.yaml`
+- Re-benchmark every tier against your own tasks before enabling by default
+- Keep local deployment and infra concerns outside the portable routing policy
+
+## Local / Low-Cost Pool
+
+**Principle: If a low-cost or local model can do it safely, do not burn premium quota.**
+
+| Task Type | Portable route | Notes |
+|-----------|----------------|-------|
+| Commit message generation | `cheap_local` | Good default local workload |
+| Simple formatting / translation | `cheap_local` | Replace the fastest cloud tier when acceptable |
+| Diff classification (critical vs trivial) | `cheap_local` | Pre-filter before expensive review |
+| Batch / non-critical tasks | `cheap_local` | Best zero-cost compute pool |
+
+## Migration Rule
+
+- Route by capability tier first, then resolve against the active target profile.
+- Do not hard-code product names in new portable rules; keep them in `core/models/providers.yaml`.
+- Update `rules/behaviors.md` only after the portable model files are aligned.
