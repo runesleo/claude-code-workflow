@@ -1,0 +1,44 @@
+schema_version: 1
+name: example-regulated-project
+description: Example overlay for a project with stricter review and data-handling requirements.
+
+profile:
+  mapping_overrides:
+    critical_reasoner: openai.high-reasoning
+    independent_verifier: second-model.cross-family
+  note_append:
+    - Prefer an independent verifier before merging database migrations or data-retention changes.
+    - Escalate export, redaction, and compliance-sensitive logic to the strongest reasoning tier.
+
+policies:
+  append:
+    - id: project-context-is-release-log
+      category: project_memory
+      enforcement: recommended
+      target_render_group: always_on
+      summary: Keep `PROJECT_CONTEXT.md` current for release blockers, migrations, and rollback notes.
+    - id: regulated-data-review
+      category: safety
+      enforcement: mandatory
+      target_render_group: safety
+      summary: Treat customer-data exports, redaction, and retention changes as review-required work.
+
+targets:
+  claude-code:
+    permissions:
+      ask:
+        - "Bash(./scripts/deploy:*)"
+      deny:
+        - "Read(./customer-data/**)"
+  cursor:
+    permissions:
+      allow:
+        - "Shell(bundle exec rspec)"
+      deny:
+        - "Read(customer-data/**)"
+  opencode:
+    permission:
+      read:
+        "**/customer-data/**": "deny"
+      bash:
+        "bundle exec rspec*": "allow"

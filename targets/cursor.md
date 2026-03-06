@@ -31,3 +31,8 @@ Cursor should render the portable workflow through rules and project-scoped cont
 - `bin/vibe switch cursor` applies Cursor-oriented files into the current repo root by default.
 - The generated Cursor output now separates core, routing, safety, and optional-skill rules, with supporting notes under `.vibe/cursor/`.
 - Phase 4 also generates `.cursor/cli.json` with a conservative permission baseline derived from the portable safety policy.
+
+## Phase 5 Additions
+
+- Cursor builds can now merge a project overlay into `.cursor/cli.json`, profile mapping, and the generated support docs.
+- Destination repos with `.vibe/overlay.yaml` get that overlay automatically when using `bin/vibe use` or `bin/vibe switch`.

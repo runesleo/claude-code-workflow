@@ -1,6 +1,6 @@
 # Task Routing Detailed Table (Capability Tiers + Target Profiles)
 
-> On-demand loading. Portable routing SSOT lives in `core/models/tiers.yaml` and `core/models/providers.yaml`. Current first-class runtime target remains Claude Code.
+> On-demand loading. Portable routing SSOT lives in `core/models/tiers.yaml` and `core/models/providers.yaml`. Current first-class runtime target remains Claude Code, while project-specific remapping can be layered through `.vibe/overlay.yaml` or `--overlay FILE`.
 
 ## Capability Tiers
 
@@ -43,6 +43,12 @@
 - Prefer native permission controls and reusable agent or skill constructs
 - Use this as an early proving ground for cross-target portability
 
+### Warp
+
+- Use the `warp-default` profile from `core/models/providers.yaml`
+- Render routing into `WARP.md` and `.vibe/warp/*` support docs rather than assuming a separate native skill system
+- Keep stack-specific preferences such as `uv` and `nvm` in overlays so they stay project-scoped
+
 ### Generic Open-Weight / GLM-family
 
 - Use the `glm-family-default` profile from `core/models/providers.yaml`
@@ -62,6 +68,7 @@
 
 ## Migration Rule
 
-- Route by capability tier first, then resolve against the active target profile.
+- Route by capability tier first, then resolve against the active target profile plus any applied overlay.
 - Do not hard-code product names in new portable rules; keep them in `core/models/providers.yaml`.
+- Use `.vibe/overlay.yaml` for repo-local remapping before changing shared defaults.
 - Update `rules/behaviors.md` only after the portable model files are aligned.

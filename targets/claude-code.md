@@ -33,3 +33,8 @@ Claude Code is the current first-class runtime target for this repository.
 
 - The generated Claude output now includes a `settings.json` permission baseline derived from the portable safety policy.
 - `.vibe/claude-code/behavior-policies.md` and `.vibe/claude-code/safety.md` mirror the portable behavior and safety schema for traceability.
+
+## Phase 5 Additions
+
+- Claude builds can now merge a project overlay into `settings.json` and the rendered behavior summary.
+- `bin/vibe use` and `bin/vibe switch` will auto-discover `.vibe/overlay.yaml` in the destination repo when present.

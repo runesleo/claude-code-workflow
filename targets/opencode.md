@@ -31,3 +31,8 @@ OpenCode is a strong bridge target because it can work with repo rules, permissi
 - `bin/vibe switch opencode` applies the generated OpenCode config into the current repo root by default.
 - The generated OpenCode output now includes dedicated routing and execution modules in addition to general, skills, and safety guidance.
 - Phase 4 also renders a `permission` block in `opencode.json` so safety policy influences OpenCode’s native permission layer.
+
+## Phase 5 Additions
+
+- OpenCode builds can now deep-merge project overlays into `opencode.json`, including permission deltas and other supported native config additions.
+- Overlay-applied profile and behavior deltas are also reflected in the generated `.vibe/opencode/*` instructions.

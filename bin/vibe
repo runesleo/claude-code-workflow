@@ -14,12 +14,17 @@ class VibeCLI
     "codex" => "codex-cli",
     "codex-cli" => "codex-cli",
     "cursor" => "cursor",
-    "opencode" => "opencode"
+    "opencode" => "opencode",
+    "warp" => "warp"
   }.freeze
 
-  SUPPORTED_TARGETS = %w[claude-code codex-cli cursor opencode].freeze
+  SUPPORTED_TARGETS = %w[claude-code codex-cli cursor opencode warp].freeze
   COPY_RUNTIME_ENTRIES = %w[CLAUDE.md rules docs skills agents commands].freeze
   MARKER_FILENAME = ".vibe-target.json"
+  OVERLAY_CANDIDATES = [
+    File.join(".vibe", "overlay.yaml"),
+    File.join(".vibe", "overlay.yml")
+  ].freeze
 
   def initialize(repo_root)
     @repo_root = repo_root
@@ -59,16 +64,21 @@ class VibeCLI
   def usage
     <<~TEXT
       Usage:
-        bin/vibe build TARGET [--profile PROFILE] [--output DIR]
-        bin/vibe use TARGET DESTINATION [--profile PROFILE] [--output DIR] [--force]
-        bin/vibe switch TARGET [--profile PROFILE] [--output DIR] [--force]
-        bin/vibe inspect [TARGET] [--json]
+        bin/vibe build TARGET [--profile PROFILE] [--output DIR] [--overlay FILE]
+        bin/vibe use TARGET DESTINATION [--profile PROFILE] [--output DIR] [--overlay FILE] [--force]
+        bin/vibe switch TARGET [--profile PROFILE] [--output DIR] [--overlay FILE] [--force]
+        bin/vibe inspect [TARGET] [--overlay FILE] [--json]
         bin/vibe targets
+
+      Overlay discovery:
+        - If --overlay FILE is provided, that file is used.
+        - Otherwise `use` / `switch` look for `.vibe/overlay.yaml` in the destination root.
+        - Other commands fall back to the workflow repo root.
 
       Notes:
         - TARGET may also be passed via --target TARGET.
         - DESTINATION may also be passed via --destination DIR.
-        - switch defaults to the repository root for codex-cli/cursor/opencode,
+        - switch defaults to the repository root for codex-cli/cursor/opencode/warp,
           and ~/.claude for claude-code.
 
       Supported targets:
@@ -79,7 +89,7 @@ class VibeCLI
   def run_build(argv)
     options, remaining = parse_common_options(
       argv,
-      banner: "Usage: bin/vibe build TARGET [--profile PROFILE] [--output DIR]"
+      banner: "Usage: bin/vibe build TARGET [--profile PROFILE] [--output DIR] [--overlay FILE]"
     )
     extract_target_from_remaining!(options, remaining)
     ensure_no_remaining_args!(remaining)
@@ -87,22 +97,24 @@ class VibeCLI
     target = require_target!(options)
     profile_name, profile = resolve_profile(target, options[:profile])
     output_root = File.expand_path(options[:output] || default_output_root(target))
+    overlay = resolve_overlay(explicit_path: options[:overlay], search_roots: [@repo_root])
 
-    build_target(
+    manifest = build_target(
       target: target,
       profile_name: profile_name,
       profile: profile,
-      output_root: output_root
+      output_root: output_root,
+      overlay: overlay
     )
 
-    puts "Built #{target} (#{profile_name}) -> #{output_root}"
+    puts "Built #{target} (#{profile_name})#{overlay_label(manifest)} -> #{output_root}"
   end
 
   def run_use(argv, switch_mode:)
     banner = if switch_mode
-      "Usage: bin/vibe switch TARGET [--profile PROFILE] [--output DIR] [--force]"
+      "Usage: bin/vibe switch TARGET [--profile PROFILE] [--output DIR] [--overlay FILE] [--force]"
     else
-      "Usage: bin/vibe use TARGET DESTINATION [--profile PROFILE] [--output DIR] [--force]"
+      "Usage: bin/vibe use TARGET DESTINATION [--profile PROFILE] [--output DIR] [--overlay FILE] [--force]"
     end
 
     options, remaining = parse_common_options(argv, banner: banner)
@@ -118,19 +130,20 @@ class VibeCLI
     profile_name, profile = resolve_profile(target, options[:profile])
     output_root = File.expand_path(options[:output] || default_output_root(target))
     destination_root = File.expand_path(destination)
+    overlay = resolve_overlay(explicit_path: options[:overlay], search_roots: [destination_root, @repo_root])
 
-    build_target(
+    manifest = build_target(
       target: target,
       profile_name: profile_name,
       profile: profile,
-      output_root: output_root
+      output_root: output_root,
+      overlay: overlay
     )
     enforce_safe_destination!(output_root, destination_root, options[:force])
 
     FileUtils.mkdir_p(destination_root)
     copy_tree_contents(output_root, destination_root)
 
-    manifest = read_json(File.join(output_root, ".vibe", "manifest.json"))
     write_marker(
       File.join(destination_root, MARKER_FILENAME),
       destination_root: destination_root,
@@ -139,16 +152,20 @@ class VibeCLI
       mode: switch_mode ? "switch" : "use"
     )
 
-    puts "Applied #{target} (#{profile_name}) -> #{destination_root}"
+    puts "Applied #{target} (#{profile_name})#{overlay_label(manifest)} -> #{destination_root}"
   end
 
   def run_inspect(argv)
     options = { json: false }
     parser = OptionParser.new do |opts|
-      opts.banner = "Usage: bin/vibe inspect [TARGET] [--json]"
+      opts.banner = "Usage: bin/vibe inspect [TARGET] [--overlay FILE] [--json]"
 
       opts.on("--target TARGET", "Limit inspection to one target") do |value|
         options[:target] = normalize_target(value)
+      end
+
+      opts.on("--overlay FILE", "Apply a project overlay when previewing target resolution") do |value|
+        options[:overlay] = value
       end
 
       opts.on("--json", "Output machine-readable JSON") do
@@ -167,7 +184,8 @@ class VibeCLI
     end
     ensure_no_remaining_args!(remaining)
 
-    payload = inspect_payload(target: options[:target])
+    overlay = resolve_overlay(explicit_path: options[:overlay], search_roots: [@repo_root])
+    payload = inspect_payload(target: options[:target], overlay: overlay)
     if options[:json]
       puts JSON.pretty_generate(payload)
     else
@@ -195,6 +213,10 @@ class VibeCLI
 
       opts.on("--destination DIR", "Destination root for `use`") do |value|
         options[:destination] = value
+      end
+
+      opts.on("--overlay FILE", "Apply a project overlay file while rendering") do |value|
+        options[:overlay] = value
       end
 
       opts.on("--force", "Allow overwriting existing generated target files at the destination") do
@@ -290,12 +312,44 @@ class VibeCLI
     end.first
   end
 
-  def build_target(target:, profile_name:, profile:, output_root:)
+  def resolve_overlay(explicit_path:, search_roots:)
+    path = explicit_path ? File.expand_path(explicit_path) : discover_overlay(search_roots)
+    return nil if path.nil?
+
+    abort "Overlay file not found: #{path}" unless File.file?(path)
+
+    doc = read_yaml_abs(path) || {}
+    abort "Overlay file must contain a YAML mapping: #{path}" unless doc.is_a?(Hash)
+
+    {
+      "schema_version" => doc["schema_version"] || 1,
+      "path" => path,
+      "name" => doc["name"] || File.basename(path),
+      "description" => doc["description"],
+      "profile" => doc["profile"] || {},
+      "policies" => doc["policies"] || {},
+      "targets" => doc["targets"] || {}
+    }
+  end
+
+  def discover_overlay(search_roots)
+    Array(search_roots).compact.map { |root| File.expand_path(root) }.uniq.each do |root|
+      OVERLAY_CANDIDATES.each do |relative_path|
+        candidate = File.join(root, relative_path)
+        return candidate if File.file?(candidate)
+      end
+    end
+
+    nil
+  end
+
+  def build_target(target:, profile_name:, profile:, output_root:, overlay:)
     manifest = build_manifest(
       target: target,
       profile_name: profile_name,
       profile: profile,
-      output_root: output_root
+      output_root: output_root,
+      overlay: overlay
     )
 
     FileUtils.rm_rf(output_root)
@@ -310,6 +364,8 @@ class VibeCLI
       render_cursor(output_root, manifest)
     when "opencode"
       render_opencode(output_root, manifest)
+    when "warp"
+      render_warp(output_root, manifest)
     else
       abort "Target renderer not implemented: #{target}"
     end
@@ -318,19 +374,27 @@ class VibeCLI
     FileUtils.mkdir_p(vibe_dir)
     write_json(File.join(vibe_dir, "manifest.json"), manifest)
     File.write(File.join(vibe_dir, "target-summary.md"), render_target_summary(manifest))
+    manifest
   end
 
-  def build_manifest(target:, profile_name:, profile:, output_root:)
+  def build_manifest(target:, profile_name:, profile:, output_root:, overlay:)
+    profile_mapping = deep_merge(profile.fetch("mapping"), overlay_profile_mapping_overrides(overlay))
+    profile_notes = (Array(profile["notes"]) + overlay_profile_note_append(overlay)).uniq
+    policies = effective_policies(overlay)
+    native_config_overlay = overlay_target_patch(overlay, target)
+
     {
-      "schema_version" => 3,
+      "schema_version" => 5,
       "generated_at" => Time.now.utc.iso8601,
       "source_repo" => @repo_root,
       "output_root" => File.expand_path(output_root),
       "target" => target,
       "profile" => profile_name,
       "profile_maturity" => profile["maturity"],
-      "profile_notes" => profile["notes"] || [],
-      "profile_mapping" => profile.fetch("mapping"),
+      "profile_notes" => profile_notes,
+      "profile_mapping" => profile_mapping,
+      "overlay" => overlay_summary(overlay, target: target),
+      "native_config_overlay" => native_config_overlay,
       "routing_defaults" => @tiers_doc["routing_defaults"],
       "tiers" => @tiers_doc.fetch("tiers").transform_values do |tier|
         {
@@ -350,16 +414,7 @@ class VibeCLI
           "target_support" => skill.fetch("supported_targets", {})[target]
         }
       end,
-      "policies" => @policies_doc.fetch("policies").map do |policy|
-        {
-          "id" => policy["id"],
-          "category" => policy["category"],
-          "enforcement" => policy["enforcement"],
-          "target_render_group" => policy["target_render_group"],
-          "summary" => policy["summary"],
-          "source_refs" => policy["source_refs"] || []
-        }
-      end,
+      "policies" => policies,
       "security" => {
         "severity_levels" => @security_doc.fetch("severity_levels"),
         "signal_categories" => @security_doc.fetch("signal_categories"),
@@ -383,7 +438,7 @@ class VibeCLI
       end
     end
 
-    write_json(File.join(output_root, "settings.json"), claude_settings_config)
+    write_json(File.join(output_root, "settings.json"), claude_settings_config(manifest))
 
     claude_dir = File.join(output_root, ".vibe", "claude-code")
     FileUtils.mkdir_p(claude_dir)
@@ -402,16 +457,17 @@ class VibeCLI
       - `settings.json`
 
       Active profile: `#{manifest["profile"]}`
+      Applied overlay: #{overlay_sentence(manifest)}
       Generated summary: `.vibe/target-summary.md`
     MD
-    File.write(File.join(claude_dir, "behavior-policies.md"), render_behavior_doc(manifest, group: nil))
+    File.write(File.join(claude_dir, "behavior-policies.md"), render_behavior_doc(manifest))
     File.write(File.join(claude_dir, "safety.md"), render_safety_doc(manifest))
   end
 
   def render_codex(output_root, manifest)
     codex_dir = File.join(output_root, ".vibe", "codex-cli")
     FileUtils.mkdir_p(codex_dir)
-    File.write(File.join(codex_dir, "behavior-policies.md"), render_behavior_doc(manifest, group: nil))
+    File.write(File.join(codex_dir, "behavior-policies.md"), render_behavior_doc(manifest))
     File.write(File.join(codex_dir, "routing.md"), render_routing_doc(manifest))
     File.write(File.join(codex_dir, "skills.md"), render_skills_doc(manifest))
     File.write(File.join(codex_dir, "safety.md"), render_safety_doc(manifest))
@@ -421,6 +477,7 @@ class VibeCLI
       # Vibe workflow for Codex CLI
 
       Generated from the portable `core/` spec with profile `#{manifest["profile"]}`.
+      Applied overlay: #{overlay_sentence(manifest)}
 
       ## Non-negotiable rules
 
@@ -457,14 +514,15 @@ class VibeCLI
       # Vibe workflow for Cursor
 
       Generated from the portable `core/` spec with profile `#{manifest["profile"]}`.
+      Applied overlay: #{overlay_sentence(manifest)}
 
       Primary behavior is defined in `.cursor/rules/*.mdc`, with supporting notes under `.vibe/cursor/`.
 
       Keep repository files as the SSOT, verify before claiming completion, and follow the generated routing + safety rules.
     MD
 
-    write_json(File.join(output_root, ".cursor", "cli.json"), cursor_cli_permissions_config)
-    File.write(File.join(cursor_support_dir, "behavior-policies.md"), render_behavior_doc(manifest, group: nil))
+    write_json(File.join(output_root, ".cursor", "cli.json"), cursor_cli_permissions_config(manifest))
+    File.write(File.join(cursor_support_dir, "behavior-policies.md"), render_behavior_doc(manifest))
     File.write(File.join(cursor_support_dir, "routing.md"), render_routing_doc(manifest))
     File.write(File.join(cursor_support_dir, "safety.md"), render_safety_doc(manifest))
     File.write(File.join(cursor_support_dir, "skills.md"), render_skills_doc(manifest))
@@ -536,7 +594,7 @@ class VibeCLI
     opencode_dir = File.join(output_root, ".vibe", "opencode")
     FileUtils.mkdir_p(opencode_dir)
 
-    File.write(File.join(opencode_dir, "behavior-policies.md"), render_behavior_doc(manifest, group: nil))
+    File.write(File.join(opencode_dir, "behavior-policies.md"), render_behavior_doc(manifest))
     File.write(File.join(opencode_dir, "general.md"), render_general_doc(manifest))
     File.write(File.join(opencode_dir, "routing.md"), render_routing_doc(manifest))
     File.write(File.join(opencode_dir, "skills.md"), render_skills_doc(manifest))
@@ -547,36 +605,93 @@ class VibeCLI
       # Vibe workflow for OpenCode
 
       Generated from the portable `core/` spec with profile `#{manifest["profile"]}`.
+      Applied overlay: #{overlay_sentence(manifest)}
 
       Project rules are split into modular instruction files loaded from `opencode.json`.
 
       Keep repository files as the single source of truth, verify before claiming completion, and follow the generated safety policy.
     MD
 
-    write_json(File.join(output_root, "opencode.json"), opencode_config)
+    write_json(File.join(output_root, "opencode.json"), opencode_config(manifest))
   end
 
-  def inspect_payload(target: nil)
+  def render_warp(output_root, manifest)
+    warp_dir = File.join(output_root, ".vibe", "warp")
+    FileUtils.mkdir_p(warp_dir)
+
+    File.write(File.join(output_root, "WARP.md"), <<~MD)
+      # Vibe workflow for Warp
+
+      Generated from the portable `core/` spec with profile `#{manifest["profile"]}`.
+      Applied overlay: #{overlay_sentence(manifest)}
+
+      This file is intended as the Warp project rule entrypoint for the repository.
+
+      ## Non-negotiable rules
+
+      #{bullet_policy_summary(filtered_policies(manifest, %w[always_on routing safety]))}
+
+      ## Capability routing
+
+      #{bullet_mapping(manifest["profile_mapping"])}
+
+      ## Mandatory portable skills
+
+      #{bullet_skill_summary(mandatory_skills(manifest))}
+
+      ## Supporting files
+
+      - Use `.vibe/warp/behavior-policies.md` for the full portable behavior baseline.
+      - Use `.vibe/warp/routing.md` for tier routing and profile mapping.
+      - Use `.vibe/warp/safety.md` for security-sensitive work and escalation policy.
+      - Use `.vibe/warp/skills.md` for portable skill references.
+      - Use `.vibe/warp/workflow-notes.md` for conservative workflow guidance in Warp.
+
+      ## Safety floor
+
+      #{bullet_target_actions(manifest)}
+    MD
+
+    File.write(File.join(warp_dir, "behavior-policies.md"), render_behavior_doc(manifest))
+    File.write(File.join(warp_dir, "routing.md"), render_routing_doc(manifest))
+    File.write(File.join(warp_dir, "skills.md"), render_skills_doc(manifest))
+    File.write(File.join(warp_dir, "safety.md"), render_safety_doc(manifest))
+    File.write(File.join(warp_dir, "workflow-notes.md"), render_warp_workflow_notes_doc(manifest))
+  end
+
+  def inspect_payload(target:, overlay:)
     targets = target ? [target] : SUPPORTED_TARGETS
 
     {
-      "schema_version" => 1,
+      "schema_version" => 3,
       "repo_root" => @repo_root,
+      "overlay" => overlay_overview(overlay),
+      "base_policy_count" => core_policies.length,
+      "effective_policy_count" => effective_policies(overlay).length,
       "current_repo_target" => read_json_if_exists(File.join(@repo_root, MARKER_FILENAME)),
-      "policy_count" => @policies_doc.fetch("policies").length,
-      "targets" => targets.map { |item| inspect_target_payload(item) }
+      "targets" => targets.map { |item| inspect_target_payload(item, overlay: overlay) }
     }
   end
 
-  def inspect_target_payload(target)
+  def inspect_target_payload(target, overlay:)
     default_profile_name, default_profile = default_profile_for_target(target)
     generated_manifest = read_json_if_exists(File.join(default_output_root(target), ".vibe", "manifest.json"))
+    preview_manifest = build_manifest(
+      target: target,
+      profile_name: default_profile_name,
+      profile: default_profile,
+      output_root: default_output_root(target),
+      overlay: overlay
+    )
 
     {
       "target" => target,
       "default_profile" => default_profile_name,
       "profile_maturity" => default_profile["maturity"],
-      "profile_notes" => default_profile["notes"] || [],
+      "profile_notes" => preview_manifest["profile_notes"],
+      "resolved_profile_mapping" => preview_manifest["profile_mapping"],
+      "overlay" => preview_manifest["overlay"],
+      "native_config_overlay" => preview_manifest["native_config_overlay"],
       "generated_output" => File.expand_path(default_output_root(target)),
       "generated_manifest_present" => !generated_manifest.nil?,
       "generated_manifest" => generated_manifest
@@ -588,9 +703,21 @@ class VibeCLI
     lines << "Vibe inspection"
     lines << ""
     lines << "Repository root: #{payload["repo_root"]}"
-    lines << "Portable behavior policies: #{payload["policy_count"]}"
+    lines << "Base portable behavior policies: #{payload["base_policy_count"]}"
+    lines << "Effective behavior policies: #{payload["effective_policy_count"]}"
     lines << ""
 
+    overlay = payload["overlay"]
+    if overlay
+      lines << "Requested overlay:"
+      lines << "- name: #{overlay["name"]}"
+      lines << "- path: #{overlay["display_path"]}"
+      lines << "- target patches: #{format_backtick_list(Array(overlay["target_patch_targets"]))}"
+    else
+      lines << "Requested overlay: none"
+    end
+
+    lines << ""
     marker = payload["current_repo_target"]
     if marker
       lines << "Current repo target marker:"
@@ -598,6 +725,9 @@ class VibeCLI
       lines << "- profile: #{marker["profile"]}"
       lines << "- destination: #{marker["destination_root"]}"
       lines << "- applied_at: #{marker["applied_at"]}"
+      if marker["overlay"]
+        lines << "- overlay: #{marker["overlay"]["name"]} (#{marker["overlay"]["display_path"]})"
+      end
     else
       lines << "Current repo target marker: none"
     end
@@ -610,6 +740,8 @@ class VibeCLI
       lines << "  default_profile: #{target_info["default_profile"]} (#{target_info["profile_maturity"]})"
       lines << "  generated_output: #{target_info["generated_output"]}"
       lines << "  generated_manifest_present: #{target_info["generated_manifest_present"]}"
+      resolved_overlay = target_info["overlay"]
+      lines << "  resolved_overlay: #{resolved_overlay ? resolved_overlay["name"] : 'none'}"
       Array(target_info["profile_notes"]).each do |note|
         lines << "  note: #{note}"
       end
@@ -628,10 +760,15 @@ class VibeCLI
       - Profile maturity: `#{manifest["profile_maturity"]}`
       - Generated at: `#{manifest["generated_at"]}`
       - Output root: `#{manifest["output_root"]}`
+      - Applied overlay: #{overlay_sentence(manifest)}
 
       ## Capability mapping
 
       #{bullet_mapping(manifest["profile_mapping"])}
+
+      ## Overlay
+
+      #{render_overlay_block(manifest)}
 
       ## Behavior policies
 
@@ -643,10 +780,8 @@ class VibeCLI
     MD
   end
 
-  def render_behavior_doc(manifest, group: nil)
-    selected = group.nil? ? manifest["policies"] : filtered_policies(manifest, [group])
-
-    body = selected.map do |policy|
+  def render_behavior_doc(manifest)
+    body = manifest["policies"].map do |policy|
       refs = Array(policy["source_refs"]).map { |ref| "`#{ref}`" }.join(", ")
       refs = refs.empty? ? "none" : refs
       [
@@ -662,7 +797,7 @@ class VibeCLI
       # Behavior policies
 
       Generated target: `#{manifest["target"]}`
-      #{group ? "Render group: `#{group}`" : "Render group: all"}
+      Applied overlay: #{overlay_sentence(manifest)}
 
       #{body}
     MD
@@ -674,6 +809,7 @@ class VibeCLI
 
       Generated target: `#{manifest["target"]}`
       Generated profile: `#{manifest["profile"]}`
+      Applied overlay: #{overlay_sentence(manifest)}
 
       ## Working rules
 
@@ -703,6 +839,7 @@ class VibeCLI
 
       Generated target: `#{manifest["target"]}`
       Active profile: `#{manifest["profile"]}`
+      Applied overlay: #{overlay_sentence(manifest)}
 
       ## Routing behavior policies
 
@@ -733,6 +870,7 @@ class VibeCLI
       # Portable skills
 
       Generated target: `#{manifest["target"]}`
+      Applied overlay: #{overlay_sentence(manifest)}
 
       #{skill_lines}
     MD
@@ -770,9 +908,15 @@ class VibeCLI
     <<~MD
       # Safety policy
 
+      Applied overlay: #{overlay_sentence(manifest)}
+
       ## Safety behavior policy
 
       #{bullet_policy_summary(filtered_policies(manifest, ["safety"]))}
+
+      ## Native config overlay
+
+      #{render_native_overlay_block(manifest)}
 
       ## Severity semantics
 
@@ -798,6 +942,7 @@ class VibeCLI
 
       Generated target: `#{manifest["target"]}`
       Active profile: `#{manifest["profile"]}`
+      Applied overlay: #{overlay_sentence(manifest)}
 
       ## Default execution flow
 
@@ -822,6 +967,23 @@ class VibeCLI
       ## Safety actions
 
       #{bullet_target_actions(manifest)}
+    MD
+  end
+
+  def render_warp_workflow_notes_doc(manifest)
+    <<~MD
+      # Warp workflow notes
+
+      Generated target: `#{manifest["target"]}`
+      Applied overlay: #{overlay_sentence(manifest)}
+
+      ## Conservative mapping
+
+      - Use `WARP.md` as the project-level Warp rule entrypoint.
+      - Keep repository files as the single source of truth; Warp rules should point back to those files instead of replacing them.
+      - If you later add Warp workflows, prefer repo-local commands that wrap `bin/vibe` or existing project scripts.
+      - Keep runtime preferences such as `uv` and `nvm` in project overlays so they stay scoped to the right repositories.
+      - This generator intentionally stays file-backed and does not try to manage Warp Drive state directly.
     MD
   end
 
@@ -875,7 +1037,185 @@ class VibeCLI
 ")
   end
 
-  def claude_settings_config
+  def overlay_overview(overlay)
+    return nil if overlay.nil?
+
+    {
+      "name" => overlay["name"],
+      "path" => overlay["path"],
+      "display_path" => display_path(overlay["path"]),
+      "description" => overlay["description"],
+      "schema_version" => overlay["schema_version"],
+      "profile_mapping_overrides" => overlay_profile_mapping_overrides(overlay),
+      "profile_note_append_count" => overlay_profile_note_append(overlay).length,
+      "policy_patch_count" => overlay_policy_appends(overlay).length,
+      "target_patch_targets" => overlay.fetch("targets", {}).keys.sort
+    }
+  end
+
+  def overlay_summary(overlay, target:)
+    return nil if overlay.nil?
+
+    target_patch = overlay_target_patch(overlay, target)
+    {
+      "name" => overlay["name"],
+      "path" => overlay["path"],
+      "display_path" => display_path(overlay["path"]),
+      "description" => overlay["description"],
+      "schema_version" => overlay["schema_version"],
+      "profile_mapping_overrides" => overlay_profile_mapping_overrides(overlay),
+      "profile_note_append_count" => overlay_profile_note_append(overlay).length,
+      "policy_patch_count" => overlay_policy_appends(overlay).length,
+      "target_patch_keys" => target_patch.keys.sort
+    }
+  end
+
+  def overlay_label(manifest)
+    overlay = manifest["overlay"]
+    return "" if overlay.nil?
+
+    " + overlay #{overlay["name"]}"
+  end
+
+  def overlay_sentence(manifest)
+    overlay = manifest["overlay"]
+    return "`none`" if overlay.nil?
+
+    "`#{overlay["name"]}` from `#{overlay["display_path"]}`"
+  end
+
+  def render_overlay_block(manifest)
+    overlay = manifest["overlay"]
+    return "- none" if overlay.nil?
+
+    patch_keys = Array(overlay["target_patch_keys"])
+
+    [
+      "- Name: `#{overlay["name"]}`",
+      "- Path: `#{overlay["display_path"]}`",
+      "- Profile mapping overrides: #{format_backtick_list(overlay["profile_mapping_overrides"].keys.sort)}",
+      "- Extra profile notes: `#{overlay["profile_note_append_count"]}`",
+      "- Policy patches: `#{overlay["policy_patch_count"]}`",
+      "- Native patch keys: #{format_backtick_list(patch_keys)}"
+    ].join("
+")
+  end
+
+  def render_native_overlay_block(manifest)
+    patch = manifest["native_config_overlay"]
+    return "- none" if patch.nil? || patch.empty?
+
+    patch.map do |key, value|
+      detail = if value.is_a?(Hash)
+        value.keys.sort.map { |item| "`#{item}`" }.join(", ")
+      elsif value.is_a?(Array)
+        value.map { |item| "`#{item}`" }.join(", ")
+      else
+        "`#{value}`"
+      end
+      detail = "`none`" if detail.nil? || detail.empty?
+      "- `#{key}` → #{detail}"
+    end.join("
+")
+  end
+
+  def display_path(path)
+    absolute = File.expand_path(path)
+    repo_prefix = @repo_root.end_with?("/") ? @repo_root : "#{@repo_root}/"
+    return "." if absolute == @repo_root
+    return absolute.delete_prefix(repo_prefix) if absolute.start_with?(repo_prefix)
+
+    absolute
+  end
+
+  def format_backtick_list(items)
+    values = Array(items).map(&:to_s).reject { |item| item.strip.empty? }
+    return "`none`" if values.empty?
+
+    values.map { |item| "`#{item}`" }.join(", ")
+  end
+
+  def core_policies
+    @policies_doc.fetch("policies").map do |policy|
+      {
+        "id" => policy["id"],
+        "category" => policy["category"],
+        "enforcement" => policy["enforcement"],
+        "target_render_group" => policy["target_render_group"],
+        "summary" => policy["summary"],
+        "source_refs" => policy["source_refs"] || []
+      }
+    end
+  end
+
+  def effective_policies(overlay)
+    policies = deep_copy(core_policies)
+
+    overlay_policy_appends(overlay).each do |policy|
+      index = policies.index { |item| item["id"] == policy["id"] }
+      if index
+        policies[index] = deep_merge(policies[index], policy)
+      else
+        policies << policy
+      end
+    end
+
+    policies
+  end
+
+  def overlay_profile_mapping_overrides(overlay)
+    return {} if overlay.nil?
+
+    overrides = overlay.dig("profile", "mapping_overrides") || {}
+    abort "Overlay profile.mapping_overrides must be a mapping" unless overrides.is_a?(Hash)
+
+    overrides
+  end
+
+  def overlay_profile_note_append(overlay)
+    return [] if overlay.nil?
+
+    notes = overlay.dig("profile", "note_append") || []
+    abort "Overlay profile.note_append must be a list" unless notes.is_a?(Array)
+
+    notes
+  end
+
+  def overlay_policy_appends(overlay)
+    return [] if overlay.nil?
+
+    policies = overlay.dig("policies", "append") || []
+    abort "Overlay policies.append must be a list" unless policies.is_a?(Array)
+
+    overlay_ref = display_path(overlay["path"])
+    policies.map do |policy|
+      abort "Each overlay policy must be a mapping" unless policy.is_a?(Hash)
+
+      required = %w[id category enforcement target_render_group summary]
+      missing = required.select { |key| blankish?(policy[key]) }
+      abort "Overlay policy is missing required keys: #{missing.join(', ')}" unless missing.empty?
+
+      {
+        "id" => policy["id"],
+        "category" => policy["category"],
+        "enforcement" => policy["enforcement"],
+        "target_render_group" => policy["target_render_group"],
+        "summary" => policy["summary"],
+        "source_refs" => (Array(policy["source_refs"]) + [overlay_ref]).uniq
+      }
+    end
+  end
+
+  def overlay_target_patch(overlay, target)
+    return {} if overlay.nil?
+
+    patch = overlay.dig("targets", target) || {}
+    abort "Overlay targets.#{target} must be a mapping" unless patch.is_a?(Hash)
+
+    deep_copy(patch)
+  end
+
+  def base_claude_settings_config
     {
       "permissions" => {
         "defaultMode" => "default",
@@ -907,7 +1247,11 @@ class VibeCLI
     }
   end
 
-  def cursor_cli_permissions_config
+  def claude_settings_config(manifest)
+    deep_merge(base_claude_settings_config, manifest["native_config_overlay"] || {})
+  end
+
+  def base_cursor_cli_permissions_config
     {
       "permissions" => {
         "allow" => [
@@ -933,7 +1277,11 @@ class VibeCLI
     }
   end
 
-  def opencode_config
+  def cursor_cli_permissions_config(manifest)
+    deep_merge(base_cursor_cli_permissions_config, manifest["native_config_overlay"] || {})
+  end
+
+  def base_opencode_config
     {
       "$schema" => "https://opencode.ai/config.json",
       "instructions" => [
@@ -998,6 +1346,31 @@ class VibeCLI
     }
   end
 
+  def opencode_config(manifest)
+    deep_merge(base_opencode_config, manifest["native_config_overlay"] || {})
+  end
+
+  def deep_merge(base, extra)
+    return deep_copy(extra) if base.nil?
+    return deep_copy(base) if extra.nil?
+
+    if base.is_a?(Hash) && extra.is_a?(Hash)
+      merged = deep_copy(base)
+      extra.each do |key, value|
+        merged[key] = merged.key?(key) ? deep_merge(merged[key], value) : deep_copy(value)
+      end
+      merged
+    elsif base.is_a?(Array) && extra.is_a?(Array)
+      (base + extra).uniq
+    else
+      deep_copy(extra)
+    end
+  end
+
+  def deep_copy(value)
+    Marshal.load(Marshal.dump(value))
+  end
+
   def enforce_safe_destination!(staging_root, destination_root, force)
     return if force
 
@@ -1022,7 +1395,7 @@ class VibeCLI
     write_json(
       path,
       {
-        "schema_version" => 3,
+        "schema_version" => 5,
         "mode" => mode,
         "source_repo" => @repo_root,
         "destination_root" => destination_root,
@@ -1030,7 +1403,8 @@ class VibeCLI
         "target" => manifest["target"],
         "profile" => manifest["profile"],
         "profile_mapping" => manifest["profile_mapping"],
-        "policy_count" => manifest["policies"].length,
+        "overlay" => manifest["overlay"],
+        "effective_policy_count" => manifest["policies"].length,
         "applied_at" => Time.now.utc.iso8601
       }
     )
@@ -1087,8 +1461,15 @@ class VibeCLI
   end
 
   def read_yaml(relative_path)
-    path = File.join(@repo_root, relative_path)
+    read_yaml_abs(File.join(@repo_root, relative_path))
+  end
+
+  def read_yaml_abs(path)
     YAML.safe_load(File.read(path), aliases: true)
+  end
+
+  def blankish?(value)
+    value.nil? || value.to_s.strip.empty?
   end
 end
 

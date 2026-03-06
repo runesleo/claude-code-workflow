@@ -16,6 +16,7 @@ Violating this = branch divergence → pull conflicts → 10x cleanup time. **No
 
 - Provider-neutral workflow spec lives under `core/`
 - `core/policies/behaviors.yaml` is the portable source for behavior-level policy that target renderers consume
+- Repo-specific deviations should prefer `.vibe/overlay.yaml` or `bin/vibe --overlay ...` instead of mutating shared defaults
 - `rules/` and `docs/` are the current Claude Code renderings of that portable spec
 - When changing routing, skills, safety, or behavior policy: update `core/` first, then sync target-facing files
 

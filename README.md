@@ -1,6 +1,6 @@
 # Claude Code Workflow
 
-A battle-tested workflow foundation for Claude Code today, evolving into a portable vibe coding config base for Claude Code, Codex CLI, OpenCode, Cursor, and similar agentic tools.
+A battle-tested workflow foundation for Claude Code today, evolving into a portable vibe coding config base for Claude Code, Codex CLI, OpenCode, Cursor, Warp, and similar agentic tools.
 
 **Not a tutorial. Not a toy config. A production workflow that actually ships — now with a provider-neutral core spec in phase 1.**
 
@@ -14,7 +14,7 @@ Claude Code is powerful out of the box, but without structure it becomes a smart
 - Forces verification before claiming completion (no more "should work now")
 - Auto-saves progress so closing the window doesn't lose work
 
-## Phase 1-2 Direction: Portable Core + Target Adapters + Generator
+## Phase 1-6 Direction: Portable Core + Target Adapters + Generator + Project Overlays + Warp
 
 This repo now has two layers of concern:
 
@@ -22,7 +22,7 @@ This repo now has two layers of concern:
 - current runtime files (`rules/`, `docs/`, `memory/`, `skills/`) — the first-class Claude Code target that remains fully usable today
 - `targets/` — mapping notes for Claude Code, Codex CLI, Cursor, and OpenCode
 
-Phase 1 established the portable SSOT and adapter contract. Phase 2-3 added a minimal `bin/vibe` generator with build/use/inspect/switch ergonomics. Phase 4 adds portable behavior policies plus deeper native config rendering for supported targets.
+Phase 1 established the portable SSOT and adapter contract. Phase 2-3 added a minimal `bin/vibe` generator with build/use/inspect/switch ergonomics. Phase 4 added portable behavior policies plus deeper native config rendering. Phase 5 added project-level overlays so consuming repos can customize profile mapping, behavior deltas, and native target config without forking `core/`. Phase 6 adds a first-class Warp target plus reusable runtime-preference overlay examples for `uv` and `nvm`.
 
 ## Architecture: Portable Core + Runtime Layers
 
@@ -32,6 +32,9 @@ Portable core
   core/skills      -> portable skill registry
   core/security    -> severity policy + signal taxonomy
   core/policies    -> portable behavior policies
+
+Project overlay
+  .vibe/overlay.yaml or --overlay FILE -> project-specific profile / policy / native config patch
 
 Target adapters
   targets/*.md     -> Claude Code / Codex CLI / Cursor / OpenCode mapping docs
@@ -56,7 +59,7 @@ claude-code-workflow/
 ├── README.md                     # You are here
 │
 ├── bin/
-│   └── vibe                      # Phase-2 generator CLI (build/use targets)
+│   └── vibe                      # Phase-6 generator CLI (build/use/inspect/overlay-aware targets)
 │
 ├── core/                         # Portable SSOT (phase 1)
 │   ├── README.md                 # Portable architecture + migration rules
@@ -75,10 +78,16 @@ claude-code-workflow/
 │   ├── claude-code.md            # Current first-class target mapping
 │   ├── codex-cli.md              # Planned Codex CLI mapping
 │   ├── cursor.md                 # Planned Cursor mapping
-│   └── opencode.md               # Planned OpenCode mapping
+│   ├── opencode.md               # Planned OpenCode mapping
+│   └── warp.md                   # Planned Warp mapping
 │
 ├── generated/                    # Build output (ignored by default)
 │   └── <target>/                 # Materialized target-specific config
+│
+├── examples/
+│   ├── node-nvm-overlay.yaml     # Example Node/npm overlay preferring nvm
+│   ├── project-overlay.yaml      # Example regulated/review-heavy overlay
+│   └── python-uv-overlay.yaml    # Example Python overlay preferring uv
 │
 ├── rules/                        # Layer 0: Always loaded
 │   ├── behaviors.md              # Core behavior rules (debugging, commits, routing)
@@ -90,6 +99,7 @@ claude-code-workflow/
 │   ├── behaviors-extended.md     # Extended rules (knowledge base, associations)
 │   ├── behaviors-reference.md    # Detailed operation guides
 │   ├── content-safety.md         # AI hallucination prevention system
+│   ├── project-overlays.md       # Project-level overlay schema + merge rules
 │   ├── scaffolding-checkpoint.md # "Do you really need to self-host?" checklist
 │   └── task-routing.md           # Model tier routing + target profiles
 │
@@ -159,7 +169,7 @@ Claude will automatically load your rules and start following the workflow. Try:
 
 Portable note: `core/` and `targets/` define the cross-tool contract, but Claude Code remains the directly runnable target in phase 1.
 
-## Phase 2-4: Build / Use / Inspect Generator
+## Phase 2-6: Build / Use / Inspect Generator
 
 The repository now ships a minimal generator CLI:
 
@@ -168,6 +178,7 @@ bin/vibe build --target claude-code
 bin/vibe build --target codex-cli
 bin/vibe build --target cursor
 bin/vibe build --target opencode
+bin/vibe build --target warp
 bin/vibe inspect
 ```
 
@@ -194,6 +205,7 @@ bin/vibe use --target cursor --destination /path/to/project
 bin/vibe switch cursor
 bin/vibe switch codex-cli
 bin/vibe switch opencode
+bin/vibe switch warp
 
 # Quick-switch Claude Code into ~/.claude
 bin/vibe switch claude-code
@@ -201,16 +213,25 @@ bin/vibe switch claude-code
 # Inspect current defaults, generated outputs, and repo target state
 bin/vibe inspect
 bin/vibe inspect --json
+
+# Preview a project overlay without applying it
+bin/vibe inspect --overlay examples/project-overlay.yaml
+
+# Build or apply with a project overlay
+bin/vibe build cursor --overlay examples/project-overlay.yaml
+bin/vibe use --target opencode --destination /path/to/project --overlay /path/to/project/.vibe/overlay.yaml
 ```
 
-Current phase-4 behavior:
+Current phase-6 behavior:
 
 - `claude-code` → materializes `CLAUDE.md`, `rules/`, `docs/`, `skills/`, `agents/`, `commands/`, and a generated `settings.json` permission baseline
 - `codex-cli` → materializes `AGENTS.md` plus generated behavior / routing / safety / execution docs
 - `cursor` → materializes `AGENTS.md`, `.cursor/rules/*.mdc`, `.cursor/cli.json`, and supporting `.vibe/cursor/*` notes
 - `opencode` → materializes `AGENTS.md`, `opencode.json`, and modular behavior / routing / safety / execution instruction files with generated permissions
-- `inspect` → reports default profiles, generated target outputs, portable policy count, and any repo-level active target marker
-- `switch` → uses sensible defaults for destination (`~/.claude` for Claude, repo root for repo-local targets)
+- `warp` → materializes `WARP.md` plus generated behavior / routing / safety / workflow support docs under `.vibe/warp/`
+- `inspect` → can preview overlay-aware profile resolution and generated target state
+- `use` / `switch` → auto-discover `.vibe/overlay.yaml` in the destination project when present
+- overlays → let a consuming repo remap capability tiers, add behavior deltas, patch native target config, and encode stack preferences like `uv` or `nvm` without editing `core/`
 
 `bin/vibe` is intentionally conservative: it only renders the parts that are already modeled in `core/` and documented in `targets/`.
 
@@ -248,7 +269,9 @@ System optimization happens on Sundays. On other days, if you try to tweak your 
 1. Update the portable SSOT in `core/`
 2. Sync the active Claude-facing files in `rules/`, `docs/`, and `skills/`
 3. Keep the target adapter docs in `targets/` accurate
-4. Extend `bin/vibe` only after the portable schema stabilizes
+4. Use a project overlay (`.vibe/overlay.yaml`) for repo-specific deviations
+5. Prefer example overlays such as `examples/python-uv-overlay.yaml` or `examples/node-nvm-overlay.yaml` for stack-specific defaults
+6. Extend `bin/vibe` only after the portable schema stabilizes
 
 ### Adding a new project
 

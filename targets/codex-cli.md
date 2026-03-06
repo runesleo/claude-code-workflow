@@ -31,3 +31,8 @@ Codex CLI should be treated as a separate target profile, not as a literal clone
 - `bin/vibe switch codex-cli` applies the generated Codex config into the current repo root by default.
 - Generated `.vibe/codex-cli/execution-policy.md` now carries the maker-checker and safety execution flow.
 - Generated `.vibe/codex-cli/behavior-policies.md` mirrors the portable behavior schema for Codex-oriented execution.
+
+## Phase 5 Additions
+
+- Codex-oriented builds now surface overlay-applied profile remapping and extra policy deltas in `AGENTS.md` and `.vibe/codex-cli/*`.
+- This keeps Codex conservative: project-specific changes stay in the overlay, while the target still degrades cleanly to docs and execution guidance.

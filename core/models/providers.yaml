@@ -55,6 +55,19 @@ profiles:
       - Prefer native OpenCode rules and permissions where possible.
       - OpenCode can often reuse AGENTS.md and Claude-style skill assets with light adaptation.
 
+  warp-default:
+    target: warp
+    maturity: planned
+    mapping:
+      critical_reasoner: warp.primary-frontier-model
+      workhorse_coder: warp.default-agent-model
+      fast_router: warp.fast-model
+      independent_verifier: second-model.or.manual-review
+      cheap_local: local.external-runner
+    notes:
+      - Use WARP.md as the project rule entrypoint and keep repo-local files as the SSOT.
+      - Treat Warp workflows as wrappers around project commands, not as canonical state.
+
   glm-family-default:
     target: generic-open-weight
     maturity: exploratory
