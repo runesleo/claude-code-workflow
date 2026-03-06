@@ -52,6 +52,24 @@ class TestVibeCLI < Minitest::Test
     refute_includes section, "| `brainstorming` |"
   end
 
+  def test_switch_warp_uses_external_staging_when_repo_root_is_destination
+    switch_repo_root = Dir.mktmpdir("vibe-switch-repo")
+    FileUtils.cp_r(File.join(@repo_root, "core"), switch_repo_root)
+    cli = VibeCLI.new(switch_repo_root)
+
+    stdout, = capture_io { cli.run(["switch", "warp"]) }
+
+    assert_includes stdout, "Applied warp"
+    assert File.exist?(File.join(switch_repo_root, "WARP.md"))
+    assert File.exist?(File.join(switch_repo_root, ".vibe", "warp", "routing.md"))
+
+    marker = JSON.parse(File.read(File.join(switch_repo_root, ".vibe-target.json")))
+    assert_includes marker.fetch("generated_output"), ".vibe-generated"
+    refute_equal "generated/warp", marker.fetch("generated_output")
+  ensure
+    FileUtils.rm_rf(switch_repo_root) if switch_repo_root && File.exist?(switch_repo_root)
+  end
+
   private
 
   def build_manifest(target)

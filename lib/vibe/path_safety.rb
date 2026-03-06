@@ -80,10 +80,15 @@ module Vibe
       if out == dest
         abort "Output root and destination root are the same path: #{out}\nUse separate directories."
       end
-
-      if dest.start_with?("#{out}/") || out.start_with?("#{dest}/")
+      if paths_overlap?(out, dest)
         abort "Output root (#{out}) and destination root (#{dest}) overlap.\nUse non-overlapping directories."
       end
+    end
+
+    def paths_overlap?(left, right)
+      left_root = File.expand_path(left)
+      right_root = File.expand_path(right)
+      left_root.start_with?("#{right_root}/") || right_root.start_with?("#{left_root}/")
     end
 
     def enforce_safe_destination!(staging_root, destination_root, force)

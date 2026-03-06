@@ -5,6 +5,7 @@ require "fileutils"
 require "json"
 require "optparse"
 require "time"
+require "digest"
 require "yaml"
 require_relative "../lib/vibe/utils"
 require_relative "../lib/vibe/doc_rendering"
@@ -143,8 +144,12 @@ class VibeCLI
     abort "Missing required destination. Pass DESTINATION or --destination DIR." if destination.nil? || destination.strip.empty?
 
     profile_name, profile = resolve_profile(target, options[:profile])
-    output_root = File.expand_path(options[:output] || default_output_root(target))
     destination_root = File.expand_path(destination)
+    output_root = resolve_output_root_for_use(
+      target: target,
+      destination_root: destination_root,
+      explicit_output: options[:output]
+    )
     ensure_no_path_overlap!(output_root, destination_root)
     overlay = resolve_overlay(explicit_path: options[:overlay], search_roots: [destination_root, @repo_root])
 
@@ -328,6 +333,19 @@ class VibeCLI
     else
       @repo_root
     end
+  end
+
+  def resolve_output_root_for_use(target:, destination_root:, explicit_output:)
+    return File.expand_path(explicit_output) if explicit_output
+
+    output_root = File.expand_path(default_output_root(target))
+    return output_root unless paths_overlap?(output_root, destination_root)
+
+    destination_name = File.basename(destination_root)
+    destination_name = "root" if destination_name.nil? || destination_name.empty? || destination_name == File::SEPARATOR
+    destination_digest = Digest::SHA256.hexdigest(destination_root)[0, 12]
+
+    File.join(Dir.home, ".vibe-generated", "#{destination_name}-#{destination_digest}", target)
   end
 
   def resolve_profile(target, requested_profile)
