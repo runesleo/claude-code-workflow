@@ -6,9 +6,19 @@ When encountering a bug or test failure, start the systematic debugging flow.
 
 ```
 NO FIXES WITHOUT ROOT CAUSE FIRST
+NO INVESTIGATION WITHOUT MEMORY RECALL FIRST
 ```
 
-## Four-Phase Flow
+## Five-Phase Flow
+
+### Phase 0: Memory Recall (MANDATORY FIRST STEP)
+
+1. **Extract keywords from error** (error type, component, project)
+2. **Query memory** for related past experiences
+3. **Review results**:
+   - Found relevant experience? → Apply directly, skip to Phase 4
+   - Partial match? → Use as starting point
+   - Nothing? → Proceed to Phase 1, remember to record solution later
 
 ### Phase 1: Root Cause Investigation
 

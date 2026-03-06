@@ -24,6 +24,40 @@ unless missing.empty?
 end
 ' "${TMP_DIR}/generated/warp/.vibe/manifest.json"
 
-"${REPO_ROOT}/bin/vibe" inspect --json >/dev/null
+# --- Content verification ---
 
-echo "vibe smoke passed: ${TARGETS[*]} + overlay builds + warp skill support"
+# claude-code must include memory/ and patterns.md
+test -d "${TMP_DIR}/generated/claude-code/memory" || { echo "FAIL: claude-code missing memory/"; exit 1; }
+test -f "${TMP_DIR}/generated/claude-code/patterns.md" || { echo "FAIL: claude-code missing patterns.md"; exit 1; }
+
+# All non-claude targets must have behavior-policies.md
+for target in codex-cli cursor opencode warp; do
+  target_slug="${target}"
+  test -f "${TMP_DIR}/generated/${target}/.vibe/${target_slug}/behavior-policies.md" || { echo "FAIL: ${target} missing behavior-policies.md"; exit 1; }
+done
+
+# Manifest should use relative source_repo
+ruby -rjson -e '
+manifest = JSON.parse(File.read(ARGV.fetch(0)))
+abort("manifest source_repo should be relative, got: #{manifest["source_repo"]}") unless manifest["source_repo"] == "."
+' "${TMP_DIR}/generated/warp/.vibe/manifest.json"
+
+# inspect --json schema_version must be 5
+ruby -rjson -e '
+payload = JSON.parse(STDIN.read)
+abort("inspect schema_version should be 5, got: #{payload["schema_version"]}") unless payload["schema_version"] == 5
+' < <("${REPO_ROOT}/bin/vibe" inspect --json)
+
+# Overlay build must record overlay in manifest
+ruby -rjson -e '
+manifest = JSON.parse(File.read(ARGV.fetch(0)))
+abort("overlay build should have overlay in manifest") if manifest["overlay"].nil?
+' "${TMP_DIR}/generated/claude-overlay/.vibe/manifest.json"
+
+# rm_rf safety: must refuse repo root as output
+if "${REPO_ROOT}/bin/vibe" build warp --output "${REPO_ROOT}" 2>/dev/null; then
+  echo "FAIL: rm_rf safety check did not block repo root as output"
+  exit 1
+fi
+
+echo "vibe smoke passed: ${TARGETS[*]} + overlay builds + warp skill support + content verification"

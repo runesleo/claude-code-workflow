@@ -139,7 +139,7 @@ claude-code-workflow/
 
 ```bash
 # Clone the template
-git clone https://github.com/runesleo/claude-code-workflow.git
+git clone https://github.com/nehcuh/claude-code-workflow.git
 
 # Copy to your Claude Code config directory
 cp -r claude-code-workflow/* ~/.claude/

@@ -55,7 +55,8 @@ Violating this = branch divergence → pull conflicts → 10x cleanup time. **No
 
 ## Debugging Protocol
 
-No blind fixes. Four phases:
+No blind fixes. Five phases:
+0. **Memory Recall** — Query memory for related past experiences first
 1. **Root Cause** — Read errors, reproduce, trace data flow
 2. **Pattern Analysis** — Find working example, compare
 3. **Hypothesis Testing** — Change one variable at a time

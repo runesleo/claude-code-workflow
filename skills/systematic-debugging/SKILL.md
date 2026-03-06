@@ -1,6 +1,6 @@
 ---
 name: systematic-debugging
-description: Systematic debugging - four-phase process, find root cause before fixing
+description: Systematic debugging - five-phase process, find root cause before fixing
 ---
 
 # Systematic Debugging

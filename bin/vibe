@@ -19,7 +19,7 @@ class VibeCLI
   }.freeze
 
   SUPPORTED_TARGETS = %w[claude-code codex-cli cursor opencode warp].freeze
-  COPY_RUNTIME_ENTRIES = %w[CLAUDE.md rules docs skills agents commands].freeze
+  COPY_RUNTIME_ENTRIES = %w[CLAUDE.md rules docs skills agents commands memory patterns.md].freeze
   MARKER_FILENAME = ".vibe-target.json"
   OVERLAY_CANDIDATES = [
     File.join(".vibe", "overlay.yaml"),
@@ -130,6 +130,7 @@ class VibeCLI
     profile_name, profile = resolve_profile(target, options[:profile])
     output_root = File.expand_path(options[:output] || default_output_root(target))
     destination_root = File.expand_path(destination)
+    ensure_no_path_overlap!(output_root, destination_root)
     overlay = resolve_overlay(explicit_path: options[:overlay], search_roots: [destination_root, @repo_root])
 
     manifest = build_target(
@@ -321,6 +322,12 @@ class VibeCLI
     doc = read_yaml_abs(path) || {}
     abort "Overlay file must contain a YAML mapping: #{path}" unless doc.is_a?(Hash)
 
+    known_keys = %w[schema_version name description profile policies targets]
+    unknown_keys = doc.keys - known_keys
+    unless unknown_keys.empty?
+      warn "Warning: overlay #{path} contains unknown top-level keys: #{unknown_keys.join(', ')}. These will be ignored."
+    end
+
     {
       "schema_version" => doc["schema_version"] || 1,
       "path" => path,
@@ -343,6 +350,8 @@ class VibeCLI
     nil
   end
 
+  UNSAFE_OUTPUT_PATHS = ["/", "/tmp", "/var", "/etc", "/usr"].freeze
+
   def build_target(target:, profile_name:, profile:, output_root:, overlay:)
     manifest = build_manifest(
       target: target,
@@ -352,6 +361,7 @@ class VibeCLI
       overlay: overlay
     )
 
+    ensure_safe_output_path!(output_root)
     FileUtils.rm_rf(output_root)
     FileUtils.mkdir_p(output_root)
 
@@ -386,8 +396,8 @@ class VibeCLI
     {
       "schema_version" => 5,
       "generated_at" => Time.now.utc.iso8601,
-      "source_repo" => @repo_root,
-      "output_root" => File.expand_path(output_root),
+      "source_repo" => ".",
+      "output_root" => display_path(File.expand_path(output_root)),
       "target" => target,
       "profile" => profile_name,
       "profile_maturity" => profile["maturity"],
@@ -454,6 +464,8 @@ class VibeCLI
       - `skills/`
       - `agents/`
       - `commands/`
+      - `memory/`
+      - `patterns.md`
       - `settings.json`
 
       Active profile: `#{manifest["profile"]}`
@@ -663,7 +675,7 @@ class VibeCLI
     targets = target ? [target] : SUPPORTED_TARGETS
 
     {
-      "schema_version" => 3,
+      "schema_version" => 5,
       "repo_root" => @repo_root,
       "overlay" => overlay_overview(overlay),
       "base_policy_count" => core_policies.length,
@@ -759,7 +771,6 @@ class VibeCLI
       - Profile: `#{manifest["profile"]}`
       - Profile maturity: `#{manifest["profile_maturity"]}`
       - Generated at: `#{manifest["generated_at"]}`
-      - Output root: `#{manifest["output_root"]}`
       - Applied overlay: #{overlay_sentence(manifest)}
 
       ## Capability mapping
@@ -788,17 +799,21 @@ class VibeCLI
         "- `#{policy["id"]}` (#{policy["category"]}, #{policy["enforcement"]}, group: #{policy["target_render_group"]})",
         "  - #{policy["summary"]}",
         "  - source refs: #{refs}"
-      ].join("
-")
-    end.join("
-")
+      ].join("\n")
+    end.join("\n")
+
+    source_note = if manifest["target"] != "claude-code"
+      "\n> **Note:** Source refs refer to files in the portable workflow repository, not this generated output directory.\n"
+    else
+      ""
+    end
 
     <<~MD
       # Behavior policies
 
       Generated target: `#{manifest["target"]}`
       Applied overlay: #{overlay_sentence(manifest)}
-
+      #{source_note}
       #{body}
     MD
   end
@@ -830,9 +845,13 @@ class VibeCLI
 ")
 
     routing_defaults = manifest["routing_defaults"].map do |key, value|
-      "- `#{key}` = `#{value}`"
-    end.join("
-")
+      if value.is_a?(Array)
+        items = value.map { |item| "  - `#{item}`" }.join("\n")
+        "- `#{key}`:\n#{items}"
+      else
+        "- `#{key}` = `#{value}`"
+      end
+    end.join("\n")
 
     <<~MD
       # Routing profile
@@ -1371,6 +1390,44 @@ class VibeCLI
     Marshal.load(Marshal.dump(value))
   end
 
+  def ensure_safe_output_path!(output_root)
+    expanded = File.expand_path(output_root)
+    home = File.expand_path(Dir.home)
+    repo = File.expand_path(@repo_root)
+
+    UNSAFE_OUTPUT_PATHS.each do |unsafe|
+      abort "Refusing to use #{expanded} as output root: overlaps with #{unsafe}" if expanded == File.expand_path(unsafe)
+    end
+
+    abort "Refusing to use #{expanded} as output root: overlaps with $HOME (#{home})" if expanded == home
+
+    if expanded == repo || expanded.start_with?("#{repo}/") && !expanded.start_with?("#{repo}/generated/")
+      abort "Refusing to use #{expanded} as output root: overlaps with source repo (#{repo}).\nUse a path under generated/ or an external directory."
+    end
+
+    if repo.start_with?("#{expanded}/")
+      abort "Refusing to use #{expanded} as output root: source repo is inside it."
+    end
+
+    parts = expanded.split("/").reject(&:empty?)
+    if parts.length < 2
+      abort "Refusing to use #{expanded} as output root: path is too shallow (need at least 2 levels)."
+    end
+  end
+
+  def ensure_no_path_overlap!(output_root, destination_root)
+    out = File.expand_path(output_root)
+    dest = File.expand_path(destination_root)
+
+    if out == dest
+      abort "Output root and destination root are the same path: #{out}\nUse separate directories."
+    end
+
+    if dest.start_with?("#{out}/") || out.start_with?("#{dest}/")
+      abort "Output root (#{out}) and destination root (#{dest}) overlap.\nUse non-overlapping directories."
+    end
+  end
+
   def enforce_safe_destination!(staging_root, destination_root, force)
     return if force
 
@@ -1397,9 +1454,9 @@ class VibeCLI
       {
         "schema_version" => 5,
         "mode" => mode,
-        "source_repo" => @repo_root,
-        "destination_root" => destination_root,
-        "generated_output" => File.expand_path(output_root),
+        "source_repo" => ".",
+        "destination_root" => display_path(destination_root),
+        "generated_output" => display_path(File.expand_path(output_root)),
         "target" => manifest["target"],
         "profile" => manifest["profile"],
         "profile_mapping" => manifest["profile_mapping"],

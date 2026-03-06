@@ -19,13 +19,13 @@
 | **pr-reviewer** | Code review | PR quality, architecture consistency |
 | **security-reviewer** | Security audit | Vulnerability detection, sensitive info |
 | **performance-analyzer** | Performance analysis | Bottleneck identification, optimization |
-| **learning-agent** | Experience recording | patterns.md, recall queries |
+| **your-custom-agent** | *Your domain* | *Customize to your project needs* |
 
 ### Haiku Tier (Quick tasks)
 
 | Agent | Scope | Core Duty |
 |-------|-------|-----------|
-| **build-error-resolver** | Build fixes | TypeScript error quick fixes |
+| **your-quick-agent** | *Quick tasks* | *Customize: e.g. build fixes, formatting* |
 
 ### Built-in Agents
 

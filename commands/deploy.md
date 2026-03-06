@@ -5,9 +5,10 @@ Before deploying to production, execute these checks.
 ## 1. Code Quality Check
 
 ```bash
-npm run lint
-npm run build
-npm run test
+# Replace with your project's commands:
+<your-lint-command>    # e.g. npm run lint, ruff check ., cargo clippy
+<your-build-command>   # e.g. npm run build, uv run build, cargo build
+<your-test-command>    # e.g. npm test, pytest, cargo test
 ```
 
 ## 2. Environment Variable Check
