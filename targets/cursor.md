@@ -36,3 +36,8 @@ Cursor should render the portable workflow through rules and project-scoped cont
 
 - Cursor builds can now merge a project overlay into `.cursor/cli.json`, profile mapping, and the generated support docs.
 - Destination repos with `.vibe/overlay.yaml` get that overlay automatically when using `bin/vibe use` or `bin/vibe switch`.
+
+## Phase 6 Additions
+
+- Task routing and test standards are now generated under `.vibe/cursor/task-routing.md` and `.vibe/cursor/test-standards.md`.
+- These policies enable complexity-aware workflow adaptation for AI assistants working in Cursor.

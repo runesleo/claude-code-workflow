@@ -371,5 +371,130 @@ module Vibe
       end.join("\n")
     end
 
+    def render_task_routing_doc(manifest)
+      return "" unless defined?(@task_routing_doc) && @task_routing_doc
+
+      complexity_sections = @task_routing_doc.fetch("complexity_levels", {}).map do |level, config|
+        criteria = config.fetch("criteria", {}).map { |k, v| "  - #{k}: #{v}" }.join("\n")
+        examples = config.fetch("examples", []).map { |ex| "  - #{ex}" }.join("\n")
+        requirements = config.fetch("process_requirements", {}).map { |k, v| "  - #{k}: #{v}" }.join("\n")
+
+        <<~SECTION.chomp
+          ### #{level.capitalize}
+
+          #{config["description"]}
+
+          **Criteria:**
+          #{criteria}
+
+          **Examples:**
+          #{examples}
+
+          **Process Requirements:**
+          #{requirements}
+
+          **Time Estimate:** #{config["time_estimate"]}
+        SECTION
+      end.join("\n\n")
+
+      auto_rules = @task_routing_doc.fetch("auto_detection", {}).fetch("rules", []).map do |rule|
+        "- #{rule["condition"]} → `#{rule["complexity"]}` (#{rule["reason"]})"
+      end.join("\n")
+
+      <<~MD
+        # Task Complexity Routing
+
+        Generated target: `#{manifest["target"]}`
+        Applied overlay: #{overlay_sentence(manifest)}
+
+        This document defines how to route tasks by complexity level to balance quality and efficiency.
+
+        ## Complexity Levels
+
+        #{complexity_sections}
+
+        ## Auto-Detection Rules
+
+        #{auto_rules}
+
+        ## Override Policy
+
+        Users can override complexity classification with justification:
+        - "this is urgent, skip full process"
+        - "treat this as trivial"
+        - "this needs full review despite being small"
+      MD
+    end
+
+    def render_test_standards_doc(manifest)
+      return "" unless defined?(@test_standards_doc) && @test_standards_doc
+
+      coverage_sections = @test_standards_doc.fetch("coverage_by_complexity", {}).map do |level, config|
+        <<~SECTION.chomp
+          ### #{level.capitalize}
+
+          #{config["description"]}
+
+          - Unit coverage: #{config["unit_coverage"]}%
+          - Integration coverage: #{config["integration_coverage"]}%
+          - Manual verification: #{config["manual_verification"]}
+        SECTION
+      end.join("\n\n")
+
+      critical_paths = @test_standards_doc.fetch("critical_paths", []).map do |path|
+        "- `#{path["path_pattern"] || path["function_pattern"]}` → #{path["coverage"]}% (#{path["reason"]})"
+      end.join("\n")
+
+      test_types = @test_standards_doc.fetch("test_types", {}).map do |type, config|
+        required = config.fetch("required_for", []).map { |r| "`#{r}`" }.join(", ")
+        examples = config.fetch("examples", []).map { |ex| "  - #{ex}" }.join("\n")
+
+        section = <<~SECTION.chomp
+          ### #{type.capitalize}
+
+          #{config["description"]}
+
+          **Required for:** #{required}
+        SECTION
+
+        if config["must_cover"]
+          must_cover = config["must_cover"].map { |item| "  - #{item}" }.join("\n")
+          section += "\n\n**Must Cover:**\n#{must_cover}"
+        end
+
+        section += "\n\n**Examples:**\n#{examples}" unless examples.empty?
+        section
+      end.join("\n\n")
+
+      <<~MD
+        # Test Coverage Standards
+
+        Generated target: `#{manifest["target"]}`
+        Applied overlay: #{overlay_sentence(manifest)}
+
+        This document defines minimum test requirements by task complexity and code type.
+
+        ## Coverage by Complexity
+
+        #{coverage_sections}
+
+        ## Critical Paths
+
+        These paths require 100% coverage regardless of complexity:
+
+        #{critical_paths}
+
+        ## Test Types
+
+        #{test_types}
+
+        ## Exemptions
+
+        - Documentation-only changes: 0% coverage
+        - Test code itself: optional coverage
+        - Generated code: optional coverage
+      MD
+    end
+
   end
 end

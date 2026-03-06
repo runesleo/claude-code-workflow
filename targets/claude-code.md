@@ -38,3 +38,9 @@ Claude Code is the current first-class runtime target for this repository.
 
 - Claude builds can now merge a project overlay into `settings.json` and the rendered behavior summary.
 - `bin/vibe use` and `bin/vibe switch` will auto-discover `.vibe/overlay.yaml` in the destination repo when present.
+
+## Phase 6 Additions
+
+- Task routing and test standards are now generated as `.vibe/claude-code/task-routing.md` and `.vibe/claude-code/test-standards.md`.
+- These files define complexity-based task classification (trivial/standard/critical) and corresponding test coverage requirements.
+- AI assistants can use these policies to automatically adjust workflow rigor based on task complexity.

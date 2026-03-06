@@ -189,6 +189,37 @@ bin/vibe build warp --overlay my.yaml   # 或显式指定
 - `examples/node-nvm-overlay.yaml` — Node/nvm 项目偏好
 - `examples/project-overlay.yaml` — 严格审查流程示例
 
+## 生成的配置文件
+
+`bin/vibe build` 为每个目标生成不同的配置文件：
+
+### Claude Code 目标
+- `CLAUDE.md`, `rules/`, `docs/`, `skills/`, `agents/`, `commands/`, `memory/`, `patterns.md`
+- `settings.json` — 权限基线
+- `.vibe/claude-code/` — 行为策略、安全策略、任务路由、测试标准
+
+### Warp 目标
+- `WARP.md` — Warp 项目规则入口
+- `.vibe/warp/` — 行为策略、路由、安全、技能、任务路由、测试标准、工作流说明
+
+### Cursor 目标
+- `AGENTS.md` — 工作流概述
+- `.cursor/rules/*.mdc` — Cursor 规则文件
+- `.cursor/cli.json` — CLI 权限配置
+- `.vibe/cursor/` — 行为策略、路由、安全、技能、任务路由、测试标准
+
+### Codex CLI 目标
+- `AGENTS.md` — 工作流概述
+- `.vibe/codex-cli/` — 行为策略、路由、安全、执行策略、技能、任务路由、测试标准
+
+### 任务路由和测试标准
+
+所有目标现在都包含：
+- **任务路由** (`task-routing.md`) — 按复杂度分类任务（trivial/standard/critical），定义每个级别的流程要求
+- **测试标准** (`test-standards.md`) — 按复杂度定义最低测试覆盖率要求，标识关键路径
+
+这些策略帮助 AI 助手根据任务复杂度自动调整工作流程，在质量和效率之间取得平衡。
+
 ## 外部工具集成
 
 本工作流支持可选的外部工具集成以增强能力：

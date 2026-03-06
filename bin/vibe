@@ -46,6 +46,8 @@ class VibeCLI
     @skills_doc = read_yaml("core/skills/registry.yaml")
     @security_doc = read_yaml("core/security/policy.yaml")
     @policies_doc = read_yaml("core/policies/behaviors.yaml")
+    @task_routing_doc = read_yaml("core/policies/task-routing.yaml")
+    @test_standards_doc = read_yaml("core/policies/test-standards.yaml")
   end
 
   def run(argv)

@@ -36,3 +36,8 @@ Codex CLI should be treated as a separate target profile, not as a literal clone
 
 - Codex-oriented builds now surface overlay-applied profile remapping and extra policy deltas in `AGENTS.md` and `.vibe/codex-cli/*`.
 - This keeps Codex conservative: project-specific changes stay in the overlay, while the target still degrades cleanly to docs and execution guidance.
+
+## Phase 6 Additions
+
+- Task routing and test standards are now generated under `.vibe/codex-cli/task-routing.md` and `.vibe/codex-cli/test-standards.md`.
+- These policies provide complexity-based workflow guidance for Codex CLI agents.

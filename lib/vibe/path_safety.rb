@@ -14,29 +14,6 @@ module Vibe
     # macOS temp directories under /var are safe
     SAFE_VAR_PREFIXES = ["/var/folders/"].freeze
 
-    # Normalize a path by resolving symlinks in existing parent directories.
-    # For /tmp/foo/bar where /tmp exists but foo/bar don't:
-    # - Resolve /tmp to /private/tmp (on macOS)
-    # - Append /foo/bar to get /private/tmp/foo/bar
-    def normalize_path(path)
-      expanded = File.expand_path(path)
-      return File.realpath(expanded) if File.exist?(expanded)
-
-      # Find the first existing parent
-      parts = expanded.split("/").reject(&:empty?)
-      (parts.length - 1).downto(0) do |i|
-        parent = "/" + parts[0..i].join("/")
-        if File.exist?(parent)
-          real_parent = File.realpath(parent)
-          suffix = parts[(i + 1)..-1]
-          return suffix.empty? ? real_parent : File.join(real_parent, *suffix)
-        end
-      end
-
-      # No existing parent found (shouldn't happen for absolute paths)
-      expanded
-    end
-
     def ensure_safe_output_path!(output_root)
       expanded = normalize_path(output_root)
       home = File.expand_path(Dir.home)
@@ -95,6 +72,10 @@ module Vibe
 
     private
 
+    # Normalize a path by resolving symlinks in existing parent directories.
+    # For /tmp/foo/bar where /tmp exists but foo/bar don't:
+    # - Resolve /tmp to /private/tmp (on macOS)
+    # - Append /foo/bar to get /private/tmp/foo/bar
     def normalize_path(path)
       # Expand path first to handle relative paths
       expanded = File.expand_path(path)

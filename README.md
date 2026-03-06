@@ -320,11 +320,11 @@ bin/vibe-smoke
 
 Current phase-6 behavior:
 
-- `claude-code` → materializes `CLAUDE.md`, `rules/`, `docs/`, `skills/`, `agents/`, `commands/`, and a generated `settings.json` permission baseline
-- `codex-cli` → materializes `AGENTS.md` plus generated behavior / routing / safety / execution docs
-- `cursor` → materializes `AGENTS.md`, `.cursor/rules/*.mdc`, `.cursor/cli.json`, and supporting `.vibe/cursor/*` notes
+- `claude-code` → materializes `CLAUDE.md`, `rules/`, `docs/`, `skills/`, `agents/`, `commands/`, and a generated `settings.json` permission baseline, plus task routing and test standards under `.vibe/claude-code/`
+- `codex-cli` → materializes `AGENTS.md` plus generated behavior / routing / safety / execution / task-routing / test-standards docs under `.vibe/codex-cli/`
+- `cursor` → materializes `AGENTS.md`, `.cursor/rules/*.mdc`, `.cursor/cli.json`, and supporting `.vibe/cursor/*` notes including task routing and test standards
 - `opencode` → materializes `AGENTS.md`, `opencode.json`, and modular behavior / routing / safety / execution instruction files with generated permissions
-- `warp` → materializes `WARP.md` plus generated behavior / routing / safety / workflow support docs under `.vibe/warp/`
+- `warp` → materializes `WARP.md` plus generated behavior / routing / safety / task-routing / test-standards / workflow support docs under `.vibe/warp/`
 - `inspect` → can preview overlay-aware profile resolution and generated target state
 - `use` / `switch` → auto-discover `.vibe/overlay.yaml` in the destination project when present
 
