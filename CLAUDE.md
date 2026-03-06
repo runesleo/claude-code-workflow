@@ -36,6 +36,36 @@
 
 Multi-model cross-check (for critical logic): Claude analysis → Codex verification → label `✅ reviewed / ⚠️ unverified`
 
+### Testing Standards
+
+See `core/policies/test-standards.yaml` for full details.
+
+**Minimum Coverage by Task Complexity**:
+- **Trivial tasks** (<20 lines): Manual verification only
+- **Standard tasks** (20-100 lines): 80% unit test coverage
+- **Critical tasks** (>100 lines): 90% unit + 50% integration coverage
+
+**Critical Paths (100% coverage required)**:
+- Security-sensitive code (`core/security/**`)
+- File system operations (`**/path_safety.rb`)
+- Destructive operations (functions matching `delete|remove|destroy`)
+- Authentication/authorization logic (functions matching `auth|credential|secret`)
+
+**Required Test Types**:
+- **Unit tests**: Test individual functions in isolation (required for standard/critical)
+- **Edge cases**: Empty input, invalid input, permission denied, resource not found, null values
+- **Integration tests**: Test component interactions (required for critical only)
+- **Manual verification**: Always required for all complexity levels
+
+**Example**:
+```ruby
+# For a new function sanitize_directory_name:
+def test_sanitize_with_special_chars  # Normal case
+def test_sanitize_with_empty_string   # Edge case
+def test_sanitize_with_unicode        # Edge case
+def test_sanitize_with_only_special   # Edge case
+```
+
 ### Handoff Checklist (before session-end)
 
 - [ ] Code committed and passes lint/build/test
