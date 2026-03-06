@@ -192,6 +192,61 @@ Claude will automatically load your rules and start following the workflow. Try:
 
 Portable note: `core/` and `targets/` define the cross-tool contract, but Claude Code remains the directly runnable target in phase 1.
 
+## External Tool Integrations
+
+This workflow supports optional external tool integrations to enhance capabilities:
+
+### Initialize Integrations
+
+```bash
+# Interactive setup wizard
+bin/vibe init
+
+# Verify existing installations
+bin/vibe init --verify
+```
+
+### Supported Integrations
+
+#### Superpowers Skill Pack
+
+Advanced skill pack providing design refinement, TDD enforcement, systematic debugging, and more.
+
+**Installation**:
+- Claude Code: `/plugin marketplace add obra/superpowers-marketplace`
+- Cursor: `/plugin-add superpowers`
+- Manual: Clone and symlink to `~/.claude/skills/`
+
+**Skills**: tdd, brainstorm, refactor, debug, architect, review, optimize
+
+**Source**: [obra/superpowers](https://github.com/obra/superpowers)
+
+#### RTK (Token Optimizer)
+
+CLI agent tool that reduces LLM token consumption by 60-90% through intelligent context management.
+
+**Installation**:
+```bash
+# Homebrew (macOS/Linux)
+brew install rtk
+
+# Install script
+curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
+
+# Initialize hook
+rtk init --global
+```
+
+**Source**: [rtk-ai/rtk](https://github.com/rtk-ai/rtk)
+
+### Integration Behavior
+
+- **Conditional**: All integrations are optional. The workflow operates normally without them.
+- **Dynamic Detection**: When Superpowers is installed, skill-triggers.md automatically includes Superpowers skill references.
+- **Security**: External skills undergo security review before registration in `core/skills/registry.yaml`.
+
+See `docs/integrations.md` for detailed integration documentation.
+
 ## Phase 2-6: Build / Use / Inspect Generator
 
 The repository now ships a minimal generator CLI:

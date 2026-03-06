@@ -183,6 +183,61 @@ bin/vibe build warp --overlay my.yaml   # 或显式指定
 - `examples/node-nvm-overlay.yaml` — Node/nvm 项目偏好
 - `examples/project-overlay.yaml` — 严格审查流程示例
 
+## 外部工具集成
+
+本工作流支持可选的外部工具集成以增强能力：
+
+### 初始化集成
+
+```bash
+# 交互式设置向导
+bin/vibe init
+
+# 验证现有安装
+bin/vibe init --verify
+```
+
+### 支持的集成
+
+#### Superpowers 技能包
+
+提供设计优化、TDD 强制执行、系统化调试等高级技能包。
+
+**安装方式**：
+- Claude Code: `/plugin marketplace add obra/superpowers-marketplace`
+- Cursor: `/plugin-add superpowers`
+- 手动: 克隆并符号链接到 `~/.claude/skills/`
+
+**技能**: tdd, brainstorm, refactor, debug, architect, review, optimize
+
+**来源**: [obra/superpowers](https://github.com/obra/superpowers)
+
+#### RTK (Token 优化器)
+
+通过智能上下文管理将 LLM token 消耗减少 60-90% 的 CLI 代理工具。
+
+**安装方式**：
+```bash
+# Homebrew (macOS/Linux)
+brew install rtk
+
+# 安装脚本
+curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
+
+# 初始化 hook
+rtk init --global
+```
+
+**来源**: [rtk-ai/rtk](https://github.com/rtk-ai/rtk)
+
+### 集成行为
+
+- **条件性**: 所有集成都是可选的。工作流在没有它们的情况下正常运行。
+- **动态检测**: 当安装 Superpowers 时，skill-triggers.md 会自动包含 Superpowers 技能引用。
+- **安全性**: 外部技能在注册到 `core/skills/registry.yaml` 之前会经过安全审查。
+
+详细集成文档请参阅 `docs/integrations.md`。
+
 ## 目录结构
 
 ```
