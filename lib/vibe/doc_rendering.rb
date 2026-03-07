@@ -147,6 +147,8 @@ module Vibe
         end
       end.join("\n")
 
+      model_config_note = render_model_config_note(manifest["target"], manifest["profile_mapping"])
+
       <<~MD
         # Routing profile
 
@@ -165,6 +167,8 @@ module Vibe
         ## Active mapping
 
         #{bullet_mapping(manifest["profile_mapping"])}
+
+        #{model_config_note}
 
         ## Routing defaults
 
@@ -494,6 +498,92 @@ module Vibe
         - Test code itself: optional coverage
         - Generated code: optional coverage
       MD
+    end
+
+    def render_model_config_note(target, profile_mapping)
+      case target
+      when "claude-code"
+        <<~NOTE.strip
+          ## Model configuration
+
+          **Important**: The mapping above shows semantic tier-to-model references. Actual model selection in Claude Code is controlled by:
+
+          1. **Launch-time flag**: `claude --model opus|sonnet|haiku`
+          2. **Task tool parameter**: When spawning subagents, use `model: "opus"|"sonnet"|"haiku"`
+          3. **Settings file**: Configure defaults in `~/.claude/settings.json` (if supported)
+
+          These mappings guide you to select appropriate models for different task types. See `targets/claude-code.md` for detailed configuration instructions.
+        NOTE
+      when "cursor"
+        <<~NOTE.strip
+          ## Model configuration
+
+          **Important**: The mapping above shows semantic tier-to-model references. Actual model selection in Cursor is configured through:
+
+          1. **Cursor Settings** (Cmd/Ctrl + ,) → Models section
+          2. Configure your **Primary Model** (for critical_reasoner and workhorse_coder)
+          3. Configure your **Fast Model** (for fast_router)
+
+          Cursor does not support automatic model switching per task. The AI will see these routing rules but cannot programmatically switch models. You may need to manually switch models for critical tasks.
+
+          See `targets/cursor.md` for detailed configuration instructions.
+        NOTE
+      when "codex-cli"
+        <<~NOTE.strip
+          ## Model configuration
+
+          **Important**: The mapping above shows semantic tier-to-model references. Actual model selection in Codex CLI is controlled by:
+
+          1. **Environment variables**: `CODEX_PRIMARY_MODEL`, `CODEX_WORKHORSE_MODEL`, `CODEX_FAST_MODEL`
+          2. **CLI flags**: `codex --model gpt-4-turbo "your task"`
+          3. **Config file**: `~/.codex/config.yaml` (if supported)
+
+          Example:
+          ```bash
+          export CODEX_PRIMARY_MODEL="gpt-4-turbo"
+          export CODEX_FAST_MODEL="gpt-3.5-turbo"
+          codex --model gpt-4-turbo "review security implications"
+          ```
+
+          See `targets/codex-cli.md` for detailed configuration instructions.
+        NOTE
+      when "opencode"
+        <<~NOTE.strip
+          ## Model configuration
+
+          **Important**: The mapping above shows semantic tier-to-model references. Actual model selection in OpenCode is configured in `opencode.json`:
+
+          ```json
+          {
+            "models": {
+              "primary": "claude-opus-4",
+              "coder": "claude-sonnet-4",
+              "fast": "claude-haiku-4"
+            }
+          }
+          ```
+
+          OpenCode supports flexible model configuration with multiple providers. You can mix Anthropic, OpenAI, and local models.
+
+          See `targets/opencode.md` for detailed configuration instructions.
+        NOTE
+      when "warp"
+        <<~NOTE.strip
+          ## Model configuration
+
+          **Important**: The mapping above shows semantic tier-to-model references. Actual model selection in Warp is configured through:
+
+          1. **Warp Settings** → AI or Assistant settings
+          2. Configure your AI provider (Anthropic Claude, OpenAI, etc.)
+          3. Select your preferred model
+
+          Warp typically uses a single configured AI model for all interactions. The routing rules help the AI understand task criticality and adjust its approach accordingly.
+
+          See `targets/warp.md` for detailed configuration instructions.
+        NOTE
+      else
+        ""
+      end
     end
 
   end

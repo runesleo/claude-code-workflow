@@ -118,6 +118,141 @@ cp -r claude-code-workflow/* ~/.claude/
 claude
 ```
 
+## 模型配置指南
+
+本工作流使用**能力层级路由系统**，将任务复杂度与具体模型实现分离。理解如何为你的目标工具配置模型对于获得最佳性能至关重要。
+
+### 理解能力层级
+
+工作流在 `core/models/tiers.yaml` 中定义了 5 个抽象能力层级：
+
+- **`critical_reasoner`**：关键逻辑、安全、密钥和架构决策的最高保障推理
+- **`workhorse_coder`**：大多数实现和分析工作的默认日常编码层级
+- **`fast_router`**：用于探索、分类和低风险子流程工作的快速廉价层级
+- **`independent_verifier`**：用于交叉检查重要结论的第二模型验证层级
+- **`cheap_local`**：用于离线、高容量和低风险任务的本地或接近零成本层级
+
+### 层级到模型的映射机制
+
+每个目标在 `core/models/providers.yaml` 中都有一个**提供者配置文件**，将这些抽象层级映射到具体的模型实现：
+
+```yaml
+claude-code-default:
+  mapping:
+    critical_reasoner: claude.opus-class
+    workhorse_coder: claude.sonnet-class
+    fast_router: claude.haiku-class
+```
+
+**重要提示**：这些映射是**语义提示**，而非可执行配置。实际的模型选择取决于你的目标工具的能力。
+
+### 按目标配置模型
+
+#### Claude Code（完全支持）
+
+Claude Code 通过多种方法支持动态模型选择：
+
+**方法 1：使用特定模型启动**
+```bash
+# 使用 Opus 启动（最高能力）
+claude --model opus
+
+# 使用 Sonnet 启动（平衡）
+claude --model sonnet
+
+# 使用 Haiku 启动（最快）
+claude --model haiku
+```
+
+**方法 2：使用 Task 工具的 model 参数**
+```markdown
+委派给子代理时，Claude 可以指定模型层级：
+- Task 工具使用 `model: "opus"` 进行关键推理
+- Task 工具使用 `model: "sonnet"` 进行标准工作
+- Task 工具使用 `model: "haiku"` 进行快速探索
+```
+
+**方法 3：在设置中配置默认值**
+检查 `~/.claude/settings.json` 以配置默认模型偏好（如果你的 Claude Code 版本支持）。
+
+#### Cursor（计划中）
+
+Cursor 的模型选择通过其 UI 设置配置：
+
+1. 打开 Cursor 设置（Cmd/Ctrl + ,）
+2. 导航到"Models"部分
+3. 为每个层级配置模型：
+   - **Primary model** → 映射到 `critical_reasoner` 和 `workhorse_coder`
+   - **Fast model** → 映射到 `fast_router`
+   - **Review model** → 映射到 `independent_verifier`
+
+生成的 `.cursor/rules/05-vibe-routing.mdc` 将引用这些为 `cursor.primary-frontier-model`、`cursor.default-agent-model` 等。
+
+#### Codex CLI（计划中）
+
+Codex CLI 使用通过环境或 CLI 标志配置的 OpenAI 模型：
+
+```bash
+# 通过环境设置默认模型
+export CODEX_PRIMARY_MODEL="gpt-4"
+export CODEX_FAST_MODEL="gpt-3.5-turbo"
+
+# 或按调用指定
+codex --model gpt-4 "你的任务"
+```
+
+生成的 `.vibe/codex-cli/routing.md` 将层级映射到 `openai.high-reasoning`、`openai.codex-workhorse` 等。
+
+#### Warp（计划中）
+
+Warp 的模型配置取决于其 AI 提供者集成：
+
+1. 在 Warp 设置中配置你的 AI 提供者
+2. 生成的 `WARP.md` 将引用 `warp.primary-frontier-model`、`warp.default-agent-model` 等
+3. Warp 将对所有层级使用其配置的默认模型（Warp 内的模型切换可能受限）
+
+#### OpenCode（计划中）
+
+OpenCode 允许在 `opencode.json` 中灵活配置模型：
+
+```json
+{
+  "models": {
+    "primary": "claude-opus-4",
+    "coder": "claude-sonnet-4",
+    "fast": "claude-haiku-4"
+  }
+}
+```
+
+生成的配置将这些映射到工作流中定义的能力层级。
+
+### 项目特定的模型覆盖
+
+你可以使用 overlay 为特定项目覆盖默认的层级到模型映射：
+
+```yaml
+# .vibe/overlay.yaml
+profile:
+  mapping:
+    critical_reasoner: claude.opus-4-latest
+    workhorse_coder: claude.sonnet-4-latest
+```
+
+然后使用 overlay 构建：
+```bash
+bin/vibe build claude-code --overlay .vibe/overlay.yaml
+```
+
+### 成本优化技巧
+
+1. **使用正确的层级**：不要对简单任务使用 `critical_reasoner`（Opus）
+2. **利用 `fast_router`**：对探索和快速查找使用 Haiku 级模型
+3. **启用 `cheap_local`**：为提交消息和格式化配置 Ollama 或类似工具
+4. **有选择地交叉验证**：仅对真正关键的决策使用 `independent_verifier`
+
+详细的路由指南请参见 `docs/task-routing.md`。
+
 ### 方式二：使用生成器（推荐，支持多目标）
 
 ```bash
