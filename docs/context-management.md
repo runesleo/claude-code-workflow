@@ -6,8 +6,11 @@ This document explains how the workflow keeps Claude Code effective across long 
 
 The key distinction is:
 
-- **Repo-local hot state** lives in files such as `memory/today.md`, `memory/active-tasks.json`, `memory/goals.md`, and `memory/projects.md`
-- **Project-specific durable memory** may live in a routed `MEMORY.md` or `PROJECT_CONTEXT.md`, depending on how `CLAUDE.md` is configured
+- **Repo-local hot state** lives in the 3-tier memory architecture:
+  - `memory/session.md` — daily progress + in-flight tasks (hot layer)
+  - `memory/project-knowledge.md` — technical pitfalls + patterns (warm layer)
+  - `memory/overview.md` — goals + projects + infrastructure (cold layer)
+- **Project-specific durable memory** may live in a routed `PROJECT_CONTEXT.md`, depending on how `CLAUDE.md` is configured
 
 The goal is to preserve the right information in the right layer instead of loading everything into context at once.
 
@@ -72,16 +75,26 @@ Loaded on demand for a specific task:
 
 This layer is where detail belongs. It should not all be loaded at once.
 
-### Layer 2: Working State (`memory/` + project memory)
+### Layer 2: Working State (3-tier `memory/` + project memory)
 
 Updated frequently as work progresses:
 
-- `memory/today.md` — daily progress and handoff
-- `memory/active-tasks.json` — in-flight task registry
-- `memory/goals.md` — cross-session goals
-- `memory/projects.md` — cross-project summaries and pointers
-- `patterns.md` — reusable lessons and pitfalls
-- Optional project memory such as `PROJECT_CONTEXT.md` or routed `MEMORY.md`
+**Hot Layer** (`memory/session.md`):
+- Daily progress and handoff
+- In-flight task registry (cross-session)
+- Crash recovery anchor
+
+**Warm Layer** (`memory/project-knowledge.md`):
+- Technical pitfalls and gotchas
+- Reusable patterns across tasks
+- Architecture decisions (ADRs)
+
+**Cold Layer** (`memory/overview.md`):
+- Cross-project summaries and pointers
+- Week/month/quarter goals
+- Infrastructure and operational state
+
+Optional project memory such as `PROJECT_CONTEXT.md` for project-level durable context.
 
 This layer is the recovery surface after compression.
 
@@ -139,23 +152,23 @@ Use search first because it is the cheapest recovery method.
 - `file_glob` to find likely files
 - read only the files that the search identifies
 
-#### Step 2: Read `memory/today.md`
+#### Step 2: Read `memory/session.md`
 
-Use `memory/today.md` to recover:
+Use `memory/session.md` to recover:
 
 - what was done in this session or day
 - important decisions
 - current blockers
 - next steps
+- in-flight tasks (cross-session)
 
 #### Step 3: Read the smallest durable state file that matches the need
 
 Choose the narrowest durable source:
 
-- `memory/projects.md` for cross-project overview and pointers
+- `memory/overview.md` for cross-project overview and goals
+- `memory/project-knowledge.md` for reusable patterns and technical pitfalls
 - `PROJECT_CONTEXT.md` for project-level status and architecture state
-- routed project `MEMORY.md` when you need durable technical details, pitfalls, or file-location notes
-- `patterns.md` for reusable lessons that apply across tasks
 
 #### Step 4: Re-open only the specific files you still need
 
@@ -178,11 +191,10 @@ Do not spend tokens recovering context if:
 
 #### 1. Keep each file doing one job
 
-- `today.md` = daily progress and handoff
-- `projects.md` = cross-project summaries and pointers
+- `memory/session.md` = daily progress, handoff, and in-flight tasks
+- `memory/project-knowledge.md` = technical pitfalls, patterns, architecture decisions
+- `memory/overview.md` = cross-project summaries, goals, infrastructure
 - `PROJECT_CONTEXT.md` = project status and architecture state
-- project `MEMORY.md` (if used) = technical pitfalls, conventions, important file locations
-- `patterns.md` = reusable lessons across tasks or projects
 
 #### 2. Prefer durable write-back for durable knowledge
 
@@ -200,10 +212,10 @@ Starting a new topic with a short restatement of goal and constraints reduces fu
 
 #### 1. Write to the correct layer
 
-- update `memory/today.md` for progress and handoff
-- update `memory/active-tasks.json` for in-flight work
-- update `patterns.md` for reusable lessons
-- update `PROJECT_CONTEXT.md` or project `MEMORY.md` for project-specific durable context
+- update `memory/session.md` for progress, handoff, and active tasks
+- update `memory/project-knowledge.md` for reusable patterns and technical discoveries
+- update `memory/overview.md` for goals and cross-project status changes
+- update `PROJECT_CONTEXT.md` for project-level durable context
 
 #### 2. Read efficiently
 
@@ -213,7 +225,7 @@ Starting a new topic with a short restatement of goal and constraints reduces fu
 
 #### 3. Recover cheaply first
 
-Start with search, then `today.md`, then the smallest durable state file that fits the question.
+Start with search, then `memory/session.md`, then the smallest durable state file that fits the question.
 
 #### 4. Respect layer boundaries
 
@@ -227,8 +239,8 @@ Do not duplicate stable rules into daily memory, and do not turn daily logs into
 
 **Good recovery pattern**:
 
-1. Keep the current debugging trail summarized in `memory/today.md`
-2. Move reusable findings into `patterns.md` or project `MEMORY.md`
+1. Keep the current debugging trail summarized in `memory/session.md`
+2. Move reusable findings into `memory/project-knowledge.md`
 3. After compression, recover from those notes instead of re-reading every command output
 
 ### Scenario 2: Multi-Day Feature Development
@@ -237,9 +249,9 @@ Do not duplicate stable rules into daily memory, and do not turn daily logs into
 
 **Good recovery pattern**:
 
-1. End each session with an update to `memory/today.md`
+1. End each session with an update to `memory/session.md`
 2. Update `PROJECT_CONTEXT.md` when project-level status changes
-3. Move stable technical context into routed `MEMORY.md` or `patterns.md` if it will matter again
+3. Move stable technical context into `memory/project-knowledge.md` if it will matter again
 
 ### Scenario 3: Context-Heavy Code Review
 
@@ -249,7 +261,7 @@ Do not duplicate stable rules into daily memory, and do not turn daily logs into
 
 1. Use RTK to compress large `git diff` output when available
 2. Review files in logical groups
-3. Summarize conclusions in `memory/today.md` or the relevant `PROJECT_CONTEXT.md`
+3. Summarize conclusions in `memory/session.md` or the relevant `PROJECT_CONTEXT.md`
 4. Recover from those summaries instead of re-reading the full diff
 
 ### Scenario 4: Switching Between Projects
@@ -258,10 +270,10 @@ Do not duplicate stable rules into daily memory, and do not turn daily logs into
 
 **Good recovery pattern**:
 
-1. Use `memory/projects.md` for the overview
-2. Follow `CLAUDE.md` memory routes to the correct project `MEMORY.md` if one is configured
+1. Use `memory/overview.md` for the cross-project overview
+2. Follow `CLAUDE.md` memory routes to the correct project files if configured
 3. Read the relevant `PROJECT_CONTEXT.md` for project state
-4. Keep only reusable cross-project lessons in `patterns.md`
+4. Keep only reusable cross-project lessons in `memory/project-knowledge.md`
 
 ## Practical Budgeting
 
@@ -283,24 +295,24 @@ The workflow reduces that cost by:
 
 Keep the recovery surface tidy:
 
-- `today.md` can grow during the day, but reset it on daily cadence
-- `projects.md` should stay summary-only
-- project `MEMORY.md` files should be concise and technical
+- `memory/session.md` can grow during the day, but should be archived periodically
+- `memory/overview.md` should stay summary-only
+- `memory/project-knowledge.md` should be concise and technical
 - `PROJECT_CONTEXT.md` should track active project state, not become a dump of every historical detail
 
 If a memory file is getting large, split stable knowledge into better-scoped durable files rather than expanding one hot file forever.
 
 ## Troubleshooting
 
-### “I lost context after compression”
+### "I lost context after compression"
 
 Check in this order:
 
 1. Search by task keywords
-2. Read `memory/today.md`
-3. Read `memory/projects.md`, `PROJECT_CONTEXT.md`, routed `MEMORY.md`, or `patterns.md` as appropriate
+2. Read `memory/session.md`
+3. Read `memory/overview.md`, `memory/project-knowledge.md`, or `PROJECT_CONTEXT.md` as appropriate
 
-### “Claude keeps re-reading the same files”
+### "Claude keeps re-reading the same files"
 
 Common cause:
 
@@ -308,20 +320,20 @@ Common cause:
 
 Fix:
 
-- note key file locations in project memory or `patterns.md`
-- summarize task state in `today.md`
+- note key file locations in `memory/project-knowledge.md`
+- summarize task state in `memory/session.md`
 - prefer targeted reads instead of broad reloading
 
-### “Memory files are getting too large”
+### "Memory files are getting too large"
 
 Fix:
 
-1. move summaries to `projects.md`
-2. keep `today.md` focused on active work
-3. move reusable lessons to `patterns.md`
+1. move summaries to `memory/overview.md`
+2. keep `memory/session.md` focused on active work
+3. move reusable lessons to `memory/project-knowledge.md`
 4. keep project-specific technical context in the project's own durable files
 
-### “RTK is not reducing the cost enough”
+### "RTK is not reducing the cost enough"
 
 Check:
 

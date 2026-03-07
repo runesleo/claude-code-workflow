@@ -124,15 +124,12 @@ claude-code-workflow/
 │   ├── scaffolding-checkpoint.md # "Do you really need to self-host?" checklist
 │   └── task-routing.md           # Model tier routing + target profiles
 │
-├── memory/                       # Layer 2: Your working state (templates)
-│   ├── infra.md                  # Infrastructure SSOT template
-│   ├── today.md                  # Daily session log
-│   ├── projects.md               # Cross-project status overview
-│   ├── goals.md                  # Week/month/quarter goals
-│   ├── sunday-backlog.md         # System optimization backlog template
-│   └── active-tasks.json         # Cross-session task registry
+├── memory/                       # Layer 2: Your working state (3-tier architecture)
+│   ├── session.md                # Hot layer: daily progress + in-flight tasks
+│   ├── project-knowledge.md      # Warm layer: technical pitfalls + patterns
+│   └── overview.md               # Cold layer: goals + projects + infrastructure
 │
-├── patterns.md                   # Cross-project reusable patterns and pitfalls
+
 │
 ├── skills/                       # Reusable skill definitions
 │   ├── session-end/SKILL.md              # Auto wrap-up: save progress + commit + record
@@ -190,7 +187,7 @@ Claude will automatically load your rules and start following the workflow. Try:
 - Start coding and notice the **task routing** (`🔀 Route: bug fix → workhorse_coder (Sonnet-class)`)
 - Hit a bug and watch **systematic debugging** kick in
 - Say "that's all for now" and see **session-end** auto-save everything
-- Come back tomorrow and find your context preserved in `today.md`
+- Come back tomorrow and find your context preserved in `memory/session.md`
 
 Portable note: `core/` and `targets/` define the cross-tool contract, but Claude Code remains the directly runnable target in phase 1.
 
@@ -547,7 +544,7 @@ System optimization happens on Sundays. On other days, if you try to tweak your 
 
 ### Adding a new project
 
-1. Add to `memory/projects.md`
+1. Add to `memory/overview.md` (Projects Summary section)
 2. Add memory route in CLAUDE.md's "Sub-project Memory Routes"
 3. Create `PROJECT_CONTEXT.md` in the project root
 

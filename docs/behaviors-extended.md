@@ -32,6 +32,7 @@ Received content to record ->
 - Same content written to multiple files (SSOT violation)
 - Inventing new directories without precedent
 - Stuffing detailed analysis into index files
+- Writing to old memory file paths (today.md, active-tasks.json, etc.)
 - Skipping decision tree
 
 ---
@@ -50,15 +51,15 @@ When user shares URL / article / tweet, ask 4 dimensions:
 
 ### Scenario 2: Starting new task
 
-Check patterns.md first:
-- Any related pitfall records?
-- Any related decision patterns?
+Check memory/project-knowledge.md first:
+- Any related pitfall records in the Technical Pitfalls section?
+- Any related decision patterns in the Architecture Decisions section?
 
 ### Scenario 3: Completing code task
 
 Self-check:
 - Does this task have tweet/sharing value?
-- Any pitfall experience to record?
+- Any pitfall experience to record in memory/project-knowledge.md?
 - Need to update PROJECT_CONTEXT.md?
 
 ### Scenario 4: User mentions person/company/project
@@ -70,7 +71,7 @@ Associate:
 ### Scenario 5: User expresses emotion (tired/frustrated/anxious)
 
 Associate:
-- Recent work intensity (today.md)
+- Recent work intensity (memory/session.md)
 - Don't take it literally
 
 ### Scenario 6: User asks "what do you think about X"

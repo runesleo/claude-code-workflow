@@ -1,0 +1,16 @@
+---
+description: Generated portable routing policy
+alwaysApply: true
+---
+
+# Capability routing
+
+- `capability-tier-routing` (`mandatory`) — Route by capability tier first, then resolve through the active provider profile.
+
+## Active mapping
+
+- `critical_reasoner` → `cursor.primary-frontier-model`
+- `workhorse_coder` → `cursor.default-agent-model`
+- `fast_router` → `cursor.fast-model`
+- `independent_verifier` → `second-model.or.manual-review`
+- `cheap_local` → `local.external-runner`

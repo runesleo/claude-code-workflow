@@ -1,0 +1,18 @@
+---
+description: Generated portable workflow core
+alwaysApply: true
+---
+
+# Portable workflow core
+
+- `ssot-first` (`mandatory`) — Keep repository files as the single source of truth; tool-managed memory is cache.
+- `verify-before-claim` (`mandatory`) — Never claim completion without fresh verification evidence.
+- `reversible-small-batches` (`recommended`) — Prefer small, reversible, single-purpose changes over large mixed batches.
+- `root-cause-debugging` (`mandatory`) — Investigate root cause before attempting fixes and reassess after repeated failures.
+- `record-reusable-learning` (`recommended`) — Record user corrections, repeated failures, and counter-intuitive discoveries for reuse.
+
+## Mandatory skills
+
+- `systematic-debugging` (`P0`, `mandatory`) — Find root cause before attempting fixes.
+- `verification-before-completion` (`P0`, `mandatory`) — Require fresh verification evidence before claiming completion.
+- `session-end` (`P0`, `mandatory`) — Capture handoff, memory, and wrap-up state before ending a session.

@@ -1,27 +1,22 @@
 # Generated target summary
 
-- Target: `warp`
-- Profile: `warp-default`
+- Target: `antigravity`
+- Profile: `antigravity-default`
 - Profile maturity: `planned`
-- Generated at: `2026-03-07T07:31:14Z`
-- Applied overlay: `example-regulated-project` from `examples/project-overlay.yaml`
+- Generated at: `2026-03-07T07:56:54Z`
+- Applied overlay: `none`
 
 ## Capability mapping
 
-- `critical_reasoner` → `openai.high-reasoning`
-- `workhorse_coder` → `warp.default-agent-model`
-- `fast_router` → `warp.fast-model`
-- `independent_verifier` → `second-model.cross-family`
+- `critical_reasoner` → `antigravity.primary-frontier-model`
+- `workhorse_coder` → `antigravity.default-agent-model`
+- `fast_router` → `antigravity.fast-model`
+- `independent_verifier` → `second-model.or.manual-review`
 - `cheap_local` → `local.external-runner`
 
 ## Overlay
 
-- Name: `example-regulated-project`
-- Path: `examples/project-overlay.yaml`
-- Profile mapping overrides: `critical_reasoner`, `independent_verifier`
-- Extra profile notes: `2`
-- Policy patches: `2`
-- Native patch keys: `none`
+- none
 
 ## Behavior policies
 
@@ -33,8 +28,6 @@
 - `security-escalation` (`mandatory`) — Treat destructive commands, network egress, secret access, and obfuscation as security-sensitive actions.
 - `record-reusable-learning` (`recommended`) — Record user corrections, repeated failures, and counter-intuitive discoveries for reuse.
 - `sunday-rule` (`recommended`) — Batch workflow or system optimization separately from delivery work unless it blocks production.
-- `project-context-is-release-log` (`recommended`) — Keep `PROJECT_CONTEXT.md` current for release blockers, migrations, and rollback notes.
-- `regulated-data-review` (`mandatory`) — Treat customer-data exports, redaction, and retention changes as review-required work.
 
 ## Skills
 

@@ -1,40 +1,23 @@
 {
   "schema_version": 5,
-  "generated_at": "2026-03-07T07:31:14Z",
+  "generated_at": "2026-03-07T07:56:54Z",
   "source_repo": ".",
-  "output_root": "/Users/huchen/.vibe-generated/claude-code-workflow-653a9fb4dbb6/warp",
-  "target": "warp",
-  "profile": "warp-default",
+  "output_root": "/Users/huchen/.vibe-generated/claude-code-workflow-653a9fb4dbb6/antigravity",
+  "target": "antigravity",
+  "profile": "antigravity-default",
   "profile_maturity": "planned",
   "profile_notes": [
-    "Use WARP.md as the project rule entrypoint and keep repo-local files as the SSOT.",
-    "Treat Warp workflows as wrappers around project commands, not as canonical state.",
-    "Prefer an independent verifier before merging database migrations or data-retention changes.",
-    "Escalate export, redaction, and compliance-sensitive logic to the strongest reasoning tier."
+    "Antigravity uses multi-agent workflows and task tracking markdown documents natively.",
+    "Generated files provide the routing, instructions, and capability baselines."
   ],
   "profile_mapping": {
-    "critical_reasoner": "openai.high-reasoning",
-    "workhorse_coder": "warp.default-agent-model",
-    "fast_router": "warp.fast-model",
-    "independent_verifier": "second-model.cross-family",
+    "critical_reasoner": "antigravity.primary-frontier-model",
+    "workhorse_coder": "antigravity.default-agent-model",
+    "fast_router": "antigravity.fast-model",
+    "independent_verifier": "second-model.or.manual-review",
     "cheap_local": "local.external-runner"
   },
-  "overlay": {
-    "name": "example-regulated-project",
-    "path": "/Users/huchen/Projects/claude-code-workflow/examples/project-overlay.yaml",
-    "display_path": "examples/project-overlay.yaml",
-    "description": "Example overlay for a project with stricter review and data-handling requirements.",
-    "schema_version": 1,
-    "profile_mapping_overrides": {
-      "critical_reasoner": "openai.high-reasoning",
-      "independent_verifier": "second-model.cross-family"
-    },
-    "profile_note_append_count": 2,
-    "policy_patch_count": 2,
-    "target_patch_keys": [
-
-    ]
-  },
+  "overlay": null,
   "native_config_overlay": {
   },
   "routing_defaults": {
@@ -127,7 +110,7 @@
       "intent": "Find root cause before attempting fixes.",
       "trigger_mode": "mandatory",
       "priority": "P0",
-      "target_support": "rule-or-manual-invocation"
+      "target_support": "native-skill"
     },
     {
       "id": "verification-before-completion",
@@ -135,7 +118,7 @@
       "intent": "Require fresh verification evidence before claiming completion.",
       "trigger_mode": "mandatory",
       "priority": "P0",
-      "target_support": "rule-or-checklist"
+      "target_support": "native-skill"
     },
     {
       "id": "session-end",
@@ -143,7 +126,7 @@
       "intent": "Capture handoff, memory, and wrap-up state before ending a session.",
       "trigger_mode": "mandatory",
       "priority": "P0",
-      "target_support": "checklist-or-rule"
+      "target_support": "native-skill"
     },
     {
       "id": "planning-with-files",
@@ -151,7 +134,7 @@
       "intent": "Use persistent files as working memory for complex multi-step tasks.",
       "trigger_mode": "suggest",
       "priority": "P1",
-      "target_support": "manual-or-template"
+      "target_support": "native-skill"
     },
     {
       "id": "experience-evolution",
@@ -248,26 +231,6 @@
       "summary": "Batch workflow or system optimization separately from delivery work unless it blocks production.",
       "source_refs": [
         "rules/behaviors.md"
-      ]
-    },
-    {
-      "id": "project-context-is-release-log",
-      "category": "project_memory",
-      "enforcement": "recommended",
-      "target_render_group": "always_on",
-      "summary": "Keep `PROJECT_CONTEXT.md` current for release blockers, migrations, and rollback notes.",
-      "source_refs": [
-        "examples/project-overlay.yaml"
-      ]
-    },
-    {
-      "id": "regulated-data-review",
-      "category": "safety",
-      "enforcement": "mandatory",
-      "target_render_group": "safety",
-      "summary": "Treat customer-data exports, redaction, and retention changes as review-required work.",
-      "source_refs": [
-        "examples/project-overlay.yaml"
       ]
     }
   ],
@@ -367,9 +330,9 @@
       "obfuscation_or_evasion"
     ],
     "target_actions": {
-      "P0": "Surface as a blocking Warp rule plus explicit stop guidance in the generated docs.",
-      "P1": "Require manual review or user confirmation before execution.",
-      "P2": "Warn in WARP.md or supporting guidance and continue with traceable reasoning."
+      "P0": "Surface as a blocking project rule or execution deny logic.",
+      "P1": "Ask through manual notification tool or review approval.",
+      "P2": "Warn and continue."
     }
   }
 }

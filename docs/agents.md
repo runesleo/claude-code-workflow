@@ -42,7 +42,7 @@
 |------|-------------|
 | **Orchestrate** | Dispatch tasks to other Agents/Codex |
 | **Decide** | Final judgment on critical matters |
-| **Memory** | Maintain hot data layer (today.md) |
+| **Memory** | Maintain hot data layer (session.md) |
 | **Align** | Daily status alignment |
 
 ---
@@ -62,7 +62,7 @@
 You are working on [project-name].
 
 ## Context Loading (must read first)
-1. ~/.claude/memory/today.md — Today's work context
+1. ~/.claude/memory/session.md — Today's work context
 2. /path/to/project/PROJECT_CONTEXT.md — Project status
 
 ## Task

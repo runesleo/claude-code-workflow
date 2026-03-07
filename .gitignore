@@ -1,2 +1,5 @@
 /generated/
 /.vibe-target.json
+.alma-snapshots
+/AGENTS.md
+/WARP.md

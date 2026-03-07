@@ -59,7 +59,7 @@ Memory Recall is **mandatory by default**, but can be skipped in these cases:
 
 **Exemption Log**: When skipping Memory Recall, log the reason:
 ```markdown
-# memory/today.md
+# memory/session.md
 ## Skipped Memory Recall
 - Task: Add new feature X
 - Reason: User confirmed it's brand new, no similar patterns exist

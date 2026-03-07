@@ -1,0 +1,13 @@
+---
+description: Portable optional skill and workflow reference
+alwaysApply: false
+---
+
+# Optional workflow guidance
+
+- `sunday-rule` (`recommended`) — Batch workflow or system optimization separately from delivery work unless it blocks production.
+
+## Optional skills
+
+- `planning-with-files` (`P1`, `suggest`) — Use persistent files as working memory for complex multi-step tasks.
+- `experience-evolution` (`P1`, `suggest`) — Capture reusable lessons and patterns from repeated work.

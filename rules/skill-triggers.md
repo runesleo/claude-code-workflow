@@ -58,3 +58,24 @@ Target adapters decide whether a portable skill ID becomes a native skill, a rul
   | User pastes address + "analyze" | profile-address | Not your domain's address type |
 -->
 
+## URL Fetch Routing (Local Overlay)
+
+**When user shares URL, pick optimal tool by platform. Only fallback on first-choice failure.**
+
+### Platform → Tool Mapping
+
+| Platform | First choice (cheapest) | Fallback |
+|----------|------------------------|----------|
+| x.com / twitter.com (single tweet) | `fetch_tweet` | Playwright `navigate` + `browser_evaluate` |
+| x.com (Article / long-form) | `fetch_jina` (Article URL) | Playwright `browser_evaluate` extract innerText |
+| x.com (profile/timeline) | Twitter API tools | Playwright |
+| General articles/blogs/news | `fetch_jina` | `fetch_page` → `WebFetch` |
+| JS-heavy SPA / login-required | Playwright | — |
+| GitHub | `gh` CLI (Bash) | `WebFetch` |
+
+### Hard Rules
+- **Never** use WebFetch as first choice (social platforms always fail)
+- **Never** try >2 tools on same URL (2 failures → tell user, change approach)
+
+Banned: Scenario matches but doesn't trigger / waiting for manual trigger / downgrading P0
+
