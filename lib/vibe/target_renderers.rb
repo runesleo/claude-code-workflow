@@ -370,6 +370,117 @@ module Vibe
       write_json(File.join(vscode_dir, "settings.json"), vscode_settings_config(manifest))
     end
 
+    def render_kimi_code(output_root, manifest)
+      kimi_skills_dir = File.join(output_root, ".kimi", "skills")
+      kimi_support_dir = File.join(output_root, ".vibe", "kimi-code")
+      FileUtils.mkdir_p(kimi_skills_dir)
+      FileUtils.mkdir_p(kimi_support_dir)
+
+      # Generate KIMI.md project entrypoint
+      File.write(File.join(output_root, "KIMI.md"), <<~MD)
+        # Vibe workflow for Kimi Code
+
+        Generated from the portable `core/` spec with profile `#{manifest["profile"]}`.
+        Applied overlay: #{overlay_sentence(manifest)}
+
+        This file serves as the project entrypoint for Kimi Code.
+
+        ## Non-negotiable rules
+
+        #{bullet_policy_summary(filtered_policies(manifest, %w[always_on routing safety]))}
+
+        ## Capability routing
+
+        #{bullet_mapping(manifest["profile_mapping"])}
+
+        ## Mandatory portable skills
+
+        #{bullet_skill_summary(mandatory_skills(manifest))}
+
+        ## Skills
+
+        Skills are defined in `.kimi/skills/*/SKILL.md` files.
+
+        ## Safety floor
+
+        #{bullet_target_actions(manifest)}
+
+        ## Supporting documentation
+
+        - `.vibe/kimi-code/behavior-policies.md` — Full behavior policy baseline
+        - `.vibe/kimi-code/routing.md` — Capability tier routing reference
+        - `.vibe/kimi-code/safety.md` — Security policy and escalation guidance
+        - `.vibe/kimi-code/skills.md` — Portable skill registry reference
+        - `.vibe/kimi-code/task-routing.md` — Task complexity classification
+        - `.vibe/kimi-code/test-standards.md` — Test coverage requirements
+      MD
+
+      # Generate supporting documentation
+      File.write(File.join(kimi_support_dir, "behavior-policies.md"), render_behavior_doc(manifest))
+      File.write(File.join(kimi_support_dir, "routing.md"), render_routing_doc(manifest))
+      File.write(File.join(kimi_support_dir, "safety.md"), render_safety_doc(manifest))
+      File.write(File.join(kimi_support_dir, "skills.md"), render_skills_doc(manifest))
+      File.write(File.join(kimi_support_dir, "task-routing.md"), render_task_routing_doc(manifest))
+      File.write(File.join(kimi_support_dir, "test-standards.md"), render_test_standards_doc(manifest))
+
+      # Generate SKILL.md files for mandatory skills
+      manifest.fetch("skills", []).each do |skill|
+        next unless skill["trigger_mode"] == "mandatory"
+
+        skill_dir = File.join(kimi_skills_dir, skill["id"])
+        FileUtils.mkdir_p(skill_dir)
+
+        allowed_tools = skill.fetch("allowed_tools", ["Read", "Grep", "Glob"])
+        tool_list = allowed_tools.join(", ")
+
+        File.write(File.join(skill_dir, "SKILL.md"), <<~SKILL)
+          ---
+          name: #{skill["id"]}
+          description: #{skill["intent"]} (#{skill["severity"] || "P1"})
+          version: 1.0.0
+          allowed-tools:
+          #{allowed_tools.map { |t| "  - #{t}" }.join("\n")}
+          ---
+
+          # #{skill["name"] || skill["id"].split("-").map(&:capitalize).join(" ")}
+
+          #{skill["description"] || skill["intent"]}
+
+          ## When to use
+
+          #{skill["intent"]}
+
+          ## Instructions
+
+          #{skill["how_to_invoke"] || "Follow the workflow defined in this skill."}
+
+          ---
+          *Generated from portable skill registry*
+        SKILL
+      end
+
+      # Generate a README for the kimi skills directory
+      File.write(File.join(kimi_skills_dir, "README.md"), <<~MD)
+        # Kimi Code Skills
+
+        This directory contains Vibe workflow skills for Kimi Code.
+
+        ## Usage
+
+        ```bash
+        # List available skills
+        kimi skill list
+
+        # Run a specific skill
+        kimi skill run session-end
+        ```
+
+        ## Available Skills
+
+        #{manifest.fetch("skills", []).select { |s| s["trigger_mode"] == "mandatory" }.map { |s| "- `#{s['id']}` — #{s['intent']}" }.join("\n")}
+      MD
+    end
+
     private
 
     def generate_superpowers_section(status, manifest)

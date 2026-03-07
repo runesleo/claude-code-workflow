@@ -16,6 +16,7 @@ Phase 1 made the adapter contract explicit. Phase 2-3 added a minimal `bin/vibe`
 - `claude-code.md` — active first-class target, buildable, and permission-aware
 - `codex-cli.md` — buildable with richer behavior / safety docs
 - `cursor.md` — buildable with generated rules plus `.cursor/cli.json` permissions
+- `kimi-code.md` — buildable with generated `.kimi/skills/` SKILL.md files
 - `opencode.md` — buildable with generated instruction and permission config
 - `warp.md` — buildable with `WARP.md` plus generated `.vibe/warp/*` support docs
 

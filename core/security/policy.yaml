@@ -119,3 +119,8 @@ actions_by_target:
     P0: Surface as a strict system block in workspace settings or Copilot rules.
     P1: Require manual review or user confirmation in Copilot Chat.
     P2: Warn in Copilot Chat and continue.
+
+  kimi-code:
+    P0: Surface as a blocking rule in KIMI.md and skill tool restrictions.
+    P1: Require manual review or user confirmation before execution.
+    P2: Warn in skill output and continue with traceable reasoning.

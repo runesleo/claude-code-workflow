@@ -36,10 +36,12 @@ class VibeCLI
     "opencode" => "opencode",
     "warp" => "warp",
     "vscode" => "vscode",
-    "antigravity" => "antigravity"
+    "antigravity" => "antigravity",
+    "kimi" => "kimi-code",
+    "kimi-code" => "kimi-code"
   }.freeze
 
-  SUPPORTED_TARGETS = %w[antigravity claude-code codex-cli cursor opencode vscode warp].freeze
+  SUPPORTED_TARGETS = %w[antigravity claude-code codex-cli cursor kimi-code opencode vscode warp].freeze
   MARKER_FILENAME = ".vibe-target.json"
 
   def initialize(repo_root)
@@ -453,6 +455,8 @@ class VibeCLI
       render_codex(output_root, manifest)
     when "cursor"
       render_cursor(output_root, manifest)
+    when "kimi-code"
+      render_kimi_code(output_root, manifest)
     when "opencode"
       render_opencode(output_root, manifest)
     when "warp"

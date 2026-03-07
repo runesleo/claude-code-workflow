@@ -94,6 +94,20 @@ profiles:
       - VS Code settings integrate these rules as workspace-level instructions for GitHub Copilot.
       - The `AGENTS.md` and `.vibe/vscode/` docs serve as an explicit capability baseline.
 
+  kimi-code-default:
+    target: kimi-code
+    maturity: planned
+    mapping:
+      critical_reasoner: kimi.k1.5-class
+      workhorse_coder: kimi.default-class
+      fast_router: kimi.fast-class
+      independent_verifier: second-model.or.manual-review
+      cheap_local: local.ollama-class
+    notes:
+      - Kimi Code uses SKILL.md files for capabilities. Generate portable skills into `.kimi/skills/`.
+      - Use `KIMI.md` as the project entrypoint for top-level instructions.
+      - Tool restrictions in skills enforce safety policy at the capability level.
+
   glm-family-default:
     target: generic-open-weight
     maturity: exploratory

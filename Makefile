@@ -1,7 +1,7 @@
 .PHONY: all validate generate inspect clean
 
 # List of supported targets for generation
-TARGETS = claude-code codex-cli cursor opencode vscode warp antigravity
+TARGETS = claude-code codex-cli cursor kimi-code opencode vscode warp antigravity
 
 all: validate generate
 
