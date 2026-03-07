@@ -92,10 +92,15 @@ module Vibe
       File.write(File.join(codex_dir, "task-routing.md"), render_task_routing_doc(manifest))
       File.write(File.join(codex_dir, "test-standards.md"), render_test_standards_doc(manifest))
 
+      # Check integration status
+      superpowers_status = detect_superpowers
+      rtk_status = verify_rtk
+      integrations_section = generate_agents_integrations_section(superpowers_status, rtk_status, "Codex CLI")
+
       File.write(File.join(output_root, "AGENTS.md"), <<~MD)
         # Vibe workflow for Codex CLI
 
-        Generated from the portable `core/` spec with profile `#{manifest["profile"]}`.
+        Generated from the portable `core/` spec with profile `#{manifest["profile"]}`.#{integrations_section}
         Applied overlay: #{overlay_sentence(manifest)}
 
         ## Non-negotiable rules
@@ -129,10 +134,15 @@ module Vibe
       FileUtils.mkdir_p(cursor_rules_dir)
       FileUtils.mkdir_p(cursor_support_dir)
 
+      # Check integration status
+      superpowers_status = detect_superpowers
+      rtk_status = verify_rtk
+      integrations_section = generate_agents_integrations_section(superpowers_status, rtk_status, "Cursor")
+
       File.write(File.join(output_root, "AGENTS.md"), <<~MD)
         # Vibe workflow for Cursor
 
-        Generated from the portable `core/` spec with profile `#{manifest["profile"]}`.
+        Generated from the portable `core/` spec with profile `#{manifest["profile"]}`.#{integrations_section}
         Applied overlay: #{overlay_sentence(manifest)}
 
         Primary behavior is defined in `.cursor/rules/*.mdc`, with supporting notes under `.vibe/cursor/`.
@@ -222,10 +232,15 @@ module Vibe
       File.write(File.join(opencode_dir, "safety.md"), render_safety_doc(manifest))
       File.write(File.join(opencode_dir, "execution.md"), render_execution_policy_doc(manifest))
 
+      # Check integration status
+      superpowers_status = detect_superpowers
+      rtk_status = verify_rtk
+      integrations_section = generate_agents_integrations_section(superpowers_status, rtk_status, "OpenCode")
+
       File.write(File.join(output_root, "AGENTS.md"), <<~MD)
         # Vibe workflow for OpenCode
 
-        Generated from the portable `core/` spec with profile `#{manifest["profile"]}`.
+        Generated from the portable `core/` spec with profile `#{manifest["profile"]}`.#{integrations_section}
         Applied overlay: #{overlay_sentence(manifest)}
 
         Project rules are split into modular instruction files loaded from `opencode.json`.
@@ -240,10 +255,15 @@ module Vibe
       warp_dir = File.join(output_root, ".vibe", "warp")
       FileUtils.mkdir_p(warp_dir)
 
+      # Check integration status
+      superpowers_status = detect_superpowers
+      rtk_status = verify_rtk
+      integrations_section = generate_warp_integrations_section(superpowers_status, rtk_status)
+
       File.write(File.join(output_root, "WARP.md"), <<~MD)
         # Vibe workflow for Warp
 
-        Generated from the portable `core/` spec with profile `#{manifest["profile"]}`.
+        Generated from the portable `core/` spec with profile `#{manifest["profile"]}`.#{integrations_section}
         Applied overlay: #{overlay_sentence(manifest)}
 
         This file is intended as the Warp project rule entrypoint for the repository.
@@ -288,10 +308,15 @@ module Vibe
       ag_dir = File.join(output_root, ".vibe", "antigravity")
       FileUtils.mkdir_p(ag_dir)
 
+      # Check integration status
+      superpowers_status = detect_superpowers
+      rtk_status = verify_rtk
+      integrations_section = generate_agents_integrations_section(superpowers_status, rtk_status, "Antigravity")
+
       File.write(File.join(output_root, "AGENTS.md"), <<~MD)
         # Vibe workflow for Antigravity
 
-        Generated from the portable `core/` spec with profile `#{manifest["profile"]}`.
+        Generated from the portable `core/` spec with profile `#{manifest["profile"]}`.#{integrations_section}
         Applied overlay: #{overlay_sentence(manifest)}
 
         Primary behavior is defined here, with supporting notes under `.vibe/antigravity/`.
@@ -335,10 +360,15 @@ module Vibe
       FileUtils.mkdir_p(vscode_dir)
       FileUtils.mkdir_p(vibe_dir)
 
+      # Check integration status (VS Code already had this, but let's make it consistent)
+      superpowers_status = detect_superpowers
+      rtk_status = verify_rtk
+      integrations_section = generate_agents_integrations_section(superpowers_status, rtk_status, "VS Code")
+
       File.write(File.join(output_root, "AGENTS.md"), <<~MD)
         # Vibe workflow for VS Code
 
-        Generated from the portable `core/` spec with profile `#{manifest["profile"]}`.
+        Generated from the portable `core/` spec with profile `#{manifest["profile"]}`.#{integrations_section}
         Applied overlay: #{overlay_sentence(manifest)}
 
         VS Code (Copilot Chat) instructions use these generated guidelines as the baseline.
@@ -488,6 +518,194 @@ module Vibe
 
         #{manifest.fetch("skills", []).select { |s| s["trigger_mode"] == "mandatory" }.map { |s| "- `#{s['id']}` — #{s['intent']}" }.join("\n")}
       MD
+    end
+
+    def generate_agents_integrations_section(superpowers_status, rtk_status, target_name)
+      sections = []
+
+      # Superpowers section
+      if superpowers_status == :not_installed
+        sections << <<~SP
+
+          ## Optional Integrations
+
+          ### Superpowers Skill Pack
+
+          **Status**: ❌ Not installed
+
+          Superpowers provides advanced skills for design refinement, TDD, debugging, and more.
+
+          **Installation for #{target_name}**:
+          ```bash
+          # Clone the repository
+          git clone https://github.com/obra/superpowers ~/superpowers
+          
+          # For #{target_name}, manually register the skills in your tool's skill system
+          # or use the skill files from ~/superpowers/skills/
+          ```
+
+          **Available skills**:
+          - `superpowers/tdd` — Test-driven development workflow
+          - `superpowers/brainstorm` — Structured brainstorming
+          - `superpowers/refactor` — Systematic refactoring
+          - `superpowers/debug` — Advanced debugging
+          - `superpowers/architect` — Architecture design
+          - `superpowers/review` — Code review workflow
+          - `superpowers/optimize` — Performance optimization
+        SP
+      else
+        sections << <<~SP
+
+          ## Optional Integrations
+
+          ### Superpowers Skill Pack
+
+          **Status**: ✅ Installed
+
+          The following Superpowers skills are available:
+          - `superpowers/tdd` — Test-driven development workflow
+          - `superpowers/brainstorm` — Structured brainstorming
+          - `superpowers/refactor` — Systematic refactoring
+          - `superpowers/debug` — Advanced debugging
+          - `superpowers/architect` — Architecture design
+          - `superpowers/review` — Code review workflow
+          - `superpowers/optimize` — Performance optimization
+        SP
+      end
+
+      # RTK section
+      rtk_info = rtk_status
+      if rtk_info[:installed]
+        hook_status = rtk_info[:hook_configured] ? "✅ Configured" : "⚠️ Not configured"
+        sections << <<~RTK
+
+          ### RTK Token Optimizer
+
+          **Status**: ✅ Installed  
+          **Hook**: #{hook_status}  
+          **Version**: #{rtk_info[:version] || "Unknown"}
+
+          RTK reduces token consumption by 60-90% on common commands.
+
+          #{rtk_info[:hook_configured] ? "" : "**To configure**: Run `rtk init --global`"}
+        RTK
+      else
+        sections << <<~RTK
+
+          ### RTK Token Optimizer
+
+          **Status**: ❌ Not installed
+
+          RTK is a CLI proxy that reduces LLM token consumption by 60-90% on common development commands.
+
+          **Installation**:
+          ```bash
+          # macOS/Linux with Homebrew
+          brew install rtk
+
+          # Or build from source
+          cargo install --git https://github.com/rtk-ai/rtk
+
+          # Then configure
+          rtk init --global
+          ```
+
+          **Note**: RTK works best with Claude Code. For #{target_name}, you may need to manually prefix commands with `rtk`.
+        RTK
+      end
+
+      sections.join("\n")
+    end
+
+    def generate_warp_integrations_section(superpowers_status, rtk_status)
+      sections = []
+
+      # Superpowers section
+      if superpowers_status == :not_installed
+        sections << <<~SP
+
+          ## Optional Integrations
+
+          ### Superpowers Skill Pack
+
+          **Status**: ❌ Not installed
+
+          Superpowers provides advanced skills for design refinement, TDD, debugging, and more.
+
+          **Installation for Warp**:
+          ```bash
+          # Clone the repository
+          git clone https://github.com/obra/superpowers ~/superpowers
+          
+          # In Warp, manually add the skill paths or use as reference
+          ```
+
+          **Available skills**:
+          - `superpowers/tdd` — Test-driven development workflow
+          - `superpowers/brainstorm` — Structured brainstorming
+          - `superpowers/refactor` — Systematic refactoring
+          - `superpowers/debug` — Advanced debugging
+          - `superpowers/architect` — Architecture design
+          - `superpowers/review` — Code review workflow
+          - `superpowers/optimize` — Performance optimization
+        SP
+      else
+        sections << <<~SP
+
+          ## Optional Integrations
+
+          ### Superpowers Skill Pack
+
+          **Status**: ✅ Installed
+
+          The following Superpowers skills are available:
+          - `superpowers/tdd` — Test-driven development workflow
+          - `superpowers/brainstorm` — Structured brainstorming
+          - `superpowers/refactor` — Systematic refactoring
+          - `superpowers/debug` — Advanced debugging
+          - `superpowers/architect` — Architecture design
+          - `superpowers/review` — Code review workflow
+          - `superpowers/optimize` — Performance optimization
+        SP
+      end
+
+      # RTK section for Warp
+      rtk_info = rtk_status
+      if rtk_info[:installed]
+        sections << <<~RTK
+
+          ### RTK Token Optimizer
+
+          **Status**: ✅ Installed  
+          **Version**: #{rtk_info[:version] || "Unknown"}
+
+          RTK reduces token consumption by 60-90% on common commands.
+
+          **For Warp**: Manually prefix commands with `rtk`, e.g., `rtk git status`
+        RTK
+      else
+        sections << <<~RTK
+
+          ### RTK Token Optimizer
+
+          **Status**: ❌ Not installed
+
+          RTK is a CLI proxy that reduces LLM token consumption by 60-90% on common development commands.
+
+          **Installation**:
+          ```bash
+          # macOS/Linux with Homebrew
+          brew install rtk
+
+          # Or build from source
+          cargo install --git https://github.com/rtk-ai/rtk
+          ```
+
+          **For Warp**: Manually prefix commands with `rtk`, e.g., `rtk git status`
+        RTK
+      end
+
+      sections.join("\n")
     end
 
     def generate_kimi_integrations_section(superpowers_status, rtk_status)
