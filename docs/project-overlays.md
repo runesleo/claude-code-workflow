@@ -69,3 +69,11 @@ These examples are intentionally overlays, not shared defaults. Python and Node 
 4. Apply with `bin/vibe use ...` or `bin/vibe switch ...`.
 
 Keep shared defaults in `core/`. Use overlays only for project-specific deviations.
+
+## Should `.vibe/overlay.yaml` be committed?
+
+- Commit `.vibe/overlay.yaml` when it captures shared repository policy: routing overrides, safety deltas, permissions, or stack defaults that teammates and CI should inherit.
+- Do not commit it when it only reflects one developer's machine, local experiments, or personal preferences.
+- For local-only overlays, prefer an external file passed via `--overlay FILE`.
+- If you must keep a local-only overlay under the repo root, add `.vibe/overlay.yaml` to that consuming repository's `.gitignore`.
+- The committed examples under `examples/` are documentation and test fixtures; they do not imply that every consuming repository should check in its own overlay.

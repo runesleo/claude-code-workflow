@@ -29,6 +29,43 @@ NO INVESTIGATION WITHOUT MEMORY RECALL FIRST
    - Partial match? → Use as starting point
    - Nothing? → Proceed to Phase 1, remember to record solution later
 
+#### Memory Recall Exemptions
+
+Memory Recall is **mandatory by default**, but can be skipped in these cases:
+
+**Automatic Exemptions**:
+1. **User Explicit Skip**
+   - User says: "don't check history"
+   - User says: "this is brand new"
+   - User says: "skip memory recall"
+
+2. **Obviously New Feature**
+   - Feature name doesn't exist in codebase
+   - No similar patterns in project
+   - User confirms it's a new concept
+
+3. **Time-Sensitive Emergency**
+   - Production outage
+   - Security hotfix
+   - User explicitly marks as "urgent"
+
+**Conditional Exemptions**:
+4. **Trivial Task** (see `core/policies/task-routing.yaml`)
+   - <20 lines changed
+   - Single file
+   - Low risk (docs, comments, etc.)
+
+**When in Doubt**: If unsure whether to skip, **always do Memory Recall**. The cost is low (1-2 minutes) compared to the risk of duplicating work.
+
+**Exemption Log**: When skipping Memory Recall, log the reason:
+```markdown
+# memory/today.md
+## Skipped Memory Recall
+- Task: Add new feature X
+- Reason: User confirmed it's brand new, no similar patterns exist
+- Time saved: ~2 minutes
+```
+
 ### Phase 1: Root Cause Investigation
 
 1. **Read error messages carefully** — don't skip, read completely

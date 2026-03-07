@@ -253,7 +253,7 @@ module Vibe
 
     def install_rtk_homebrew
       puts
-      if system("which brew > /dev/null 2>&1")
+      if system(["which", "which"], "brew", out: File::NULL, err: File::NULL)
         if install_rtk_via_homebrew
           puts "   ✓ RTK installed successfully"
           configure_rtk_after_install
@@ -277,9 +277,9 @@ module Vibe
 
     def install_rtk_cargo
       puts
-      if system("which cargo > /dev/null 2>&1")
+      if system(["which", "which"], "cargo", out: File::NULL, err: File::NULL)
         puts "   Installing RTK via Cargo..."
-        if system("cargo install --git https://github.com/rtk-ai/rtk")
+        if system(["cargo", "cargo"], "install", "--git", "https://github.com/rtk-ai/rtk")
           puts "   ✓ RTK installed successfully"
           configure_rtk_after_install
         else

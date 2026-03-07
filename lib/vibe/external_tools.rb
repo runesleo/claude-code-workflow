@@ -2,6 +2,8 @@
 
 require "json"
 require "yaml"
+require "open3"
+require_relative "errors"
 
 module Vibe
   # External tool detection and integration support.
@@ -85,7 +87,7 @@ module Vibe
 
     def detect_rtk
       # Method 1: Check if rtk binary is in PATH
-      return :installed if system("which rtk > /dev/null 2>&1")
+      return :installed if system(["which", "which"], "rtk", out: File::NULL, err: File::NULL)
 
       # Method 2: Check Claude settings.json for hook
       return :hook_configured if rtk_hook_configured?
@@ -96,14 +98,19 @@ module Vibe
     def rtk_version
       return nil unless detect_rtk == :installed
 
-      version_output = `rtk --version 2>/dev/null`.strip
-      version_output.empty? ? nil : version_output
+      version_output, status = Open3.capture2(["rtk", "rtk"], "--version", err: File::NULL)
+      status.success? && !version_output.strip.empty? ? version_output.strip : nil
+    rescue StandardError
+      nil
     end
 
     def rtk_binary_path
       return nil unless detect_rtk == :installed
 
-      `which rtk 2>/dev/null`.strip
+      path_output, status = Open3.capture2(["which", "which"], "rtk", err: File::NULL)
+      status.success? ? path_output.strip : nil
+    rescue StandardError
+      nil
     end
 
     def rtk_hook_configured?
@@ -122,22 +129,25 @@ module Vibe
     # --- Installation Helpers ---
 
     def install_rtk_via_homebrew
-      return false unless system("which brew > /dev/null 2>&1")
+      return false unless system(["which", "which"], "brew", out: File::NULL, err: File::NULL)
 
       puts "Installing RTK via Homebrew..."
-      system("brew install rtk")
+      system(["brew", "brew"], "install", "rtk")
     end
 
     def install_rtk_via_script
-      puts "Installing RTK via install script..."
-      system("curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh")
+      warn "WARNING: Remote script installation is disabled for security reasons."
+      warn "Please install RTK manually using one of these methods:"
+      warn "  1. Homebrew: brew install rtk"
+      warn "  2. Download from: https://github.com/rtk-ai/rtk/releases"
+      false
     end
 
     def configure_rtk_hook
       return false unless detect_rtk == :installed
 
       puts "Configuring RTK hook..."
-      system("rtk init --global")
+      system(["rtk", "rtk"], "init", "--global")
     end
 
     # --- Verification ---

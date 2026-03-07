@@ -1,0 +1,375 @@
+{
+  "schema_version": 5,
+  "generated_at": "2026-03-06T15:17:36Z",
+  "source_repo": ".",
+  "output_root": "/Users/huchen/.vibe-generated/claude-code-workflow-653a9fb4dbb6/warp",
+  "target": "warp",
+  "profile": "warp-default",
+  "profile_maturity": "planned",
+  "profile_notes": [
+    "Use WARP.md as the project rule entrypoint and keep repo-local files as the SSOT.",
+    "Treat Warp workflows as wrappers around project commands, not as canonical state.",
+    "Prefer an independent verifier before merging database migrations or data-retention changes.",
+    "Escalate export, redaction, and compliance-sensitive logic to the strongest reasoning tier."
+  ],
+  "profile_mapping": {
+    "critical_reasoner": "openai.high-reasoning",
+    "workhorse_coder": "warp.default-agent-model",
+    "fast_router": "warp.fast-model",
+    "independent_verifier": "second-model.cross-family",
+    "cheap_local": "local.external-runner"
+  },
+  "overlay": {
+    "name": "example-regulated-project",
+    "path": "/Users/huchen/Projects/claude-code-workflow/examples/project-overlay.yaml",
+    "display_path": "examples/project-overlay.yaml",
+    "description": "Example overlay for a project with stricter review and data-handling requirements.",
+    "schema_version": 1,
+    "profile_mapping_overrides": {
+      "critical_reasoner": "openai.high-reasoning",
+      "independent_verifier": "second-model.cross-family"
+    },
+    "profile_note_append_count": 2,
+    "policy_patch_count": 2,
+    "target_patch_keys": [
+
+    ]
+  },
+  "native_config_overlay": {
+  },
+  "routing_defaults": {
+    "direct_handle_max_changed_lines": 50,
+    "outsource_refactor_min_changed_lines": 100,
+    "planning_file_threshold": 5,
+    "cross_verify_default_for": [
+      "critical_business_analysis",
+      "architecture_design",
+      "risk_assessment",
+      "complex_bug_diagnosis"
+    ]
+  },
+  "tiers": {
+    "critical_reasoner": {
+      "description": "Highest-assurance reasoning for critical logic, security-sensitive changes, secrets, and architecture decisions.",
+      "default_role": "maker_or_final_decider",
+      "route_when": [
+        "Critical business logic or financial logic",
+        "Credential, auth, secret, or key-management flows",
+        "Data model, API contract, or architecture decisions",
+        "Security reviews and risk assessment"
+      ],
+      "avoid_when": [
+        "Docs-only edits",
+        "Repetitive mechanical cleanup"
+      ]
+    },
+    "workhorse_coder": {
+      "description": "Default daily coding tier for most implementation, analysis, and refactoring work.",
+      "default_role": "primary_executor",
+      "route_when": [
+        "Standard feature work",
+        "Routine debugging after task framing is clear",
+        "Non-critical config, docs, UI, and glue code",
+        "Most cross-file implementation tasks"
+      ],
+      "avoid_when": [
+        "Highest-risk business logic or secrets",
+        "Trivial lookups that only need fast routing"
+      ]
+    },
+    "fast_router": {
+      "description": "Cheap and fast tier for exploration, triage, and low-stakes subprocess work.",
+      "default_role": "scout_or_triage",
+      "route_when": [
+        "Codebase exploration",
+        "Quick questions and lookups",
+        "Lightweight classification or filtering",
+        "Subtasks with low downside if wrong"
+      ],
+      "avoid_when": [
+        "Final decisions",
+        "Cross-file edits with broad blast radius"
+      ]
+    },
+    "independent_verifier": {
+      "description": "Second-model verification tier used to challenge important conclusions from a different reasoning path or model family.",
+      "default_role": "checker",
+      "route_when": [
+        "Critical reviews",
+        "Complex bug diagnosis cross-checks",
+        "Architecture review",
+        "Important content or decision verification"
+      ],
+      "avoid_when": [
+        "Single-source trivial changes",
+        "Work that does not justify multi-model cost"
+      ]
+    },
+    "cheap_local": {
+      "description": "Local or near-zero-cost tier for offline, high-volume, and low-risk tasks.",
+      "default_role": "low_cost_executor",
+      "route_when": [
+        "Commit message generation",
+        "Simple formatting, translation, or classification",
+        "Offline fallback",
+        "Bulk non-critical tasks"
+      ],
+      "avoid_when": [
+        "Long-context reasoning",
+        "Security-sensitive or high-assurance tasks"
+      ]
+    }
+  },
+  "skills": [
+    {
+      "id": "systematic-debugging",
+      "namespace": "builtin",
+      "intent": "Find root cause before attempting fixes.",
+      "trigger_mode": "mandatory",
+      "priority": "P0",
+      "target_support": "rule-or-manual-invocation"
+    },
+    {
+      "id": "verification-before-completion",
+      "namespace": "builtin",
+      "intent": "Require fresh verification evidence before claiming completion.",
+      "trigger_mode": "mandatory",
+      "priority": "P0",
+      "target_support": "rule-or-checklist"
+    },
+    {
+      "id": "session-end",
+      "namespace": "builtin",
+      "intent": "Capture handoff, memory, and wrap-up state before ending a session.",
+      "trigger_mode": "mandatory",
+      "priority": "P0",
+      "target_support": "checklist-or-rule"
+    },
+    {
+      "id": "planning-with-files",
+      "namespace": "builtin",
+      "intent": "Use persistent files as working memory for complex multi-step tasks.",
+      "trigger_mode": "suggest",
+      "priority": "P1",
+      "target_support": "manual-or-template"
+    },
+    {
+      "id": "experience-evolution",
+      "namespace": "builtin",
+      "intent": "Capture reusable lessons and patterns from repeated work.",
+      "trigger_mode": "suggest",
+      "priority": "P1",
+      "target_support": "manual"
+    }
+  ],
+  "policies": [
+    {
+      "id": "ssot-first",
+      "category": "state_management",
+      "enforcement": "mandatory",
+      "target_render_group": "always_on",
+      "summary": "Keep repository files as the single source of truth; tool-managed memory is cache.",
+      "source_refs": [
+        "rules/behaviors.md",
+        "README.md"
+      ]
+    },
+    {
+      "id": "verify-before-claim",
+      "category": "quality",
+      "enforcement": "mandatory",
+      "target_render_group": "always_on",
+      "summary": "Never claim completion without fresh verification evidence.",
+      "source_refs": [
+        "skills/verification-before-completion/SKILL.md",
+        "CLAUDE.md"
+      ]
+    },
+    {
+      "id": "capability-tier-routing",
+      "category": "routing",
+      "enforcement": "mandatory",
+      "target_render_group": "routing",
+      "summary": "Route by capability tier first, then resolve through the active provider profile.",
+      "source_refs": [
+        "rules/behaviors.md",
+        "docs/task-routing.md"
+      ]
+    },
+    {
+      "id": "reversible-small-batches",
+      "category": "change_management",
+      "enforcement": "recommended",
+      "target_render_group": "always_on",
+      "summary": "Prefer small, reversible, single-purpose changes over large mixed batches.",
+      "source_refs": [
+        "CLAUDE.md",
+        "rules/behaviors.md"
+      ]
+    },
+    {
+      "id": "root-cause-debugging",
+      "category": "debugging",
+      "enforcement": "mandatory",
+      "target_render_group": "always_on",
+      "summary": "Investigate root cause before attempting fixes and reassess after repeated failures.",
+      "source_refs": [
+        "skills/systematic-debugging/SKILL.md",
+        "rules/behaviors.md"
+      ]
+    },
+    {
+      "id": "security-escalation",
+      "category": "safety",
+      "enforcement": "mandatory",
+      "target_render_group": "safety",
+      "summary": "Treat destructive commands, network egress, secret access, and obfuscation as security-sensitive actions.",
+      "source_refs": [
+        "core/security/policy.yaml",
+        "docs/content-safety.md"
+      ]
+    },
+    {
+      "id": "record-reusable-learning",
+      "category": "memory",
+      "enforcement": "recommended",
+      "target_render_group": "always_on",
+      "summary": "Record user corrections, repeated failures, and counter-intuitive discoveries for reuse.",
+      "source_refs": [
+        "rules/behaviors.md",
+        "skills/experience-evolution/SKILL.md"
+      ]
+    },
+    {
+      "id": "sunday-rule",
+      "category": "workflow",
+      "enforcement": "recommended",
+      "target_render_group": "optional",
+      "summary": "Batch workflow or system optimization separately from delivery work unless it blocks production.",
+      "source_refs": [
+        "rules/behaviors.md"
+      ]
+    },
+    {
+      "id": "project-context-is-release-log",
+      "category": "project_memory",
+      "enforcement": "recommended",
+      "target_render_group": "always_on",
+      "summary": "Keep `PROJECT_CONTEXT.md` current for release blockers, migrations, and rollback notes.",
+      "source_refs": [
+        "examples/project-overlay.yaml"
+      ]
+    },
+    {
+      "id": "regulated-data-review",
+      "category": "safety",
+      "enforcement": "mandatory",
+      "target_render_group": "safety",
+      "summary": "Treat customer-data exports, redaction, and retention changes as review-required work.",
+      "source_refs": [
+        "examples/project-overlay.yaml"
+      ]
+    }
+  ],
+  "security": {
+    "severity_levels": {
+      "P0": {
+        "label": "block",
+        "meaning": "Clear malicious intent or unacceptable unsafe execution chain.",
+        "runtime_action": "deny_and_stop",
+        "examples": [
+          "Secrets or project contents prepared for exfiltration",
+          "Destructive or irreversible operations without explicit authorization",
+          "Instructions to bypass approvals, safety controls, or audit"
+        ]
+      },
+      "P1": {
+        "label": "high_risk_review",
+        "meaning": "Potentially legitimate action that requires context review or explicit approval.",
+        "runtime_action": "require_context_review_or_user_confirmation",
+        "examples": [
+          "Network calls that might send code or data outward",
+          "Auth, credential, permission, or signing flows",
+          "Dynamic execution or remote script execution"
+        ]
+      },
+      "P2": {
+        "label": "warning",
+        "meaning": "Suspicious or incomplete signal that should be surfaced but not blocked by default.",
+        "runtime_action": "warn_log_continue",
+        "examples": [
+          "Compliance-style persuasion language",
+          "Vague backup, sync, or export instructions",
+          "Ambiguous archive or upload steps without sensitive context"
+        ]
+      }
+    },
+    "signal_categories": [
+      {
+        "id": "network_egress",
+        "base_severity": "P1",
+        "indicators": [
+          "http_url",
+          "curl",
+          "requests.post",
+          "fetch(",
+          "axios"
+        ],
+        "upgrade_to_p0_when": [
+          "paired_with_sensitive_paths",
+          "paired_with_archive_or_upload"
+        ]
+      },
+      {
+        "id": "archive_then_send",
+        "base_severity": "P1",
+        "indicators": [
+          "zip",
+          "tar",
+          "backup_to",
+          "upload"
+        ],
+        "upgrade_to_p0_when": [
+          "archive_scope_is_project_or_home",
+          "destination_is_external"
+        ]
+      },
+      {
+        "id": "destructive_operation",
+        "base_severity": "P0",
+        "indicators": [
+          "rm -rf",
+          "delete",
+          "shred",
+          "encrypt"
+        ]
+      },
+      {
+        "id": "obfuscation_or_dynamic_exec",
+        "base_severity": "P1",
+        "indicators": [
+          "base64",
+          "eval",
+          "exec",
+          "hidden_shell"
+        ],
+        "upgrade_to_p0_when": [
+          "paired_with_network_or_secrets"
+        ]
+      }
+    ],
+    "adjudication_factors": [
+      "asset_sensitivity",
+      "execution_capability",
+      "scope_of_change",
+      "reversibility",
+      "source_trust",
+      "obfuscation_or_evasion"
+    ],
+    "target_actions": {
+      "P0": "Surface as a blocking Warp rule plus explicit stop guidance in the generated docs.",
+      "P1": "Require manual review or user confirmation before execution.",
+      "P2": "Warn in WARP.md or supporting guidance and continue with traceable reasoning."
+    }
+  }
+}

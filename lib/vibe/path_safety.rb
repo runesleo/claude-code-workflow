@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'errors'
+
 module Vibe
   # Output path safety guards, destination conflict checks, file tree
   # copying, and marker file management.
@@ -13,29 +15,6 @@ module Vibe
     UNSAFE_OUTPUT_PATHS = ["/", "/tmp", "/var", "/etc", "/usr"].freeze
     # macOS temp directories under /var are safe
     SAFE_VAR_PREFIXES = ["/var/folders/"].freeze
-
-    # Normalize a path by resolving symlinks in existing parent directories.
-    # For /tmp/foo/bar where /tmp exists but foo/bar don't:
-    # - Resolve /tmp to /private/tmp (on macOS)
-    # - Append /foo/bar to get /private/tmp/foo/bar
-    def normalize_path(path)
-      expanded = File.expand_path(path)
-      return File.realpath(expanded) if File.exist?(expanded)
-
-      # Find the first existing parent
-      parts = expanded.split("/").reject(&:empty?)
-      (parts.length - 1).downto(0) do |i|
-        parent = "/" + parts[0..i].join("/")
-        if File.exist?(parent)
-          real_parent = File.realpath(parent)
-          suffix = parts[(i + 1)..-1]
-          return suffix.empty? ? real_parent : File.join(real_parent, *suffix)
-        end
-      end
-
-      # No existing parent found (shouldn't happen for absolute paths)
-      expanded
-    end
 
     def ensure_safe_output_path!(output_root)
       expanded = normalize_path(output_root)
@@ -53,23 +32,23 @@ module Vibe
         if expanded == unsafe_expanded || expanded.start_with?("#{unsafe_expanded}/")
           # Allow if it's under a safe /var prefix
           next if unsafe == "/var" && is_safe_var
-          abort "Refusing to use #{expanded} as output root: overlaps with #{unsafe}"
+          raise PathSafetyError, "Refusing to use #{expanded} as output root: overlaps with #{unsafe}"
         end
       end
 
-      abort "Refusing to use #{expanded} as output root: overlaps with $HOME (#{home})" if expanded == home
+      raise PathSafetyError, "Refusing to use #{expanded} as output root: overlaps with $HOME (#{home})" if expanded == home
 
       if expanded == repo || (expanded.start_with?("#{repo}/") && !expanded.start_with?("#{repo}/generated/"))
-        abort "Refusing to use #{expanded} as output root: overlaps with source repo (#{repo}).\nUse a path under generated/ or an external directory."
+        raise PathSafetyError, "Refusing to use #{expanded} as output root: overlaps with source repo (#{repo}).\nUse a path under generated/ or an external directory."
       end
 
       if repo.start_with?("#{expanded}/")
-        abort "Refusing to use #{expanded} as output root: source repo is inside it."
+        raise PathSafetyError, "Refusing to use #{expanded} as output root: source repo is inside it."
       end
 
       parts = expanded.split("/").reject(&:empty?)
       if parts.length < 2
-        abort "Refusing to use #{expanded} as output root: path is too shallow (need at least 2 levels)."
+        raise PathSafetyError, "Refusing to use #{expanded} as output root: path is too shallow (need at least 2 levels)."
       end
     end
 
@@ -78,11 +57,48 @@ module Vibe
       dest = File.expand_path(destination_root)
 
       if out == dest
-        abort "Output root and destination root are the same path: #{out}\nUse separate directories."
+        raise PathSafetyError, "Output root and destination root are the same path: #{out}\nUse separate directories."
       end
+      if paths_overlap?(out, dest)
+        raise PathSafetyError, "Output root (#{out}) and destination root (#{dest}) overlap.\nUse non-overlapping directories."
+      end
+    end
 
-      if dest.start_with?("#{out}/") || out.start_with?("#{dest}/")
-        abort "Output root (#{out}) and destination root (#{dest}) overlap.\nUse non-overlapping directories."
+    def paths_overlap?(left, right)
+      # Normalize each path independently to handle symlinks correctly
+      left_root = normalize_path(left)
+      right_root = normalize_path(right)
+
+      left_root.start_with?("#{right_root}/") || right_root.start_with?("#{left_root}/")
+    end
+
+    private
+
+    # Normalize a path by resolving symlinks in existing parent directories.
+    # For /tmp/foo/bar where /tmp exists but foo/bar don't:
+    # - Resolve /tmp to /private/tmp (on macOS)
+    # - Append /foo/bar to get /private/tmp/foo/bar
+    def normalize_path(path)
+      # Expand path first to handle relative paths
+      expanded = File.expand_path(path)
+
+      # Try to resolve symlinks if path exists
+      begin
+        return File.realpath(expanded)
+      rescue Errno::ENOENT
+        # Path doesn't exist, try to resolve parent directories
+        # This handles cases like: symlink -> real, comparing with real/nonexistent/child
+        parent = File.dirname(expanded)
+        basename = File.basename(expanded)
+
+        # Recursively normalize parent if it's not root
+        if parent != expanded && parent != "/"
+          normalized_parent = normalize_path(parent)
+          return File.join(normalized_parent, basename)
+        end
+
+        # Parent is root or same as current, return as-is
+        return expanded
       end
     end
 
@@ -96,7 +112,7 @@ module Vibe
       return if conflicts.empty?
 
       sample = conflicts.first(5).map { |path| "  - #{path}" }.join("\n")
-      abort <<~TEXT
+      raise PathSafetyError, <<~TEXT
         Destination already contains #{conflicts.length} generated path(s).
         Re-run with --force to overwrite them.
 

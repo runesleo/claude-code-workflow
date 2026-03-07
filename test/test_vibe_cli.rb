@@ -52,6 +52,60 @@ class TestVibeCLI < Minitest::Test
     refute_includes section, "| `brainstorming` |"
   end
 
+  def test_switch_warp_uses_external_staging_when_repo_root_is_destination
+    switch_repo_root = Dir.mktmpdir("vibe-switch-repo")
+    FileUtils.cp_r(File.join(@repo_root, "core"), switch_repo_root)
+    cli = VibeCLI.new(switch_repo_root)
+
+    stdout, = capture_io { cli.run(["switch", "warp"]) }
+
+    assert_includes stdout, "Applied warp"
+    assert File.exist?(File.join(switch_repo_root, "WARP.md"))
+    assert File.exist?(File.join(switch_repo_root, ".vibe", "warp", "routing.md"))
+
+    marker = JSON.parse(File.read(File.join(switch_repo_root, ".vibe-target.json")))
+    assert_includes marker.fetch("generated_output"), ".vibe-generated"
+    refute_equal "generated/warp", marker.fetch("generated_output")
+  ensure
+    FileUtils.rm_rf(switch_repo_root) if switch_repo_root && File.exist?(switch_repo_root)
+  end
+
+  def test_sanitize_directory_name_with_special_chars
+    assert_equal "my-project", @cli.send(:sanitize_directory_name, "my project")
+    assert_equal "my-project", @cli.send(:sanitize_directory_name, "my@project")
+    assert_equal "project-name", @cli.send(:sanitize_directory_name, "project/name")
+    assert_equal "root", @cli.send(:sanitize_directory_name, "///")
+    assert_equal "test", @cli.send(:sanitize_directory_name, "-test-")
+    assert_equal "my-project", @cli.send(:sanitize_directory_name, "my---project")
+  end
+
+  def test_sanitize_directory_name_with_unicode
+    assert_equal "my-project", @cli.send(:sanitize_directory_name, "my项目project")
+    assert_equal "test-123", @cli.send(:sanitize_directory_name, "test-123")
+  end
+
+  def test_resolve_output_root_with_special_char_destination
+    # Create a destination that will overlap with default output root
+    # Default output root is "generated/warp" relative to repo root
+    # Make destination a parent of the output root to trigger overlap
+    dest_with_spaces = File.join(@repo_root, "generated")
+    FileUtils.mkdir_p(dest_with_spaces)
+
+    output = @cli.send(
+      :resolve_output_root_for_use,
+      target: "warp",
+      destination_root: dest_with_spaces,
+      explicit_output: nil
+    )
+
+    # Should use external staging due to overlap
+    assert_includes output, ".vibe-generated"
+    # Should contain sanitized name
+    assert_match %r{generated-[a-f0-9]{12}/warp$}, output
+  ensure
+    # Don't remove generated dir as it's part of the repo
+  end
+
   private
 
   def build_manifest(target)

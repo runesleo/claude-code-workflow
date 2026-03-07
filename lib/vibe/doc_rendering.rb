@@ -147,6 +147,8 @@ module Vibe
         end
       end.join("\n")
 
+      model_config_note = render_model_config_note(manifest["target"], manifest["profile_mapping"])
+
       <<~MD
         # Routing profile
 
@@ -165,6 +167,8 @@ module Vibe
         ## Active mapping
 
         #{bullet_mapping(manifest["profile_mapping"])}
+
+        #{model_config_note}
 
         ## Routing defaults
 
@@ -369,6 +373,217 @@ module Vibe
         detail = "`none`" if detail.nil? || detail.empty?
         "- `#{key}` → #{detail}"
       end.join("\n")
+    end
+
+    def render_task_routing_doc(manifest)
+      return "" unless task_routing_doc
+
+      complexity_sections = task_routing_doc.fetch("complexity_levels", {}).map do |level, config|
+        criteria = config.fetch("criteria", {}).map { |k, v| "  - #{k}: #{v}" }.join("\n")
+        examples = config.fetch("examples", []).map { |ex| "  - #{ex}" }.join("\n")
+        requirements = config.fetch("process_requirements", {}).map { |k, v| "  - #{k}: #{v}" }.join("\n")
+
+        <<~SECTION.chomp
+          ### #{level.capitalize}
+
+          #{config["description"]}
+
+          **Criteria:**
+          #{criteria}
+
+          **Examples:**
+          #{examples}
+
+          **Process Requirements:**
+          #{requirements}
+
+          **Time Estimate:** #{config["time_estimate"]}
+        SECTION
+      end.join("\n\n")
+
+      auto_rules = task_routing_doc.fetch("auto_detection", {}).fetch("rules", []).map do |rule|
+        "- #{rule["condition"]} → `#{rule["complexity"]}` (#{rule["reason"]})"
+      end.join("\n")
+
+      <<~MD
+        # Task Complexity Routing
+
+        Generated target: `#{manifest["target"]}`
+        Applied overlay: #{overlay_sentence(manifest)}
+
+        This document defines how to route tasks by complexity level to balance quality and efficiency.
+
+        ## Complexity Levels
+
+        #{complexity_sections}
+
+        ## Auto-Detection Rules
+
+        #{auto_rules}
+
+        ## Override Policy
+
+        Users can override complexity classification with justification:
+        - "this is urgent, skip full process"
+        - "treat this as trivial"
+        - "this needs full review despite being small"
+      MD
+    end
+
+    def render_test_standards_doc(manifest)
+      return "" unless test_standards_doc
+
+      coverage_sections = test_standards_doc.fetch("coverage_by_complexity", {}).map do |level, config|
+        <<~SECTION.chomp
+          ### #{level.capitalize}
+
+          #{config["description"]}
+
+          - Unit coverage: #{config["unit_coverage"]}%
+          - Integration coverage: #{config["integration_coverage"]}%
+          - Manual verification: #{config["manual_verification"]}
+        SECTION
+      end.join("\n\n")
+
+      critical_paths = test_standards_doc.fetch("critical_paths", []).map do |path|
+        "- `#{path["path_pattern"] || path["function_pattern"]}` → #{path["coverage"]}% (#{path["reason"]})"
+      end.join("\n")
+
+      test_types = test_standards_doc.fetch("test_types", {}).map do |type, config|
+        required = config.fetch("required_for", []).map { |r| "`#{r}`" }.join(", ")
+        examples = config.fetch("examples", []).map { |ex| "  - #{ex}" }.join("\n")
+
+        section = <<~SECTION.chomp
+          ### #{type.capitalize}
+
+          #{config["description"]}
+
+          **Required for:** #{required}
+        SECTION
+
+        if config["must_cover"]
+          must_cover = config["must_cover"].map { |item| "  - #{item}" }.join("\n")
+          section += "\n\n**Must Cover:**\n#{must_cover}"
+        end
+
+        section += "\n\n**Examples:**\n#{examples}" unless examples.empty?
+        section
+      end.join("\n\n")
+
+      <<~MD
+        # Test Coverage Standards
+
+        Generated target: `#{manifest["target"]}`
+        Applied overlay: #{overlay_sentence(manifest)}
+
+        This document defines minimum test requirements by task complexity and code type.
+
+        ## Coverage by Complexity
+
+        #{coverage_sections}
+
+        ## Critical Paths
+
+        These paths require 100% coverage regardless of complexity:
+
+        #{critical_paths}
+
+        ## Test Types
+
+        #{test_types}
+
+        ## Exemptions
+
+        - Documentation-only changes: 0% coverage
+        - Test code itself: optional coverage
+        - Generated code: optional coverage
+      MD
+    end
+
+    def render_model_config_note(target, profile_mapping)
+      case target
+      when "claude-code"
+        <<~NOTE.strip
+          ## Model configuration
+
+          **Important**: The mapping above shows semantic tier-to-model references. Actual model selection in Claude Code is controlled by:
+
+          1. **Launch-time flag**: `claude --model opus|sonnet|haiku`
+          2. **Task tool parameter**: When spawning subagents, use `model: "opus"|"sonnet"|"haiku"`
+          3. **Settings file**: Configure defaults in `~/.claude/settings.json` (if supported)
+
+          These mappings guide you to select appropriate models for different task types. See `targets/claude-code.md` for detailed configuration instructions.
+        NOTE
+      when "cursor"
+        <<~NOTE.strip
+          ## Model configuration
+
+          **Important**: The mapping above shows semantic tier-to-model references. Actual model selection in Cursor is configured through:
+
+          1. **Cursor Settings** (Cmd/Ctrl + ,) → Models section
+          2. Configure your **Primary Model** (for critical_reasoner and workhorse_coder)
+          3. Configure your **Fast Model** (for fast_router)
+
+          Cursor does not support automatic model switching per task. The AI will see these routing rules but cannot programmatically switch models. You may need to manually switch models for critical tasks.
+
+          See `targets/cursor.md` for detailed configuration instructions.
+        NOTE
+      when "codex-cli"
+        <<~NOTE.strip
+          ## Model configuration
+
+          **Important**: The mapping above shows semantic tier-to-model references. Actual model selection in Codex CLI is controlled by:
+
+          1. **Environment variables**: `CODEX_PRIMARY_MODEL`, `CODEX_WORKHORSE_MODEL`, `CODEX_FAST_MODEL`
+          2. **CLI flags**: `codex --model gpt-4-turbo "your task"`
+          3. **Config file**: `~/.codex/config.yaml` (if supported)
+
+          Example:
+          ```bash
+          export CODEX_PRIMARY_MODEL="gpt-4-turbo"
+          export CODEX_FAST_MODEL="gpt-3.5-turbo"
+          codex --model gpt-4-turbo "review security implications"
+          ```
+
+          See `targets/codex-cli.md` for detailed configuration instructions.
+        NOTE
+      when "opencode"
+        <<~NOTE.strip
+          ## Model configuration
+
+          **Important**: The mapping above shows semantic tier-to-model references. Actual model selection in OpenCode is configured in `opencode.json`:
+
+          ```json
+          {
+            "models": {
+              "primary": "claude-opus-4",
+              "coder": "claude-sonnet-4",
+              "fast": "claude-haiku-4"
+            }
+          }
+          ```
+
+          OpenCode supports flexible model configuration with multiple providers. You can mix Anthropic, OpenAI, and local models.
+
+          See `targets/opencode.md` for detailed configuration instructions.
+        NOTE
+      when "warp"
+        <<~NOTE.strip
+          ## Model configuration
+
+          **Important**: The mapping above shows semantic tier-to-model references. Actual model selection in Warp is configured through:
+
+          1. **Warp Settings** → AI or Assistant settings
+          2. Configure your AI provider (Anthropic Claude, OpenAI, etc.)
+          3. Select your preferred model
+
+          Warp typically uses a single configured AI model for all interactions. The routing rules help the AI understand task criticality and adjust its approach accordingly.
+
+          See `targets/warp.md` for detailed configuration instructions.
+        NOTE
+      else
+        ""
+      end
     end
 
   end

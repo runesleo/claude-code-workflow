@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "errors"
+
 module Vibe
   # Generic utilities shared across all Vibe modules.
   #
@@ -27,8 +29,19 @@ module Vibe
     end
 
     def deep_copy(value)
-      return value if value.nil? || value == true || value == false || value.is_a?(Numeric)
-      JSON.parse(JSON.generate(value))
+      return value if value.nil? || value == true || value == false || value.is_a?(Numeric) || value.is_a?(Symbol)
+
+      case value
+      when String
+        value.dup
+      when Array
+        value.map { |item| deep_copy(item) }
+      when Hash
+        value.transform_keys { |k| deep_copy(k) }.transform_values { |v| deep_copy(v) }
+      else
+        # Fallback to Marshal for other types (preserves type information)
+        Marshal.load(Marshal.dump(value))
+      end
     end
 
     def blankish?(value)
@@ -80,6 +93,38 @@ module Vibe
       return "`none`" if values.empty?
 
       values.map { |item| "`#{item}`" }.join(", ")
+    end
+
+    # --- Input validation and sanitization ---
+
+    # Maximum path length to prevent DoS attacks
+    MAX_PATH_LENGTH = 4096
+
+    # Validate and sanitize a file path input
+    # Raises ValidationError if path contains dangerous characters
+    def validate_path!(path, context: "path")
+      raise ValidationError, "#{context} cannot be nil" if path.nil?
+      raise ValidationError, "#{context} cannot be empty" if path.to_s.strip.empty?
+
+      path_str = path.to_s
+      raise ValidationError, "#{context} exceeds maximum length (#{MAX_PATH_LENGTH})" if path_str.length > MAX_PATH_LENGTH
+      raise ValidationError, "#{context} contains null byte" if path_str.include?("\0")
+      raise ValidationError, "#{context} contains control characters" if path_str.match?(/[\x00-\x1f\x7f]/)
+
+      path_str
+    end
+
+    # Validate that a value is in an allowed set
+    def validate_choice!(value, allowed_values, context: "value")
+      raise ValidationError, "#{context} must be one of: #{allowed_values.join(', ')}" unless allowed_values.include?(value)
+      value
+    end
+
+    # Sanitize a command argument by removing dangerous characters
+    def sanitize_command_arg(arg)
+      return nil if arg.nil?
+      # Remove null bytes and control characters
+      arg.to_s.gsub(/[\x00-\x1f\x7f]/, "")
     end
   end
 end

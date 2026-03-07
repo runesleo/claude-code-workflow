@@ -192,6 +192,141 @@ Claude will automatically load your rules and start following the workflow. Try:
 
 Portable note: `core/` and `targets/` define the cross-tool contract, but Claude Code remains the directly runnable target in phase 1.
 
+## Model Configuration Guide
+
+This workflow uses a **capability-tier routing system** that separates task complexity from specific model implementations. Understanding how to configure models for your target is essential for optimal performance.
+
+### Understanding Capability Tiers
+
+The workflow defines 5 abstract capability tiers in `core/models/tiers.yaml`:
+
+- **`critical_reasoner`**: Highest-assurance reasoning for critical logic, security, secrets, and architecture
+- **`workhorse_coder`**: Default daily coding tier for most implementation and analysis work
+- **`fast_router`**: Cheap and fast tier for exploration, triage, and low-stakes subprocess work
+- **`independent_verifier`**: Second-model verification tier for cross-checking important conclusions
+- **`cheap_local`**: Local or near-zero-cost tier for offline, high-volume, and low-risk tasks
+
+### How Tier-to-Model Mapping Works
+
+Each target has a **provider profile** in `core/models/providers.yaml` that maps these abstract tiers to concrete model implementations:
+
+```yaml
+claude-code-default:
+  mapping:
+    critical_reasoner: claude.opus-class
+    workhorse_coder: claude.sonnet-class
+    fast_router: claude.haiku-class
+```
+
+**Important**: These mappings are **semantic hints**, not executable configuration. The actual model selection depends on your target tool's capabilities.
+
+### Configuring Models by Target
+
+#### Claude Code (Fully Supported)
+
+Claude Code supports dynamic model selection through multiple methods:
+
+**Method 1: Launch with specific model**
+```bash
+# Start with Opus (highest capability)
+claude --model opus
+
+# Start with Sonnet (balanced)
+claude --model sonnet
+
+# Start with Haiku (fastest)
+claude --model haiku
+```
+
+**Method 2: Use Task tool with model parameter**
+```markdown
+When delegating to subagents, Claude can specify the model tier:
+- Task tool with `model: "opus"` for critical reasoning
+- Task tool with `model: "sonnet"` for standard work
+- Task tool with `model: "haiku"` for quick exploration
+```
+
+**Method 3: Configure default in settings**
+Check `~/.claude/settings.json` for default model preferences (if supported by your Claude Code version).
+
+#### Cursor (Planned)
+
+Cursor's model selection is configured through its UI settings:
+
+1. Open Cursor Settings (Cmd/Ctrl + ,)
+2. Navigate to "Models" section
+3. Configure models for each tier:
+   - **Primary model** → maps to `critical_reasoner` and `workhorse_coder`
+   - **Fast model** → maps to `fast_router`
+   - **Review model** → maps to `independent_verifier`
+
+The generated `.cursor/rules/05-vibe-routing.mdc` will reference these as `cursor.primary-frontier-model`, `cursor.default-agent-model`, etc.
+
+#### Codex CLI (Planned)
+
+Codex CLI uses OpenAI models configured via environment or CLI flags:
+
+```bash
+# Set default models via environment
+export CODEX_PRIMARY_MODEL="gpt-4"
+export CODEX_FAST_MODEL="gpt-3.5-turbo"
+
+# Or specify per-invocation
+codex --model gpt-4 "your task"
+```
+
+The generated `.vibe/codex-cli/routing.md` maps tiers to `openai.high-reasoning`, `openai.codex-workhorse`, etc.
+
+#### Warp (Planned)
+
+Warp's model configuration depends on its AI provider integration:
+
+1. Configure your AI provider in Warp settings
+2. The generated `WARP.md` will reference `warp.primary-frontier-model`, `warp.default-agent-model`, etc.
+3. Warp will use its configured default model for all tiers (model switching within Warp may be limited)
+
+#### OpenCode (Planned)
+
+OpenCode allows flexible model configuration in `opencode.json`:
+
+```json
+{
+  "models": {
+    "primary": "claude-opus-4",
+    "coder": "claude-sonnet-4",
+    "fast": "claude-haiku-4"
+  }
+}
+```
+
+The generated config will map these to the capability tiers defined in the workflow.
+
+### Project-Specific Model Overrides
+
+You can override the default tier-to-model mapping for a specific project using overlays:
+
+```yaml
+# .vibe/overlay.yaml
+profile:
+  mapping:
+    critical_reasoner: claude.opus-4-latest
+    workhorse_coder: claude.sonnet-4-latest
+```
+
+Then build with the overlay:
+```bash
+bin/vibe build claude-code --overlay .vibe/overlay.yaml
+```
+
+### Cost Optimization Tips
+
+1. **Use the right tier**: Don't use `critical_reasoner` (Opus) for simple tasks
+2. **Leverage `fast_router`**: Use Haiku-class models for exploration and quick lookups
+3. **Enable `cheap_local`**: Configure Ollama or similar for commit messages and formatting
+4. **Cross-verify selectively**: Only use `independent_verifier` for truly critical decisions
+
+See `docs/task-routing.md` for detailed routing guidelines.
+
 ## External Tool Integrations
 
 This workflow supports optional external tool integrations to enhance capabilities:
@@ -320,16 +455,27 @@ bin/vibe-smoke
 
 Current phase-6 behavior:
 
-- `claude-code` → materializes `CLAUDE.md`, `rules/`, `docs/`, `skills/`, `agents/`, `commands/`, and a generated `settings.json` permission baseline
-- `codex-cli` → materializes `AGENTS.md` plus generated behavior / routing / safety / execution docs
-- `cursor` → materializes `AGENTS.md`, `.cursor/rules/*.mdc`, `.cursor/cli.json`, and supporting `.vibe/cursor/*` notes
+- `claude-code` → materializes `CLAUDE.md`, `rules/`, `docs/`, `skills/`, `agents/`, `commands/`, and a generated `settings.json` permission baseline, plus task routing and test standards under `.vibe/claude-code/`
+- `codex-cli` → materializes `AGENTS.md` plus generated behavior / routing / safety / execution / task-routing / test-standards docs under `.vibe/codex-cli/`
+- `cursor` → materializes `AGENTS.md`, `.cursor/rules/*.mdc`, `.cursor/cli.json`, and supporting `.vibe/cursor/*` notes including task routing and test standards
 - `opencode` → materializes `AGENTS.md`, `opencode.json`, and modular behavior / routing / safety / execution instruction files with generated permissions
-- `warp` → materializes `WARP.md` plus generated behavior / routing / safety / workflow support docs under `.vibe/warp/`
+- `warp` → materializes `WARP.md` plus generated behavior / routing / safety / task-routing / test-standards / workflow support docs under `.vibe/warp/`
 - `inspect` → can preview overlay-aware profile resolution and generated target state
 - `use` / `switch` → auto-discover `.vibe/overlay.yaml` in the destination project when present
+
+**Path Safety**: When using `use` or `switch`, if the default output directory (`generated/<target>/`) would overlap with the destination directory, the tool automatically uses an external staging directory at `~/.vibe-generated/<destination-name>-<hash>/<target>/` to prevent conflicts. This ensures safe operation even when applying configurations to the repository root.
 - overlays → let a consuming repo remap capability tiers, add behavior deltas, patch native target config, and encode stack preferences like `uv` or `nvm` without editing `core/`
 
 `bin/vibe` is intentionally conservative: it only renders the parts that are already modeled in `core/` and documented in `targets/`.
+## Git & tracked files
+
+This repository intentionally separates shared workflow files from disposable staging output:
+
+- Commit the portable spec and checked-in target-facing files: `core/`, `targets/`, `rules/`, `docs/`, `CLAUDE.md`, `WARP.md`, and the tracked `.vibe/` support files that describe the active Warp target.
+- Do not commit staging output or local apply markers: `generated/` and `.vibe-target.json` are intentionally ignored.
+- Treat `.vibe/overlay.yaml` as project policy only when it should be shared. Keep personal or local-only overlays outside the repo, or ignore them in the consuming project's `.gitignore`.
+
+See `docs/git-workflow.md` for the full commit policy, including consuming-repo guidance, `memory/` handling, and secrets/local-state rules.
 
 ## Key Concepts
 

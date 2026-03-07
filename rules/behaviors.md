@@ -19,6 +19,7 @@ Violating this = branch divergence → pull conflicts → 10x cleanup time. **No
 - Repo-specific deviations should prefer `.vibe/overlay.yaml` or `bin/vibe --overlay ...` instead of mutating shared defaults
 - `rules/` and `docs/` are the current Claude Code renderings of that portable spec
 - When changing routing, skills, safety, or behavior policy: update `core/` first, then sync target-facing files
+- Treat repo-root live target entrypoints (for example `WARP.md`, `AGENTS.md`, `.vibe/<target>/*`) as shared interface files only when they are the intended checked-in surface; do not commit staging output under `generated/` or local apply markers such as `.vibe-target.json`
 
 ## Task Routing (Capability Tiers → Current Target Executors)
 
@@ -30,6 +31,43 @@ Violating this = branch divergence → pull conflicts → 10x cleanup time. **No
 - `fast_router` → Haiku-class
 - `independent_verifier` → Codex / second-model family
 - `cheap_local` → local model
+
+## Task Complexity Routing
+
+**Before starting any task, assess its complexity level** (see `core/policies/task-routing.yaml`):
+
+### Trivial (<20 lines, 1 file, low risk)
+- **Memory Recall**: Optional (skip if obviously new)
+- **Tests**: Manual verification only
+- **Documentation**: Inline comments sufficient
+- **Review**: Optional
+- **Time**: 5-10 minutes
+- **Examples**: Fix typo, update version, add log statement
+
+### Standard (20-100 lines, 1-5 files, medium risk)
+- **Memory Recall**: Required
+- **Tests**: Unit tests required (80% coverage)
+- **Documentation**: Update relevant docs
+- **Review**: Recommended
+- **Time**: 30-60 minutes
+- **Examples**: Add CLI command, refactor module, fix bug
+
+### Critical (>100 lines, >5 files, high risk)
+- **Memory Recall**: Required
+- **Tests**: Unit + integration tests (90%/50% coverage)
+- **Documentation**: Comprehensive
+- **Review**: Mandatory
+- **Cross-verification**: Recommended
+- **Time**: 2+ hours
+- **Examples**: Database migration, security changes, API changes
+
+**Auto-detection**: System suggests complexity based on:
+- Lines/files changed
+- Path patterns (e.g., `core/security/` → critical)
+- Function patterns (e.g., `delete|remove|destroy` → critical)
+- Commit keywords (e.g., `BREAKING CHANGE` → critical)
+
+**Override**: You can override with justification (e.g., "urgent hotfix, treat as trivial")
 
 ### Current Default: Sonnet-class workhorse evaluates escalation
 
@@ -93,6 +131,62 @@ No blind fixes. Five phases:
    - Understanding non-obvious principles or trade-offs
 
 **Output**: `📝 Recorded: [title]`
+
+## Documentation Update Thresholds
+
+### When to Update `memory/today.md`
+
+**Always record**:
+- New module created
+- Important architectural decision
+- Counter-intuitive solution
+- User correction (you were wrong)
+- Repeated issue (>2 times)
+
+**Record if threshold met**:
+- Lines changed: >50
+- Files changed: >3
+- Time spent: >30 minutes
+- Complexity: Standard or Critical
+
+**Optional to record**:
+- Trivial changes (<20 lines)
+- Routine bug fixes
+- Documentation updates
+- Dependency updates
+
+### When to Update `memory/patterns.md`
+
+**Always record**:
+- Reusable pattern discovered
+- Common pitfall identified
+- Project-specific convention
+- Tool/library quirk
+
+**Example**:
+```markdown
+## Path Safety Pattern
+When working with file paths:
+1. Always use File.realpath to resolve symlinks
+2. Always validate paths are within expected boundaries
+3. Reuse lib/vibe/path_safety.rb module
+
+Discovered: 2026-03-06
+Reason: Symlinks can bypass string-based path checks
+```
+
+### When to Update Project Docs
+
+**Always update**:
+- New CLI command → Update README.md
+- New configuration option → Update docs/
+- API changes → Update relevant docs
+- Breaking changes → Update CHANGELOG.md
+
+**Optional**:
+- Internal refactoring (no user-facing changes)
+- Test additions
+- Code comments (self-documenting)
 
 ## Memory Search Rules (Hard Rules)
 

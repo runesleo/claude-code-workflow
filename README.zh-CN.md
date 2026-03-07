@@ -118,6 +118,141 @@ cp -r claude-code-workflow/* ~/.claude/
 claude
 ```
 
+## 模型配置指南
+
+本工作流使用**能力层级路由系统**，将任务复杂度与具体模型实现分离。理解如何为你的目标工具配置模型对于获得最佳性能至关重要。
+
+### 理解能力层级
+
+工作流在 `core/models/tiers.yaml` 中定义了 5 个抽象能力层级：
+
+- **`critical_reasoner`**：关键逻辑、安全、密钥和架构决策的最高保障推理
+- **`workhorse_coder`**：大多数实现和分析工作的默认日常编码层级
+- **`fast_router`**：用于探索、分类和低风险子流程工作的快速廉价层级
+- **`independent_verifier`**：用于交叉检查重要结论的第二模型验证层级
+- **`cheap_local`**：用于离线、高容量和低风险任务的本地或接近零成本层级
+
+### 层级到模型的映射机制
+
+每个目标在 `core/models/providers.yaml` 中都有一个**提供者配置文件**，将这些抽象层级映射到具体的模型实现：
+
+```yaml
+claude-code-default:
+  mapping:
+    critical_reasoner: claude.opus-class
+    workhorse_coder: claude.sonnet-class
+    fast_router: claude.haiku-class
+```
+
+**重要提示**：这些映射是**语义提示**，而非可执行配置。实际的模型选择取决于你的目标工具的能力。
+
+### 按目标配置模型
+
+#### Claude Code（完全支持）
+
+Claude Code 通过多种方法支持动态模型选择：
+
+**方法 1：使用特定模型启动**
+```bash
+# 使用 Opus 启动（最高能力）
+claude --model opus
+
+# 使用 Sonnet 启动（平衡）
+claude --model sonnet
+
+# 使用 Haiku 启动（最快）
+claude --model haiku
+```
+
+**方法 2：使用 Task 工具的 model 参数**
+```markdown
+委派给子代理时，Claude 可以指定模型层级：
+- Task 工具使用 `model: "opus"` 进行关键推理
+- Task 工具使用 `model: "sonnet"` 进行标准工作
+- Task 工具使用 `model: "haiku"` 进行快速探索
+```
+
+**方法 3：在设置中配置默认值**
+检查 `~/.claude/settings.json` 以配置默认模型偏好（如果你的 Claude Code 版本支持）。
+
+#### Cursor（计划中）
+
+Cursor 的模型选择通过其 UI 设置配置：
+
+1. 打开 Cursor 设置（Cmd/Ctrl + ,）
+2. 导航到"Models"部分
+3. 为每个层级配置模型：
+   - **Primary model** → 映射到 `critical_reasoner` 和 `workhorse_coder`
+   - **Fast model** → 映射到 `fast_router`
+   - **Review model** → 映射到 `independent_verifier`
+
+生成的 `.cursor/rules/05-vibe-routing.mdc` 将引用这些为 `cursor.primary-frontier-model`、`cursor.default-agent-model` 等。
+
+#### Codex CLI（计划中）
+
+Codex CLI 使用通过环境或 CLI 标志配置的 OpenAI 模型：
+
+```bash
+# 通过环境设置默认模型
+export CODEX_PRIMARY_MODEL="gpt-4"
+export CODEX_FAST_MODEL="gpt-3.5-turbo"
+
+# 或按调用指定
+codex --model gpt-4 "你的任务"
+```
+
+生成的 `.vibe/codex-cli/routing.md` 将层级映射到 `openai.high-reasoning`、`openai.codex-workhorse` 等。
+
+#### Warp（计划中）
+
+Warp 的模型配置取决于其 AI 提供者集成：
+
+1. 在 Warp 设置中配置你的 AI 提供者
+2. 生成的 `WARP.md` 将引用 `warp.primary-frontier-model`、`warp.default-agent-model` 等
+3. Warp 将对所有层级使用其配置的默认模型（Warp 内的模型切换可能受限）
+
+#### OpenCode（计划中）
+
+OpenCode 允许在 `opencode.json` 中灵活配置模型：
+
+```json
+{
+  "models": {
+    "primary": "claude-opus-4",
+    "coder": "claude-sonnet-4",
+    "fast": "claude-haiku-4"
+  }
+}
+```
+
+生成的配置将这些映射到工作流中定义的能力层级。
+
+### 项目特定的模型覆盖
+
+你可以使用 overlay 为特定项目覆盖默认的层级到模型映射：
+
+```yaml
+# .vibe/overlay.yaml
+profile:
+  mapping:
+    critical_reasoner: claude.opus-4-latest
+    workhorse_coder: claude.sonnet-4-latest
+```
+
+然后使用 overlay 构建：
+```bash
+bin/vibe build claude-code --overlay .vibe/overlay.yaml
+```
+
+### 成本优化技巧
+
+1. **使用正确的层级**：不要对简单任务使用 `critical_reasoner`（Opus）
+2. **利用 `fast_router`**：对探索和快速查找使用 Haiku 级模型
+3. **启用 `cheap_local`**：为提交消息和格式化配置 Ollama 或类似工具
+4. **有选择地交叉验证**：仅对真正关键的决策使用 `independent_verifier`
+
+详细的路由指南请参见 `docs/task-routing.md`。
+
 ### 方式二：使用生成器（推荐，支持多目标）
 
 ```bash
@@ -173,6 +308,12 @@ targets:
 然后构建时会自动发现并应用：
 
 ```bash
+bin/vibe switch cursor  # 自动应用 .vibe/overlay.yaml
+```
+
+**路径安全机制**：使用 `use` 或 `switch` 命令时，如果默认输出目录（`generated/<target>/`）与目标目录重叠，工具会自动使用外部暂存目录 `~/.vibe-generated/<目标名>-<哈希>/<target>/` 来避免冲突。这确保了即使将配置应用到仓库根目录也能安全操作。
+
+```bash
 bin/vibe build cursor                   # 自动发现 .vibe/overlay.yaml
 bin/vibe build warp --overlay my.yaml   # 或显式指定
 ```
@@ -182,6 +323,37 @@ bin/vibe build warp --overlay my.yaml   # 或显式指定
 - `examples/python-uv-overlay.yaml` — Python/uv 项目偏好
 - `examples/node-nvm-overlay.yaml` — Node/nvm 项目偏好
 - `examples/project-overlay.yaml` — 严格审查流程示例
+
+## 生成的配置文件
+
+`bin/vibe build` 为每个目标生成不同的配置文件：
+
+### Claude Code 目标
+- `CLAUDE.md`, `rules/`, `docs/`, `skills/`, `agents/`, `commands/`, `memory/`, `patterns.md`
+- `settings.json` — 权限基线
+- `.vibe/claude-code/` — 行为策略、安全策略、任务路由、测试标准
+
+### Warp 目标
+- `WARP.md` — Warp 项目规则入口
+- `.vibe/warp/` — 行为策略、路由、安全、技能、任务路由、测试标准、工作流说明
+
+### Cursor 目标
+- `AGENTS.md` — 工作流概述
+- `.cursor/rules/*.mdc` — Cursor 规则文件
+- `.cursor/cli.json` — CLI 权限配置
+- `.vibe/cursor/` — 行为策略、路由、安全、技能、任务路由、测试标准
+
+### Codex CLI 目标
+- `AGENTS.md` — 工作流概述
+- `.vibe/codex-cli/` — 行为策略、路由、安全、执行策略、技能、任务路由、测试标准
+
+### 任务路由和测试标准
+
+所有目标现在都包含：
+- **任务路由** (`task-routing.md`) — 按复杂度分类任务（trivial/standard/critical），定义每个级别的流程要求
+- **测试标准** (`test-standards.md`) — 按复杂度定义最低测试覆盖率要求，标识关键路径
+
+这些策略帮助 AI 助手根据任务复杂度自动调整工作流程，在质量和效率之间取得平衡。
 
 ## 外部工具集成
 
@@ -329,6 +501,15 @@ claude-code-workflow/
 │
 └── patterns.md                   # 跨项目可复用模式和陷阱记录
 ```
+## Git 与提交边界
+
+这个仓库有意把「共享工作流文件」和「一次性构建/本地状态」分开管理：
+
+- 应提交：`core/`、`targets/`、`rules/`、`docs/`、`CLAUDE.md`、`WARP.md`，以及当前仓库中已纳入版本控制的 `.vibe/` 支撑文件。
+- 不应提交：`generated/` 和 `.vibe-target.json` 这类 staging 输出与本地 apply marker。
+- `.vibe/overlay.yaml` 只有在它代表团队共享的项目策略时才建议提交；如果只是个人或本地偏好，应放在仓库外部，或在消费仓库的 `.gitignore` 中忽略。
+
+完整说明请参阅 `docs/git-workflow.md`，其中包含消费仓库的提交建议、`memory/` 目录策略，以及 secrets / 本地状态文件的处理原则。
 
 ## 核心概念
 

@@ -5,7 +5,9 @@ require "fileutils"
 require "json"
 require "optparse"
 require "time"
+require "digest"
 require "yaml"
+require_relative "../lib/vibe/errors"
 require_relative "../lib/vibe/utils"
 require_relative "../lib/vibe/doc_rendering"
 require_relative "../lib/vibe/native_configs"
@@ -40,11 +42,36 @@ class VibeCLI
 
   def initialize(repo_root)
     @repo_root = repo_root
-    @tiers_doc = read_yaml("core/models/tiers.yaml")
-    @providers = read_yaml("core/models/providers.yaml")
-    @skills_doc = read_yaml("core/skills/registry.yaml")
-    @security_doc = read_yaml("core/security/policy.yaml")
-    @policies_doc = read_yaml("core/policies/behaviors.yaml")
+    # YAML files are now loaded lazily on first access
+  end
+
+  # Lazy-loaded YAML documents with caching
+  def tiers_doc
+    @tiers_doc ||= read_yaml("core/models/tiers.yaml")
+  end
+
+  def providers
+    @providers ||= read_yaml("core/models/providers.yaml")
+  end
+
+  def skills_doc
+    @skills_doc ||= read_yaml("core/skills/registry.yaml")
+  end
+
+  def security_doc
+    @security_doc ||= read_yaml("core/security/policy.yaml")
+  end
+
+  def policies_doc
+    @policies_doc ||= read_yaml("core/policies/behaviors.yaml")
+  end
+
+  def task_routing_doc
+    @task_routing_doc ||= read_yaml("core/policies/task-routing.yaml")
+  end
+
+  def test_standards_doc
+    @test_standards_doc ||= read_yaml("core/policies/test-standards.yaml")
   end
 
   def run(argv)
@@ -67,7 +94,7 @@ class VibeCLI
     when "help", "--help", "-h", nil
       puts usage
     else
-      abort "Unknown command: #{command}
+      raise Vibe::ValidationError, "Unknown command: #{command}
 
 #{usage}"
     end
@@ -112,6 +139,10 @@ class VibeCLI
     target = require_target!(options)
     profile_name, profile = resolve_profile(target, options[:profile])
     output_root = File.expand_path(options[:output] || default_output_root(target))
+
+    # Validate output path if explicitly provided
+    validate_path!(options[:output], context: "output") if options[:output]
+
     overlay = resolve_overlay(explicit_path: options[:overlay], search_roots: [@repo_root])
 
     manifest = build_target(
@@ -140,11 +171,18 @@ class VibeCLI
     target = require_target!(options)
     options[:destination] ||= default_destination_for_target(target) if switch_mode
     destination = options[:destination]
-    abort "Missing required destination. Pass DESTINATION or --destination DIR." if destination.nil? || destination.strip.empty?
+    raise Vibe::ValidationError, "Missing required destination. Pass DESTINATION or --destination DIR." if destination.nil? || destination.strip.empty?
+
+    # Validate destination path
+    validate_path!(destination, context: "destination")
 
     profile_name, profile = resolve_profile(target, options[:profile])
-    output_root = File.expand_path(options[:output] || default_output_root(target))
     destination_root = File.expand_path(destination)
+    output_root = resolve_output_root_for_use(
+      target: target,
+      destination_root: destination_root,
+      explicit_output: options[:output]
+    )
     ensure_no_path_overlap!(output_root, destination_root)
     overlay = resolve_overlay(explicit_path: options[:overlay], search_roots: [destination_root, @repo_root])
 
@@ -231,7 +269,7 @@ class VibeCLI
         HELP
         return
       else
-        abort "Unknown option: #{arg}\n\nRun 'bin/vibe init --help' for usage."
+        raise Vibe::ValidationError, "Unknown option: #{arg}\n\nRun 'bin/vibe init --help' for usage."
       end
     end
 
@@ -253,14 +291,17 @@ class VibeCLI
       end
 
       opts.on("--output DIR", "Write generated files to DIR instead of generated/<target>") do |value|
+        validate_path!(value, context: "output")
         options[:output] = value
       end
 
       opts.on("--destination DIR", "Destination root for `use`") do |value|
+        validate_path!(value, context: "destination")
         options[:destination] = value
       end
 
       opts.on("--overlay FILE", "Apply a project overlay file while rendering") do |value|
+        validate_path!(value, context: "overlay")
         options[:overlay] = value
       end
 
@@ -301,19 +342,19 @@ class VibeCLI
   def ensure_no_remaining_args!(remaining)
     return if remaining.empty?
 
-    abort "Unexpected arguments: #{remaining.join(' ')}"
+    raise Vibe::ValidationError, "Unexpected arguments: #{remaining.join(' ')}"
   end
 
   def require_target!(options)
     target = options[:target]
-    abort "Missing required target. Pass TARGET or --target TARGET." if target.nil?
+    raise Vibe::ValidationError, "Missing required target. Pass TARGET or --target TARGET." if target.nil?
 
     target
   end
 
   def normalize_target(value)
     normalized = TARGET_ALIASES[value]
-    abort "Unsupported target: #{value}" if normalized.nil? || !SUPPORTED_TARGETS.include?(normalized)
+    raise Vibe::ValidationError, "Unsupported target: #{value}" if normalized.nil? || !SUPPORTED_TARGETS.include?(normalized)
 
     normalized
   end
@@ -330,13 +371,44 @@ class VibeCLI
     end
   end
 
+  def resolve_output_root_for_use(target:, destination_root:, explicit_output:)
+    return File.expand_path(explicit_output) if explicit_output
+
+    output_root = File.expand_path(default_output_root(target))
+    return output_root unless paths_overlap?(output_root, destination_root)
+
+    destination_name = File.basename(destination_root)
+    destination_name = sanitize_directory_name(destination_name)
+    destination_name = "root" if destination_name.empty?
+    destination_digest = Digest::SHA256.hexdigest(destination_root)[0, 12]
+
+    home_dir = Dir.home
+    raise Vibe::ConfigurationError, "Cannot determine home directory for external staging" if home_dir.nil? || home_dir.empty?
+
+    File.join(home_dir, ".vibe-generated", "#{destination_name}-#{destination_digest}", target)
+  end
+
+  def sanitize_directory_name(name)
+    return "root" if name.nil? || name.empty? || name == File::SEPARATOR
+
+    # Replace special characters with hyphens, preserve alphanumeric, underscore, and hyphen
+    sanitized = name.gsub(/[^a-zA-Z0-9_-]/, "-")
+    # Collapse consecutive hyphens
+    sanitized = sanitized.gsub(/-+/, "-")
+    # Remove leading/trailing hyphens (use gsub to handle both ends)
+    sanitized = sanitized.gsub(/^-+|-+$/, "")
+
+    # Return "root" if sanitization resulted in empty string
+    sanitized.empty? ? "root" : sanitized
+  end
+
   def resolve_profile(target, requested_profile)
-    profiles = @providers.fetch("profiles")
+    profiles = providers.fetch("profiles")
 
     if requested_profile
       profile = profiles[requested_profile]
-      abort "Unknown profile: #{requested_profile}" if profile.nil?
-      abort "Profile #{requested_profile} does not target #{target}" unless profile["target"] == target
+      raise Vibe::ConfigurationError, "Unknown profile: #{requested_profile}" if profile.nil?
+      raise Vibe::ValidationError, "Profile #{requested_profile} does not target #{target}" unless profile["target"] == target
 
       return [requested_profile, profile]
     end
@@ -345,8 +417,8 @@ class VibeCLI
   end
 
   def default_profile_for_target(target)
-    profiles = @providers.fetch("profiles").select { |_name, profile| profile["target"] == target }
-    abort "No profile found for target #{target}" if profiles.empty?
+    profiles = providers.fetch("profiles").select { |_name, profile| profile["target"] == target }
+    raise Vibe::ConfigurationError, "No profile found for target #{target}" if profiles.empty?
 
     profiles.sort_by do |_name, profile|
       case profile["maturity"]
@@ -384,7 +456,7 @@ class VibeCLI
     when "warp"
       render_warp(output_root, manifest)
     else
-      abort "Target renderer not implemented: #{target}"
+      raise Vibe::ConfigurationError, "Target renderer not implemented: #{target}"
     end
 
     vibe_dir = File.join(output_root, ".vibe")
@@ -412,8 +484,8 @@ class VibeCLI
       "profile_mapping" => profile_mapping,
       "overlay" => overlay_summary(overlay, target: target),
       "native_config_overlay" => native_config_overlay,
-      "routing_defaults" => @tiers_doc["routing_defaults"],
-      "tiers" => @tiers_doc.fetch("tiers").transform_values do |tier|
+      "routing_defaults" => tiers_doc["routing_defaults"],
+      "tiers" => tiers_doc.fetch("tiers").transform_values do |tier|
         {
           "description" => tier["description"],
           "default_role" => tier["default_role"],
@@ -424,16 +496,16 @@ class VibeCLI
       "skills" => manifest_skills(target),
       "policies" => policies,
       "security" => {
-        "severity_levels" => @security_doc.fetch("severity_levels"),
-        "signal_categories" => @security_doc.fetch("signal_categories"),
-        "adjudication_factors" => @security_doc.fetch("adjudication_factors"),
-        "target_actions" => @security_doc.fetch("actions_by_target")[target]
+        "severity_levels" => security_doc.fetch("severity_levels"),
+        "signal_categories" => security_doc.fetch("signal_categories"),
+        "adjudication_factors" => security_doc.fetch("adjudication_factors"),
+        "target_actions" => security_doc.fetch("actions_by_target")[target]
       }
     }
   end
 
   def manifest_skills(target)
-    @skills_doc.fetch("skills").select do |skill|
+    skills_doc.fetch("skills").select do |skill|
       include_skill_in_manifest?(skill)
     end.map do |skill|
       {
@@ -499,6 +571,14 @@ class VibeCLI
   end
 end
 if __FILE__ == $PROGRAM_NAME
-  repo_root = File.expand_path("..", __dir__)
-  VibeCLI.new(repo_root).run(ARGV)
+  begin
+    repo_root = File.expand_path("..", __dir__)
+    VibeCLI.new(repo_root).run(ARGV)
+  rescue Vibe::PathSafetyError, Vibe::SecurityError, Vibe::ValidationError, Vibe::ConfigurationError => e
+    warn "Error: #{e.message}"
+    exit 1
+  rescue Vibe::Error => e
+    warn "Vibe error: #{e.message}"
+    exit 1
+  end
 end

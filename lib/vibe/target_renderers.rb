@@ -77,6 +77,8 @@ module Vibe
       MD
       File.write(File.join(claude_dir, "behavior-policies.md"), render_behavior_doc(manifest))
       File.write(File.join(claude_dir, "safety.md"), render_safety_doc(manifest))
+      File.write(File.join(claude_dir, "task-routing.md"), render_task_routing_doc(manifest))
+      File.write(File.join(claude_dir, "test-standards.md"), render_test_standards_doc(manifest))
     end
 
     def render_codex(output_root, manifest)
@@ -87,6 +89,8 @@ module Vibe
       File.write(File.join(codex_dir, "skills.md"), render_skills_doc(manifest))
       File.write(File.join(codex_dir, "safety.md"), render_safety_doc(manifest))
       File.write(File.join(codex_dir, "execution-policy.md"), render_execution_policy_doc(manifest))
+      File.write(File.join(codex_dir, "task-routing.md"), render_task_routing_doc(manifest))
+      File.write(File.join(codex_dir, "test-standards.md"), render_test_standards_doc(manifest))
 
       File.write(File.join(output_root, "AGENTS.md"), <<~MD)
         # Vibe workflow for Codex CLI
@@ -141,6 +145,8 @@ module Vibe
       File.write(File.join(cursor_support_dir, "routing.md"), render_routing_doc(manifest))
       File.write(File.join(cursor_support_dir, "safety.md"), render_safety_doc(manifest))
       File.write(File.join(cursor_support_dir, "skills.md"), render_skills_doc(manifest))
+      File.write(File.join(cursor_support_dir, "task-routing.md"), render_task_routing_doc(manifest))
+      File.write(File.join(cursor_support_dir, "test-standards.md"), render_test_standards_doc(manifest))
 
       File.write(File.join(cursor_rules_dir, "00-vibe-core.mdc"), <<~MDC)
         ---
@@ -260,6 +266,8 @@ module Vibe
         - Use `.vibe/warp/routing.md` for tier routing and profile mapping.
         - Use `.vibe/warp/safety.md` for security-sensitive work and escalation policy.
         - Use `.vibe/warp/skills.md` for portable skill references.
+        - Use `.vibe/warp/task-routing.md` for task complexity classification and process requirements.
+        - Use `.vibe/warp/test-standards.md` for test coverage standards by complexity.
         - Use `.vibe/warp/workflow-notes.md` for conservative workflow guidance in Warp.
 
         ## Safety floor
@@ -271,6 +279,8 @@ module Vibe
       File.write(File.join(warp_dir, "routing.md"), render_routing_doc(manifest))
       File.write(File.join(warp_dir, "skills.md"), render_skills_doc(manifest))
       File.write(File.join(warp_dir, "safety.md"), render_safety_doc(manifest))
+      File.write(File.join(warp_dir, "task-routing.md"), render_task_routing_doc(manifest))
+      File.write(File.join(warp_dir, "test-standards.md"), render_test_standards_doc(manifest))
       File.write(File.join(warp_dir, "workflow-notes.md"), render_warp_workflow_notes_doc(manifest))
     end
 

@@ -151,7 +151,7 @@ class TestVibeExternalTools < Minitest::Test
       path
     end
 
-    self.stub(:system, ->(_command) { false }) do
+    self.stub(:system, ->(*_args) { false }) do
       File.stub :expand_path, stub_expand_path do
         assert_equal :hook_configured, detect_rtk
 

@@ -98,7 +98,7 @@ class TestVibeInit < Minitest::Test
       }
     }))
 
-    self.stub(:system, ->(_command) { false }) do
+    self.stub(:system, ->(*_args) { false }) do
       assert_equal :hook_configured, detect_rtk
     end
   end
@@ -122,7 +122,7 @@ class TestVibeInit < Minitest::Test
       }
     }))
 
-    self.stub(:system, ->(_command) { false }) do
+    self.stub(:system, ->(*_args) { false }) do
       result = verify_rtk
       refute result[:installed]
       refute result[:ready]

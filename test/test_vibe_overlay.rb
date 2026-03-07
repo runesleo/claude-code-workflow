@@ -21,6 +21,10 @@ class OverlayHost
     @repo_root = repo_root
     @policies_doc = policies_doc
   end
+
+  def policies_doc
+    @policies_doc
+  end
 end
 
 class TestVibeOverlay < Minitest::Test
