@@ -49,7 +49,7 @@ skills:
       cursor: rule-or-manual-invocation
       opencode: native-skill
       warp: rule-or-manual-invocation
-      antigravity: rule-or-manual-invocation
+      antigravity: native-skill
       vscode: rule-or-manual-invocation
     requires_tools:
       - Read
@@ -69,7 +69,7 @@ skills:
       cursor: rule
       opencode: native-skill
       warp: rule-or-checklist
-      antigravity: rule-or-checklist
+      antigravity: native-skill
       vscode: rule-or-checklist
     requires_tools:
       - Read
@@ -88,7 +88,7 @@ skills:
       cursor: manual-or-rule
       opencode: native-skill
       warp: checklist-or-rule
-      antigravity: checklist-or-rule
+      antigravity: native-skill
       vscode: manual-or-rule
     requires_tools:
       - Read
@@ -108,7 +108,7 @@ skills:
       cursor: manual-or-rule
       opencode: native-skill
       warp: manual-or-template
-      antigravity: manual-or-template
+      antigravity: native-skill
       vscode: manual-or-rule
     requires_tools:
       - Read

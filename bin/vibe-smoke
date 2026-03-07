@@ -51,6 +51,9 @@ for target in antigravity codex-cli cursor opencode vscode warp; do
   test -f "${TMP_DIR}/generated/${target}/.vibe/${target_slug}/behavior-policies.md" || { echo "FAIL: ${target} missing behavior-policies.md"; exit 1; }
 done
 
+# VS Code must generate .vscode/settings.json
+test -f "${TMP_DIR}/generated/vscode/.vscode/settings.json" || { echo "FAIL: vscode missing .vscode/settings.json"; exit 1; }
+
 # Manifest should use relative source_repo
 ruby -rjson -e '
 manifest = JSON.parse(File.read(ARGV.fetch(0)))

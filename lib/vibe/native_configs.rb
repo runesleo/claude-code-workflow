@@ -141,5 +141,20 @@ module Vibe
     def opencode_config(manifest)
       deep_merge(base_opencode_config, manifest["native_config_overlay"] || {})
     end
+
+    def base_vscode_settings_config
+      {
+        "github.copilot.chat.codeGeneration.instructions" => [
+          { "file" => "AGENTS.md" },
+          { "file" => ".vibe/vscode/behavior-policies.md" },
+          { "file" => ".vibe/vscode/routing.md" },
+          { "file" => ".vibe/vscode/safety.md" }
+        ]
+      }
+    end
+
+    def vscode_settings_config(manifest)
+      deep_merge(base_vscode_settings_config, manifest["native_config_overlay"] || {})
+    end
   end
 end

@@ -303,6 +303,23 @@ OpenCode allows flexible model configuration in `opencode.json`:
 
 The generated config will map these to the capability tiers defined in the workflow.
 
+#### Antigravity (Planned)
+
+Antigravity's model selection depends on its internal routing and user subscription:
+
+1. Antigravity selects models based on task complexity and configured preferences
+2. The generated `AGENTS.md` will reference `antigravity.primary-frontier-model`, `antigravity.default-agent-model`, etc.
+3. Antigravity natively supports multi-agent workflows, making the routing guidance directly actionable
+
+#### VS Code / Copilot (Planned)
+
+VS Code's AI capabilities come through GitHub Copilot and Copilot Chat:
+
+1. Install GitHub Copilot and Copilot Chat extensions
+2. The generated `.vscode/settings.json` includes workspace-level instructions referencing the workflow docs
+3. Model selection depends on your Copilot subscription tier (Individual, Business, Enterprise)
+4. Copilot does not support automatic per-task model switching — the routing guidance is informational
+
 ### Project-Specific Model Overrides
 
 You can override the default tier-to-model mapping for a specific project using overlays:

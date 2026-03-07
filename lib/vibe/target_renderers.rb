@@ -366,6 +366,8 @@ module Vibe
       File.write(File.join(vibe_dir, "skills.md"), render_skills_doc(manifest))
       File.write(File.join(vibe_dir, "task-routing.md"), render_task_routing_doc(manifest))
       File.write(File.join(vibe_dir, "test-standards.md"), render_test_standards_doc(manifest))
+
+      write_json(File.join(vscode_dir, "settings.json"), vscode_settings_config(manifest))
     end
 
     private
