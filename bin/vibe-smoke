@@ -6,7 +6,7 @@ TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "${TMP_DIR}"' EXIT
 
 # --- Unit tests ---
-for test_file in "${REPO_ROOT}"/test/test_vibe_*.rb; do
+for test_file in "${REPO_ROOT}"/test/test_*.rb; do
   ruby "${test_file}" || { echo "FAIL: unit test ${test_file}"; exit 1; }
 done
 

@@ -5,7 +5,7 @@ require "fileutils"
 require "tmpdir"
 require_relative "../lib/vibe/path_safety"
 
-class TestPathSafety < Minitest::Test
+class TestPathOverlapCalculation < Minitest::Test
   include Vibe::PathSafety
 
   def test_paths_overlap_with_parent_child

@@ -19,7 +19,7 @@ class PathSafetyHost
   end
 end
 
-class TestVibePathSafety < Minitest::Test
+class TestCliPathSafetyGuards < Minitest::Test
   def setup
     @host = PathSafetyHost.new("/fake/repo")
   end
