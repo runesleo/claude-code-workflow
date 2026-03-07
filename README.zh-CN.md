@@ -401,12 +401,16 @@ bin/vibe init --verify
 # Homebrew (macOS/Linux)
 brew install rtk
 
-# 安装脚本
-curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
+# Cargo
+cargo install --git https://github.com/rtk-ai/rtk
+
+# 手动下载
+# 参考 GitHub Releases: https://github.com/rtk-ai/rtk/releases
 
 # 初始化 hook
 rtk init --global
 ```
+`bin/vibe init` 只会自动执行 Homebrew 和 Cargo 路径；如果选择手动安装，它会给出 release 下载指引，而不会执行远程安装脚本。
 
 **来源**: [rtk-ai/rtk](https://github.com/rtk-ai/rtk)
 

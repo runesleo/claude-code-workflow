@@ -5,12 +5,28 @@ require "minitest/autorun"
 require "tmpdir"
 require "fileutils"
 require "json"
+require "open3"
 require_relative "../lib/vibe/external_tools"
 require_relative "../lib/vibe/init_support"
 
 class TestVibeInit < Minitest::Test
   include Vibe::ExternalTools
   include Vibe::InitSupport
+
+  class FakeInput
+    def initialize(lines, tty:)
+      @lines = Array(lines).dup
+      @tty = tty
+    end
+
+    def gets
+      @lines.shift
+    end
+
+    def tty?
+      @tty
+    end
+  end
 
   def setup
     @repo_root = File.expand_path("..", __dir__)
@@ -167,6 +183,83 @@ class TestVibeInit < Minitest::Test
   def test_check_environment
     # Should not raise error
     check_environment
+  end
+
+  def test_ask_yes_no_raises_validation_error_on_interactive_eof
+    error = nil
+
+    with_stdin(FakeInput.new([], tty: true)) do
+      capture_io do
+        error = assert_raises(Vibe::ValidationError) { ask_yes_no("Continue?") }
+      end
+    end
+
+    assert_match(/Input ended before a response was provided/, error.message)
+  end
+
+  def test_ask_choice_raises_validation_error_on_interactive_eof
+    error = nil
+
+    with_stdin(FakeInput.new([], tty: true)) do
+      capture_io do
+        error = assert_raises(Vibe::ValidationError) { ask_choice("Choose [1-2]", %w[1 2]) }
+      end
+    end
+
+    assert_match(/Input ended before a response was provided/, error.message)
+  end
+
+  def test_bin_vibe_init_rejects_non_interactive_stdin_with_clear_message
+    output, status = Open3.capture2e(
+      { "HOME" => @test_home },
+      File.join(@repo_root, "bin", "vibe"),
+      "init",
+      stdin_data: "",
+      chdir: @repo_root
+    )
+
+    refute status.success?
+    assert_includes output, "interactive terminal"
+    assert_includes output, "bin/vibe init --verify"
+    assert_includes output, "docs/integrations.md"
+    refute_includes output, "NoMethodError"
+  end
+
+  def test_bin_vibe_init_verify_allows_non_interactive_stdin
+    output, status = Open3.capture2e(
+      { "HOME" => @test_home },
+      File.join(@repo_root, "bin", "vibe"),
+      "init",
+      "--verify",
+      stdin_data: "",
+      chdir: @repo_root
+    )
+
+    assert status.success?
+    assert_includes output, "Verifying integrations..."
+    refute_includes output, "interactive terminal"
+  end
+
+  def test_install_rtk_offers_manual_download_instead_of_install_script
+    config = load_integration_config("rtk")
+
+    self.stub(:ask_choice, "2") do
+      stdout, = capture_io { install_rtk(config) }
+
+      assert_includes stdout, "Manual download (GitHub releases)"
+      assert_includes stdout, "https://github.com/rtk-ai/rtk/releases"
+      refute_includes stdout, "Install script"
+    end
+  end
+
+  private
+
+  def with_stdin(io)
+    original_stdin = $stdin
+    $stdin = io
+    yield
+  ensure
+    $stdin = original_stdin
   end
 end
 

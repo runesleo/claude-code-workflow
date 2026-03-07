@@ -12,13 +12,6 @@ installation_methods:
       - linux
     notes: Recommended for macOS and Linux users with Homebrew
 
-  install_script:
-    command: curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
-    platforms:
-      - macos
-      - linux
-    notes: Universal installation script for Unix-like systems
-
   cargo:
     command: cargo install --git https://github.com/rtk-ai/rtk
     platforms:
@@ -29,7 +22,7 @@ installation_methods:
 
   manual:
     url: https://github.com/rtk-ai/rtk/releases
-    notes: Download pre-built binaries from GitHub releases
+    notes: Download pre-built binaries from GitHub releases, place `rtk` on your PATH, then run `rtk init --global`
 
 detection:
   binary: rtk

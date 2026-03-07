@@ -2,6 +2,7 @@
 
 require "json"
 require "yaml"
+require_relative "errors"
 
 module Vibe
   # Initialization and setup support for external integrations.
@@ -52,6 +53,7 @@ module Vibe
     def setup_integrations
       puts "Checking external integrations..."
       puts
+      ensure_interactive_setup_available!
 
       integrations = [
         { name: "superpowers", label: "Superpowers Skill Pack", order: 1 },
@@ -231,11 +233,11 @@ module Vibe
       puts "   After installation, run: bin/vibe init --verify"
     end
 
-    def install_rtk(_config)
+    def install_rtk(config)
       puts
       puts "   Installation method:"
       puts "   1) Homebrew (macOS/Linux)"
-      puts "   2) Install script"
+      puts "   2) Manual download (GitHub releases)"
       puts "   3) Cargo"
       puts
 
@@ -245,7 +247,7 @@ module Vibe
       when "1"
         install_rtk_homebrew
       when "2"
-        install_rtk_script
+        install_rtk_manual(config)
       when "3"
         install_rtk_cargo
       end
@@ -265,14 +267,20 @@ module Vibe
       end
     end
 
-    def install_rtk_script
+    def install_rtk_manual(config)
       puts
-      if install_rtk_via_script
-        puts "   ✓ RTK installed successfully"
-        configure_rtk_after_install
-      else
-        puts "   ✗ Installation failed"
-      end
+      puts "   Manual installation steps:"
+      puts
+
+      manual_install = config.dig("installation_methods", "manual") || {}
+      manual_url = manual_install["url"] || "https://github.com/rtk-ai/rtk/releases"
+
+      puts "   1. Download the appropriate RTK binary from:"
+      puts "      #{manual_url}"
+      puts "   2. Place the `rtk` binary somewhere on your PATH."
+      puts "   3. Run: rtk init --global"
+      puts
+      puts "   After installation, run: bin/vibe init --verify"
     end
 
     def install_rtk_cargo
@@ -387,23 +395,41 @@ module Vibe
     # --- User Input Helpers ---
 
     def ask_yes_no(prompt, default: true)
+      ensure_interactive_setup_available!(prompt)
       suffix = default ? "[Y/n]" : "[y/N]"
       print "#{prompt} #{suffix}: "
-      response = $stdin.gets.strip.downcase
+      response = read_prompt_response!(prompt).strip.downcase
 
       return default if response.empty?
       response.start_with?("y")
     end
 
     def ask_choice(prompt, valid_choices)
+      ensure_interactive_setup_available!(prompt)
       loop do
         print "#{prompt}: "
-        choice = $stdin.gets.strip
+        choice = read_prompt_response!(prompt).strip
 
         return choice if valid_choices.include?(choice)
 
         puts "   Invalid choice. Please choose from: #{valid_choices.join(', ')}"
       end
+    end
+
+    def ensure_interactive_setup_available!(prompt = nil)
+      return if $stdin.respond_to?(:tty?) && $stdin.tty?
+
+      detail = prompt ? " when prompting for '#{prompt}'" : ""
+      raise ValidationError,
+            "bin/vibe init requires an interactive terminal#{detail}. Re-run `bin/vibe init` in a terminal, use `bin/vibe init --verify` to inspect current state, or follow `docs/integrations.md` for manual installation steps."
+    end
+
+    def read_prompt_response!(prompt)
+      response = $stdin.gets
+      return response unless response.nil?
+
+      raise ValidationError,
+            "Input ended before a response was provided for '#{prompt}'. Re-run `bin/vibe init` in an interactive terminal, use `bin/vibe init --verify` to inspect current state, or follow `docs/integrations.md` for manual installation steps."
     end
   end
 end

@@ -135,13 +135,6 @@ module Vibe
       system(["brew", "brew"], "install", "rtk")
     end
 
-    def install_rtk_via_script
-      warn "WARNING: Remote script installation is disabled for security reasons."
-      warn "Please install RTK manually using one of these methods:"
-      warn "  1. Homebrew: brew install rtk"
-      warn "  2. Download from: https://github.com/rtk-ai/rtk/releases"
-      false
-    end
 
     def configure_rtk_hook
       return false unless detect_rtk == :installed

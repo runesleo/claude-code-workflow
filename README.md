@@ -373,12 +373,17 @@ CLI agent tool that reduces LLM token consumption by 60-90% through intelligent 
 # Homebrew (macOS/Linux)
 brew install rtk
 
-# Install script
-curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
+# Cargo
+cargo install --git https://github.com/rtk-ai/rtk
+
+# Manual download
+# See GitHub releases: https://github.com/rtk-ai/rtk/releases
 
 # Initialize hook
 rtk init --global
 ```
+
+`bin/vibe init` only automates the Homebrew and Cargo paths and will show manual release instructions instead of executing a remote install script.
 
 **Source**: [rtk-ai/rtk](https://github.com/rtk-ai/rtk)
 

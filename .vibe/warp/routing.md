@@ -68,6 +68,18 @@ Applied overlay: `example-regulated-project` from `examples/project-overlay.yaml
 - `independent_verifier` → `second-model.cross-family`
 - `cheap_local` → `local.external-runner`
 
+## Model configuration
+
+**Important**: The mapping above shows semantic tier-to-model references. Actual model selection in Warp is configured through:
+
+1. **Warp Settings** → AI or Assistant settings
+2. Configure your AI provider (Anthropic Claude, OpenAI, etc.)
+3. Select your preferred model
+
+Warp typically uses a single configured AI model for all interactions. The routing rules help the AI understand task criticality and adjust its approach accordingly.
+
+See `targets/warp.md` for detailed configuration instructions.
+
 ## Routing defaults
 
 - `direct_handle_max_changed_lines` = `50`

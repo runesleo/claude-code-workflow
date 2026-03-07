@@ -106,6 +106,41 @@ class TestVibeCLI < Minitest::Test
     # Don't remove generated dir as it's part of the repo
   end
 
+  def test_checked_in_warp_runtime_matches_renderer
+    build_root = Dir.mktmpdir("vibe-warp-build")
+    overlay_path = File.join(@repo_root, "examples", "project-overlay.yaml")
+    expected_support_files = %w[
+      behavior-policies.md
+      routing.md
+      safety.md
+      skills.md
+      task-routing.md
+      test-standards.md
+      workflow-notes.md
+    ].sort
+
+    capture_io do
+      @cli.run(["build", "warp", "--output", build_root, "--overlay", overlay_path])
+    end
+
+    assert_equal expected_support_files, warp_support_files(@repo_root)
+    assert_equal expected_support_files, warp_support_files(build_root)
+    assert_equal File.read(File.join(@repo_root, "WARP.md")), File.read(File.join(build_root, "WARP.md"))
+
+    expected_support_files.each do |filename|
+      tracked_path = File.join(@repo_root, ".vibe", "warp", filename)
+      generated_path = File.join(build_root, ".vibe", "warp", filename)
+      assert_equal File.read(tracked_path), File.read(generated_path), "Mismatch for #{filename}"
+    end
+
+    assert_equal normalized_manifest(File.join(@repo_root, ".vibe", "manifest.json")),
+                 normalized_manifest(File.join(build_root, ".vibe", "manifest.json"))
+    assert_equal normalized_target_summary(File.join(@repo_root, ".vibe", "target-summary.md")),
+                 normalized_target_summary(File.join(build_root, ".vibe", "target-summary.md"))
+  ensure
+    FileUtils.rm_rf(build_root) if build_root && File.exist?(build_root)
+  end
+
   private
 
   def build_manifest(target)
@@ -118,5 +153,20 @@ class TestVibeCLI < Minitest::Test
       output_root: File.join(@output_root, target),
       overlay: nil
     )
+  end
+
+  def warp_support_files(root)
+    Dir.glob(File.join(root, ".vibe", "warp", "*.md")).map { |path| File.basename(path) }.sort
+  end
+
+  def normalized_manifest(path)
+    manifest = JSON.parse(File.read(path))
+    manifest.delete("generated_at")
+    manifest.delete("output_root")
+    manifest
+  end
+
+  def normalized_target_summary(path)
+    File.read(path).lines.reject { |line| line.start_with?("- Generated at: ") }.join
   end
 end

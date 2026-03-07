@@ -58,7 +58,15 @@ class VibeInitCLI
 end
 
 if __FILE__ == $PROGRAM_NAME
-  repo_root = File.expand_path("..", __dir__)
-  cli = VibeInitCLI.new(repo_root)
-  cli.run(ARGV)
+  begin
+    repo_root = File.expand_path("..", __dir__)
+    cli = VibeInitCLI.new(repo_root)
+    cli.run(ARGV)
+  rescue Vibe::ValidationError, Vibe::ConfigurationError, Vibe::ExternalToolError => e
+    warn "Error: #{e.message}"
+    exit 1
+  rescue Vibe::Error => e
+    warn "Vibe error: #{e.message}"
+    exit 1
+  end
 end

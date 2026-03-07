@@ -37,6 +37,8 @@ This file is intended as the Warp project rule entrypoint for the repository.
 - Use `.vibe/warp/routing.md` for tier routing and profile mapping.
 - Use `.vibe/warp/safety.md` for security-sensitive work and escalation policy.
 - Use `.vibe/warp/skills.md` for portable skill references.
+- Use `.vibe/warp/task-routing.md` for task complexity classification and process requirements.
+- Use `.vibe/warp/test-standards.md` for test coverage standards by complexity.
 - Use `.vibe/warp/workflow-notes.md` for conservative workflow guidance in Warp.
 
 ## Safety floor

@@ -12,18 +12,23 @@ require_relative "../lib/vibe/overlay_support"
 
 # Lightweight host satisfying OverlaySupport + Utils dependencies.
 class OverlayHost
+  SUPPORTED_TARGETS = %w[claude-code codex-cli cursor opencode warp].freeze
   include Vibe::Utils
   include Vibe::OverlaySupport
 
   attr_reader :repo_root
-
-  def initialize(repo_root, policies_doc)
+  def initialize(repo_root, policies_doc, tiers_doc)
     @repo_root = repo_root
     @policies_doc = policies_doc
+    @tiers_doc = tiers_doc
   end
 
   def policies_doc
     @policies_doc
+  end
+
+  def tiers_doc
+    @tiers_doc
   end
 end
 
@@ -33,17 +38,34 @@ class TestVibeOverlay < Minitest::Test
       {
         "id" => "pol-1",
         "category" => "core",
-        "enforcement" => "must",
+        "enforcement" => "mandatory",
         "target_render_group" => "always_on",
         "summary" => "Always verify before claiming.",
+        "source_refs" => ["rules/behaviors.md"]
+      },
+      {
+        "id" => "pol-2",
+        "category" => "workflow",
+        "enforcement" => "recommended",
+        "target_render_group" => "optional",
+        "summary" => "Optional workflow guidance.",
         "source_refs" => ["rules/behaviors.md"]
       }
     ]
   }.freeze
+  MINIMAL_TIERS = {
+    "tiers" => {
+      "critical_reasoner" => {},
+      "workhorse_coder" => {},
+      "fast_router" => {},
+      "independent_verifier" => {},
+      "cheap_local" => {}
+    }
+  }.freeze
 
   def setup
     @tmp = Dir.mktmpdir
-    @host = OverlayHost.new(@tmp, MINIMAL_POLICIES)
+    @host = OverlayHost.new(@tmp, MINIMAL_POLICIES, MINIMAL_TIERS)
   end
 
   def teardown
@@ -56,7 +78,7 @@ class TestVibeOverlay < Minitest::Test
     overlay_path = File.join(@tmp, "my-overlay.yaml")
     File.write(overlay_path, YAML.dump({
       "name" => "test-overlay",
-      "profile" => { "mapping_overrides" => { "t1" => "gpt-4o" } },
+      "profile" => { "mapping_overrides" => { "critical_reasoner" => "gpt-4o" } },
       "policies" => {},
       "targets" => {}
     }))
@@ -93,7 +115,7 @@ class TestVibeOverlay < Minitest::Test
 
   def test_effective_policies_without_overlay
     policies = @host.effective_policies(nil)
-    assert_equal(1, policies.length)
+    assert_equal(2, policies.length)
     assert_equal("pol-1", policies.first["id"])
   end
 
@@ -106,7 +128,7 @@ class TestVibeOverlay < Minitest::Test
           {
             "id" => "pol-2",
             "category" => "project",
-            "enforcement" => "should",
+            "enforcement" => "recommended",
             "target_render_group" => "always_on",
             "summary" => "Extra rule from overlay."
           }
@@ -131,7 +153,7 @@ class TestVibeOverlay < Minitest::Test
           {
             "id" => "pol-1",
             "category" => "core",
-            "enforcement" => "must",
+            "enforcement" => "mandatory",
             "target_render_group" => "always_on",
             "summary" => "Updated summary from overlay."
           }
@@ -141,7 +163,7 @@ class TestVibeOverlay < Minitest::Test
 
     overlay = @host.resolve_overlay(explicit_path: overlay_path, search_roots: [])
     policies = @host.effective_policies(overlay)
-    assert_equal(1, policies.length)
+    assert_equal(2, policies.length)
     assert_equal("Updated summary from overlay.", policies.first["summary"])
   end
 
@@ -168,6 +190,84 @@ class TestVibeOverlay < Minitest::Test
 
     overlay = @host.resolve_overlay(explicit_path: overlay_path, search_roots: [])
     assert_equal({}, @host.overlay_target_patch(overlay, "warp"))
+  end
+
+  def test_resolve_overlay_rejects_unknown_mapping_override_tier
+    overlay_path = File.join(@tmp, "bad-tier.yaml")
+    File.write(overlay_path, YAML.dump({
+      "name" => "bad-tier",
+      "profile" => { "mapping_overrides" => { "typo_tier" => "gpt-4o" } }
+    }))
+
+    error = assert_raises(Vibe::ValidationError) do
+      @host.resolve_overlay(explicit_path: overlay_path, search_roots: [])
+    end
+
+    assert_match(/unknown capability tiers: typo_tier/, error.message)
+  end
+
+  def test_resolve_overlay_rejects_unknown_policy_enforcement
+    overlay_path = File.join(@tmp, "bad-enforcement.yaml")
+    File.write(overlay_path, YAML.dump({
+      "name" => "bad-enforcement",
+      "policies" => {
+        "append" => [
+          {
+            "id" => "pol-x",
+            "category" => "project",
+            "enforcement" => "definitely",
+            "target_render_group" => "always_on",
+            "summary" => "Bad enforcement"
+          }
+        ]
+      }
+    }))
+
+    error = assert_raises(Vibe::ValidationError) do
+      @host.resolve_overlay(explicit_path: overlay_path, search_roots: [])
+    end
+
+    assert_match(/unknown enforcement 'definitely'/, error.message)
+  end
+
+  def test_resolve_overlay_rejects_unknown_target_render_group
+    overlay_path = File.join(@tmp, "bad-render-group.yaml")
+    File.write(overlay_path, YAML.dump({
+      "name" => "bad-render-group",
+      "policies" => {
+        "append" => [
+          {
+            "id" => "pol-x",
+            "category" => "project",
+            "enforcement" => "mandatory",
+            "target_render_group" => "not-a-real-group",
+            "summary" => "Bad render group"
+          }
+        ]
+      }
+    }))
+
+    error = assert_raises(Vibe::ValidationError) do
+      @host.resolve_overlay(explicit_path: overlay_path, search_roots: [])
+    end
+
+    assert_match(/unknown target_render_group 'not-a-real-group'/, error.message)
+  end
+
+  def test_resolve_overlay_rejects_unknown_target_patch_target
+    overlay_path = File.join(@tmp, "bad-target.yaml")
+    File.write(overlay_path, YAML.dump({
+      "name" => "bad-target",
+      "targets" => {
+        "not-a-target" => {}
+      }
+    }))
+
+    error = assert_raises(Vibe::ValidationError) do
+      @host.resolve_overlay(explicit_path: overlay_path, search_roots: [])
+    end
+
+    assert_match(/unsupported targets: not-a-target/, error.message)
   end
 
   private

@@ -40,8 +40,8 @@ The installed Superpowers pack may use different native skill names such as `bra
 
 **Installation**:
 - macOS/Linux: `brew install rtk`
-- Universal: `curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh`
 - Cargo: `cargo install --git https://github.com/rtk-ai/rtk`
+- Manual download: [GitHub releases](https://github.com/rtk-ai/rtk/releases)
 
 **Initialization**:
 ```bash
@@ -49,6 +49,7 @@ rtk init --global
 ```
 
 This configures a hook in `~/.claude/settings.json` to transparently intercept commands.
+`bin/vibe init` only automates the Homebrew and Cargo paths; for manual installs it prints release instructions instead of executing a remote install script.
 
 **Verification states**:
 - **Ready** - RTK binary is installed and the Claude hook is configured
@@ -320,7 +321,7 @@ $ bin/vibe init --verify
 ### RTK Reports Hook Configured But Binary Missing
 
 1. Check whether RTK is still installed: `which rtk`
-2. If missing, reinstall RTK using Homebrew, the install script, or Cargo
+2. If missing, reinstall RTK using Homebrew, Cargo, or the GitHub releases page
 3. Re-run `bin/vibe init --verify` to confirm the state returns to Ready
 
 ### Integration Conflicts
@@ -341,7 +342,7 @@ If multiple tools provide similar functionality:
 ## Security Considerations
 
 - **Skill Packs**: Review skills before enabling auto-triggers
-- **CLI Tools**: Verify installation scripts before running
+- **CLI Tools**: Prefer package managers or reviewed release binaries over remote install scripts
 - **Hooks**: Understand what hooks modify in your config
 - **Permissions**: Some tools may require additional access
 

@@ -3,7 +3,7 @@
 - Target: `warp`
 - Profile: `warp-default`
 - Profile maturity: `planned`
-- Generated at: `2026-03-06T15:17:36Z`
+- Generated at: `2026-03-07T02:18:35Z`
 - Applied overlay: `example-regulated-project` from `examples/project-overlay.yaml`
 
 ## Capability mapping
