@@ -5,6 +5,7 @@ require "minitest/autorun"
 require "json"
 require "yaml"
 require "fileutils"
+require_relative "../lib/vibe/errors"
 require_relative "../lib/vibe/utils"
 require_relative "../lib/vibe/path_safety"
 
@@ -82,8 +83,8 @@ class TestVibePathSafety < Minitest::Test
 
   private
 
-  # Helper: asserts that the block triggers abort (SystemExit).
+  # Helper: asserts that the block triggers PathSafetyError.
   def assert_aborts(&block)
-    assert_raises(SystemExit, &block)
+    assert_raises(Vibe::PathSafetyError, &block)
   end
 end
