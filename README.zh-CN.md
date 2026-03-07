@@ -2,7 +2,7 @@
 
 [English](README.md) | **中文**
 
-经过实战检验的 AI 编程工作流基础设施。从 Claude Code 起步，已演化为支持 Antigravity、VS Code、Claude Code、Codex CLI、OpenCode、Cursor、Warp 等多目标的可移植 vibe coding 配置平台。
+经过实战检验的 AI 编程工作流基础设施。从 Claude Code 起步，已演化为支持 Antigravity、VS Code、Claude Code、Codex CLI、Kimi Code、OpenCode、Cursor、Warp 等多目标的可移植 vibe coding 配置平台。
 
 **不是教程，不是玩具配置。是一套真正能落地交付的生产工作流——现已具备跨工具的可移植核心规范。**
 

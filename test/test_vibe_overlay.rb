@@ -12,7 +12,7 @@ require_relative "../lib/vibe/overlay_support"
 
 # Lightweight host satisfying OverlaySupport + Utils dependencies.
 class OverlayHost
-  SUPPORTED_TARGETS = %w[claude-code codex-cli cursor opencode warp].freeze
+  SUPPORTED_TARGETS = %w[claude-code codex-cli cursor kimi-code opencode warp].freeze
   include Vibe::Utils
   include Vibe::OverlaySupport
 

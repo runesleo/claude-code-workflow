@@ -2,7 +2,7 @@
 
 **English** | [中文](README.zh-CN.md)
 
-A battle-tested workflow foundation for Claude Code today, evolving into a portable vibe coding config base for Antigravity, VS Code, Claude Code, Codex CLI, OpenCode, Cursor, Warp, and similar agentic tools.
+A battle-tested workflow foundation for Claude Code today, evolving into a portable vibe coding config base for Antigravity, VS Code, Claude Code, Codex CLI, Kimi Code, OpenCode, Cursor, Warp, and similar agentic tools.
 
 **Not a tutorial. Not a toy config. A production workflow that actually ships — now with a provider-neutral core spec in phase 1.**
 
@@ -38,7 +38,7 @@ This repo now has two layers of concern:
 
 - `core/` — provider-neutral workflow semantics (model tiers, skill registry, safety policy)
 - current runtime files (`rules/`, `docs/`, `memory/`, `skills/`) — the first-class Claude Code target that remains fully usable today
-- `targets/` — mapping notes for Claude Code, Codex CLI, Cursor, and OpenCode
+- `targets/` — mapping notes for Claude Code, Codex CLI, Cursor, Kimi Code, and OpenCode
 
 Phase 1 established the portable SSOT and adapter contract. Phase 2-3 added a minimal `bin/vibe` generator with build/use/inspect/switch ergonomics. Phase 4 added portable behavior policies plus deeper native config rendering. Phase 5 added project-level overlays so consuming repos can customize profile mapping, behavior deltas, and native target config without forking `core/`. Phase 6 adds Warp, Antigravity, and VS Code support, plus reusable runtime-preference overlay examples for `uv` and `nvm`.
 
