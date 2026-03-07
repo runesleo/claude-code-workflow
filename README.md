@@ -2,7 +2,7 @@
 
 **English** | [中文](README.zh-CN.md)
 
-A battle-tested workflow foundation for Claude Code today, evolving into a portable vibe coding config base for Claude Code, Codex CLI, OpenCode, Cursor, Warp, and similar agentic tools.
+A battle-tested workflow foundation for Claude Code today, evolving into a portable vibe coding config base for Antigravity, VS Code, Claude Code, Codex CLI, OpenCode, Cursor, Warp, and similar agentic tools.
 
 **Not a tutorial. Not a toy config. A production workflow that actually ships — now with a provider-neutral core spec in phase 1.**
 
@@ -40,7 +40,7 @@ This repo now has two layers of concern:
 - current runtime files (`rules/`, `docs/`, `memory/`, `skills/`) — the first-class Claude Code target that remains fully usable today
 - `targets/` — mapping notes for Claude Code, Codex CLI, Cursor, and OpenCode
 
-Phase 1 established the portable SSOT and adapter contract. Phase 2-3 added a minimal `bin/vibe` generator with build/use/inspect/switch ergonomics. Phase 4 added portable behavior policies plus deeper native config rendering. Phase 5 added project-level overlays so consuming repos can customize profile mapping, behavior deltas, and native target config without forking `core/`. Phase 6 adds a first-class Warp target plus reusable runtime-preference overlay examples for `uv` and `nvm`.
+Phase 1 established the portable SSOT and adapter contract. Phase 2-3 added a minimal `bin/vibe` generator with build/use/inspect/switch ergonomics. Phase 4 added portable behavior policies plus deeper native config rendering. Phase 5 added project-level overlays so consuming repos can customize profile mapping, behavior deltas, and native target config without forking `core/`. Phase 6 adds Warp, Antigravity, and VS Code support, plus reusable runtime-preference overlay examples for `uv` and `nvm`.
 
 ## Architecture: Portable Core + Runtime Layers
 
@@ -55,7 +55,7 @@ Project overlay
   .vibe/overlay.yaml or --overlay FILE -> project-specific profile / policy / native config patch
 
 Target adapters
-  targets/*.md     -> Claude Code / Codex CLI / Cursor / OpenCode mapping docs
+  targets/*.md     -> Antigravity / Claude Code / Codex CLI / Cursor / OpenCode / VS Code / Warp mapping docs
 
 Current first-class runtime target: Claude Code
   Layer 0: rules/  (always loaded)
@@ -94,10 +94,12 @@ claude-code-workflow/
 │
 ├── targets/                      # Target adapter contracts
 │   ├── README.md                 # Shared adapter rules
+│   ├── antigravity.md            # Target mapping for Antigravity
 │   ├── claude-code.md            # Current first-class target mapping
 │   ├── codex-cli.md              # Planned Codex CLI mapping
 │   ├── cursor.md                 # Planned Cursor mapping
 │   ├── opencode.md               # Planned OpenCode mapping
+│   ├── vscode.md                 # Target mapping for VS Code / Copilot
 │   └── warp.md                   # Planned Warp mapping
 │
 ├── generated/                    # Build output (ignored by default)
@@ -406,10 +408,12 @@ See `docs/integrations.md` for detailed integration documentation.
 The repository now ships a minimal generator CLI:
 
 ```bash
+bin/vibe build --target antigravity
 bin/vibe build --target claude-code
 bin/vibe build --target codex-cli
 bin/vibe build --target cursor
 bin/vibe build --target opencode
+bin/vibe build --target vscode
 bin/vibe build --target warp
 bin/vibe inspect
 bin/vibe-smoke
@@ -435,9 +439,11 @@ bin/vibe use --target claude-code --destination ~/.claude
 bin/vibe use --target cursor --destination /path/to/project
 
 # Quick-switch repo-local targets into the current repo
+bin/vibe switch antigravity
 bin/vibe switch cursor
 bin/vibe switch codex-cli
 bin/vibe switch opencode
+bin/vibe switch vscode
 bin/vibe switch warp
 
 # Quick-switch Claude Code into ~/.claude
@@ -460,10 +466,12 @@ bin/vibe-smoke
 
 Current phase-6 behavior:
 
+- `antigravity` → materializes `AGENTS.md` and generates behavior / routing / safety / task-routing / test-standards docs under `.vibe/antigravity/`
 - `claude-code` → materializes `CLAUDE.md`, `rules/`, `docs/`, `skills/`, `agents/`, `commands/`, and a generated `settings.json` permission baseline, plus task routing and test standards under `.vibe/claude-code/`
 - `codex-cli` → materializes `AGENTS.md` plus generated behavior / routing / safety / execution / task-routing / test-standards docs under `.vibe/codex-cli/`
 - `cursor` → materializes `AGENTS.md`, `.cursor/rules/*.mdc`, `.cursor/cli.json`, and supporting `.vibe/cursor/*` notes including task routing and test standards
 - `opencode` → materializes `AGENTS.md`, `opencode.json`, and modular behavior / routing / safety / execution instruction files with generated permissions
+- `vscode` → materializes `AGENTS.md` and generated behavior / routing / safety / task-routing / test-standards docs under `.vibe/vscode/`
 - `warp` → materializes `WARP.md` plus generated behavior / routing / safety / task-routing / test-standards / workflow support docs under `.vibe/warp/`
 - `inspect` → can preview overlay-aware profile resolution and generated target state
 - `use` / `switch` → auto-discover `.vibe/overlay.yaml` in the destination project when present
