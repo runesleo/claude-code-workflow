@@ -13,7 +13,7 @@ This project is a fork of [runesleo/claude-code-workflow](https://github.com/run
 - **Original Author**: [@runes_leo](https://x.com/runes_leo)
 - **Fork Maintainer**: [@nehcuh](https://github.com/nehcuh)
 - **Major Changes**:
-  - Modularized CLI into 6 Ruby library modules (`lib/vibe/*.rb`)
+  - Modularized CLI into 9 Ruby library modules (`lib/vibe/*.rb`)
   - Added comprehensive unit test suite (`test/`)
   - Added Chinese documentation (`README.zh-CN.md`)
   - Enhanced overlay system with runtime preference examples (`examples/`)
@@ -32,15 +32,15 @@ Claude Code is powerful out of the box, but without structure it becomes a smart
 - Forces verification before claiming completion (no more "should work now")
 - Auto-saves progress so closing the window doesn't lose work
 
-## Phase 1-6 Direction: Portable Core + Target Adapters + Generator + Project Overlays + Warp
+## Phase 1-7 Direction: Portable Core + Target Adapters + Generator + Project Overlays + Snapshot Testing
 
 This repo now has two layers of concern:
 
 - `core/` — provider-neutral workflow semantics (model tiers, skill registry, safety policy)
 - current runtime files (`rules/`, `docs/`, `memory/`, `skills/`) — the first-class Claude Code target that remains fully usable today
-- `targets/` — mapping notes for Claude Code, Codex CLI, Cursor, Kimi Code, and OpenCode
+- `targets/` — mapping notes for Antigravity, Claude Code, Codex CLI, Cursor, Kimi Code, OpenCode, VS Code, and Warp
 
-Phase 1 established the portable SSOT and adapter contract. Phase 2-3 added a minimal `bin/vibe` generator with build/use/inspect/switch ergonomics. Phase 4 added portable behavior policies plus deeper native config rendering. Phase 5 added project-level overlays so consuming repos can customize profile mapping, behavior deltas, and native target config without forking `core/`. Phase 6 adds Warp, Antigravity, and VS Code support, plus reusable runtime-preference overlay examples for `uv` and `nvm`.
+Phase 1 established the portable SSOT and adapter contract. Phase 2-3 added a minimal `bin/vibe` generator with build/use/inspect/switch ergonomics. Phase 4 added portable behavior policies plus deeper native config rendering. Phase 5 added project-level overlays so consuming repos can customize profile mapping, behavior deltas, and native target config without forking `core/`. Phase 6 adds Warp, Antigravity, and VS Code support, plus reusable runtime-preference overlay examples for `uv` and `nvm`. Phase 7 adds parameterized snapshot testing infrastructure, CI drift protection, and the `quickstart` command for one-step installation.
 
 ## Architecture: Portable Core + Runtime Layers
 
@@ -77,10 +77,37 @@ claude-code-workflow/
 ├── README.md                     # You are here
 │
 ├── bin/
-│   ├── vibe                      # Phase-6 generator CLI (build/use/inspect/overlay-aware targets)
-│   └── vibe-smoke                # Smoke test for generator target builds + overlays
+│   ├── vibe                      # Generator CLI (build/use/inspect/overlay-aware targets)
+│   ├── vibe-init                 # Integration initialization wizard
+│   ├── vibe-smoke                # Smoke test for generator target builds + overlays
+│   └── validate-schemas          # JSON schema validation for core/ specs
 │
-├── core/                         # Portable SSOT (phase 1)
+├── lib/vibe/                     # Modularized CLI implementation (9 modules)
+│   ├── utils.rb                  # Common utilities (deep merge, I/O, path handling)
+│   ├── doc_rendering.rb          # Markdown document rendering
+│   ├── overlay_support.rb        # Overlay parsing, discovery, policy merging
+│   ├── native_configs.rb         # Native config builders (settings.json, cli.json, etc.)
+│   ├── path_safety.rb            # Output path safety guards
+│   ├── target_renderers.rb       # 8 target file renderers
+│   ├── init_support.rb           # Integration detection and setup
+│   ├── external_tools.rb         # External tool integration logic
+│   └── errors.rb                 # Custom error classes
+│
+├── test/                         # Unit test suite (7 test files)
+│   ├── test_vibe_cli.rb
+│   ├── test_vibe_overlay.rb
+│   ├── test_vibe_init.rb
+│   ├── test_vibe_external_tools.rb
+│   ├── test_path_overlap_calculation.rb
+│   ├── test_cli_path_safety_guards.rb
+│   └── test_vibe_utils.rb
+│
+├── schemas/                      # JSON schemas for core/ validation
+│   ├── providers.schema.json
+│   ├── security.schema.json
+│   └── skills.schema.json
+│
+├── core/                         # Portable SSOT
 │   ├── README.md                 # Portable architecture + migration rules
 │   ├── models/
 │   │   ├── tiers.yaml            # Capability tiers (portable)
@@ -89,21 +116,40 @@ claude-code-workflow/
 │   │   └── registry.yaml         # Skill registry + namespace rules
 │   ├── security/
 │   │   └── policy.yaml           # P0/P1/P2 semantics + target actions
-│   └── policies/
-│       └── behaviors.yaml        # Portable behavior policy schema
+│   ├── policies/
+│   │   ├── behaviors.yaml        # Portable behavior policy schema
+│   │   ├── task-routing.yaml     # Task complexity routing rules
+│   │   └── test-standards.yaml   # Testing coverage requirements
+│   └── integrations/
+│       ├── README.md             # Integration documentation
+│       ├── superpowers.yaml      # Superpowers skill pack metadata
+│       └── rtk.yaml              # RTK token optimizer metadata
 │
 ├── targets/                      # Target adapter contracts
 │   ├── README.md                 # Shared adapter rules
 │   ├── antigravity.md            # Target mapping for Antigravity
 │   ├── claude-code.md            # Current first-class target mapping
-│   ├── codex-cli.md              # Planned Codex CLI mapping
-│   ├── cursor.md                 # Planned Cursor mapping
-│   ├── opencode.md               # Planned OpenCode mapping
-│   ├── vscode.md                 # Target mapping for VS Code / Copilot
-│   └── warp.md                   # Planned Warp mapping
+│   ├── codex-cli.md              # Codex CLI mapping
+│   ├── cursor.md                 # Cursor mapping
+│   ├── kimi-code.md              # Kimi Code mapping
+│   ├── opencode.md               # OpenCode mapping
+│   ├── vscode.md                 # VS Code / Copilot mapping
+│   └── warp.md                   # Warp mapping
 │
-├── generated/                    # Build output (ignored by default)
-│   └── <target>/                 # Materialized target-specific config
+├── .vibe/                        # Generated target support files (tracked)
+│   ├── manifest.json             # Target build manifest
+│   ├── target-summary.md         # Quick reference
+│   └── <target>/                 # Per-target generated docs
+│       ├── behavior-policies.md
+│       ├── routing.md
+│       ├── safety.md
+│       ├── skills.md
+│       ├── task-routing.md
+│       └── test-standards.md
+│
+├── generated/                    # Build output (gitignored)
+│   ├── <target>/                 # Materialized target-specific config
+│   └── golden-files/             # Snapshot testing reference files
 │
 ├── examples/
 │   ├── node-nvm-overlay.yaml     # Example Node/npm overlay preferring nvm
@@ -122,14 +168,13 @@ claude-code-workflow/
 │   ├── content-safety.md         # AI hallucination prevention system
 │   ├── project-overlays.md       # Project-level overlay schema + merge rules
 │   ├── scaffolding-checkpoint.md # "Do you really need to self-host?" checklist
-│   └── task-routing.md           # Model tier routing + target profiles
+│   ├── task-routing.md           # Model tier routing + target profiles
+│   └── integrations.md           # External tool integration guide
 │
 ├── memory/                       # Layer 2: Your working state (3-tier architecture)
 │   ├── session.md                # Hot layer: daily progress + in-flight tasks
 │   ├── project-knowledge.md      # Warm layer: technical pitfalls + patterns
 │   └── overview.md               # Cold layer: goals + projects + infrastructure
-│
-
 │
 ├── skills/                       # Reusable skill definitions
 │   ├── session-end/SKILL.md              # Auto wrap-up: save progress + commit + record
@@ -649,9 +694,45 @@ This template encodes several principles learned from daily AI-assisted developm
 ## Requirements
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI (Claude Max or API subscription)
+- Ruby (for `bin/vibe` generator, comes with macOS)
 - Optional: Codex CLI for cross-verification
 - Optional: Ollama for local model fallback
 - Optional: other targets via `targets/` adapter docs
+
+## Windows / WSL Support
+
+This workflow is designed for Unix-like environments (macOS, Linux). For Windows users:
+
+**Recommended: Use WSL 2 (Windows Subsystem for Linux)**
+
+1. Install WSL 2 with Ubuntu:
+   ```powershell
+   wsl --install
+   ```
+
+2. Inside WSL, install Ruby:
+   ```bash
+   sudo apt update
+   sudo apt install ruby-full
+   ```
+
+3. Clone and use the workflow normally within WSL:
+   ```bash
+   git clone https://github.com/nehcuh/claude-code-workflow.git
+   cd claude-code-workflow
+   bin/vibe quickstart
+   ```
+
+4. Access your Windows files from WSL at `/mnt/c/Users/YourName/`
+
+**Native Windows (Not Recommended)**
+
+While technically possible, native Windows support requires:
+- Ruby for Windows (RubyInstaller)
+- Git Bash or PowerShell with Unix-like utilities
+- Manual path adjustments in scripts
+
+The workflow's shell scripts, symlink handling, and path conventions are optimized for Unix. WSL provides the best experience.
 
 ## Prior Art & Credits
 
