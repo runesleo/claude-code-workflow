@@ -1,6 +1,6 @@
 # Behavior policies
 
-Generated target: `warp`
+Generated target: `opencode`
 Applied overlay: `none`
 
 > **Note:** Source refs refer to files in the portable workflow repository, not this generated output directory.

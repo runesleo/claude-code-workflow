@@ -1,6 +1,6 @@
 # Task Complexity Routing
 
-Generated target: `warp`
+Generated target: `claude-code`
 Applied overlay: `none`
 
 This document defines how to route tasks by complexity level to balance quality and efficiency.

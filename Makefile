@@ -29,3 +29,11 @@ inspect:
 clean:
 	@rm -rf generated/
 	@echo "🧹 Cleaned generated directory."
+
+test:
+	@echo "🧪 Running unit tests..."
+	@ruby -Ilib:test -e "Dir.glob('test/test_*.rb').each { |f| require File.expand_path(f) }"
+
+verify-snapshot:
+	@echo "🔍 Verifying snapshot consistency..."
+	@ruby -Ilib:test test/test_vibe_cli.rb --name test_checked_in_runtimes_match_renderer

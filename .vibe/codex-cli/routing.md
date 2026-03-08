@@ -1,7 +1,7 @@
 # Routing profile
 
-Generated target: `warp`
-Active profile: `warp-default`
+Generated target: `codex-cli`
+Active profile: `codex-cli-default`
 Applied overlay: `none`
 
 ## Routing behavior policies
@@ -62,23 +62,28 @@ Applied overlay: `none`
 
 ## Active mapping
 
-- `critical_reasoner` → `warp.primary-frontier-model`
-- `workhorse_coder` → `warp.default-agent-model`
-- `fast_router` → `warp.fast-model`
-- `independent_verifier` → `second-model.or.manual-review`
-- `cheap_local` → `local.external-runner`
+- `critical_reasoner` → `openai.high-reasoning`
+- `workhorse_coder` → `openai.codex-workhorse`
+- `fast_router` → `openai.fast-agent`
+- `independent_verifier` → `second-model.cross-family`
+- `cheap_local` → `local.ollama-class`
 
 ## Model configuration
 
-**Important**: The mapping above shows semantic tier-to-model references. Actual model selection in Warp is configured through:
+**Important**: The mapping above shows semantic tier-to-model references. Actual model selection in Codex CLI is controlled by:
 
-1. **Warp Settings** → AI or Assistant settings
-2. Configure your AI provider (Anthropic Claude, OpenAI, etc.)
-3. Select your preferred model
+1. **Environment variables**: `CODEX_PRIMARY_MODEL`, `CODEX_WORKHORSE_MODEL`, `CODEX_FAST_MODEL`
+2. **CLI flags**: `codex --model gpt-4-turbo "your task"`
+3. **Config file**: `~/.codex/config.yaml` (if supported)
 
-Warp typically uses a single configured AI model for all interactions. The routing rules help the AI understand task criticality and adjust its approach accordingly.
+Example:
+```bash
+export CODEX_PRIMARY_MODEL="gpt-4-turbo"
+export CODEX_FAST_MODEL="gpt-3.5-turbo"
+codex --model gpt-4-turbo "review security implications"
+```
 
-See `targets/warp.md` for detailed configuration instructions.
+See `targets/codex-cli.md` for detailed configuration instructions.
 
 ## Routing defaults
 

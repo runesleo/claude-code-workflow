@@ -1,7 +1,7 @@
 # Routing profile
 
-Generated target: `warp`
-Active profile: `warp-default`
+Generated target: `opencode`
+Active profile: `opencode-default`
 Applied overlay: `none`
 
 ## Routing behavior policies
@@ -62,23 +62,29 @@ Applied overlay: `none`
 
 ## Active mapping
 
-- `critical_reasoner` → `warp.primary-frontier-model`
-- `workhorse_coder` → `warp.default-agent-model`
-- `fast_router` → `warp.fast-model`
-- `independent_verifier` → `second-model.or.manual-review`
-- `cheap_local` → `local.external-runner`
+- `critical_reasoner` → `configured.primary-high-reasoning`
+- `workhorse_coder` → `configured.primary-coder`
+- `fast_router` → `configured.fast-agent`
+- `independent_verifier` → `second-model.cross-family`
+- `cheap_local` → `local.ollama-class`
 
 ## Model configuration
 
-**Important**: The mapping above shows semantic tier-to-model references. Actual model selection in Warp is configured through:
+**Important**: The mapping above shows semantic tier-to-model references. Actual model selection in OpenCode is configured in `opencode.json`:
 
-1. **Warp Settings** → AI or Assistant settings
-2. Configure your AI provider (Anthropic Claude, OpenAI, etc.)
-3. Select your preferred model
+```json
+{
+  "models": {
+    "primary": "claude-opus-4",
+    "coder": "claude-sonnet-4",
+    "fast": "claude-haiku-4"
+  }
+}
+```
 
-Warp typically uses a single configured AI model for all interactions. The routing rules help the AI understand task criticality and adjust its approach accordingly.
+OpenCode supports flexible model configuration with multiple providers. You can mix Anthropic, OpenAI, and local models.
 
-See `targets/warp.md` for detailed configuration instructions.
+See `targets/opencode.md` for detailed configuration instructions.
 
 ## Routing defaults
 

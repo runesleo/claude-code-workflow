@@ -1,6 +1,6 @@
 # Test Coverage Standards
 
-Generated target: `warp`
+Generated target: `claude-code`
 Applied overlay: `none`
 
 This document defines minimum test requirements by task complexity and code type.

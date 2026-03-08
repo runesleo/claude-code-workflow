@@ -1,9 +1,7 @@
 # Behavior policies
 
-Generated target: `warp`
+Generated target: `claude-code`
 Applied overlay: `none`
-
-> **Note:** Source refs refer to files in the portable workflow repository, not this generated output directory.
 
 - `ssot-first` (state_management, mandatory, group: always_on)
   - Keep repository files as the single source of truth; tool-managed memory is cache.

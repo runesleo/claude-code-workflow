@@ -35,6 +35,8 @@ module Vibe
     # --- Superpowers Detection ---
 
     def detect_superpowers
+      return :not_installed if @skip_integrations
+
       # Method 1: Check Claude Code plugin directory
       claude_plugins = File.expand_path("~/.claude/plugins/superpowers")
       return :claude_plugin if Dir.exist?(claude_plugins)
@@ -86,6 +88,8 @@ module Vibe
     # --- RTK Detection ---
 
     def detect_rtk
+      return :not_installed if @skip_integrations
+
       # Method 1: Check if rtk binary is in PATH
       return :installed if system(["which", "which"], "rtk", out: File::NULL, err: File::NULL)
 

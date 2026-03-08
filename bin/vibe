@@ -46,6 +46,7 @@ class VibeCLI
 
   def initialize(repo_root)
     @repo_root = repo_root
+    @skip_integrations = false
     # YAML files are now loaded lazily on first access
   end
 
@@ -311,6 +312,10 @@ class VibeCLI
 
       opts.on("--force", "Allow overwriting existing generated target files at the destination") do
         options[:force] = true
+      end
+
+      opts.on("--skip-integrations", "Disable automatic detection of external tools (Superpowers, RTK)") do
+        @skip_integrations = true
       end
 
       opts.on("-h", "--help", "Show help") do

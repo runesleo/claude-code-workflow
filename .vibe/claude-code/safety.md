@@ -27,9 +27,9 @@ Applied overlay: `none`
 
 ## Target actions
 
-- `P0` — Surface as a blocking Warp rule plus explicit stop guidance in the generated docs.
-- `P1` — Require manual review or user confirmation before execution.
-- `P2` — Warn in WARP.md or supporting guidance and continue with traceable reasoning.
+- `P0` — Prefer hooks or permissions deny; otherwise stop with an explicit block message.
+- `P1` — Prefer hook-mediated confirmation or manual approval.
+- `P2` — Warn in output and continue with traceable reasoning.
 
 ## Signal categories
 

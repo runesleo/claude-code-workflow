@@ -106,43 +106,52 @@ class TestVibeCLI < Minitest::Test
     # Don't remove generated dir as it's part of the repo
   end
 
-  def test_checked_in_warp_runtime_matches_renderer
-    build_root = Dir.mktmpdir("vibe-warp-build")
+  def test_checked_in_runtimes_match_renderer
+    targets = %w[antigravity claude-code codex-cli cursor kimi-code opencode vscode warp]
+    targets.each do |target|
+      build_root = Dir.mktmpdir("vibe-#{target}-build")
+      begin
+        capture_io do
+          @cli.run(["build", target, "--output", build_root])
+        end
+
+        tracked_dir = File.join(@repo_root, ".vibe", target)
+        generated_dir = File.join(build_root, ".vibe", target)
+
+        tracked_files = Dir.glob(File.join(tracked_dir, "*.md")).map { |p| File.basename(p) }.sort
+        generated_files = Dir.glob(File.join(generated_dir, "*.md")).map { |p| File.basename(p) }.sort
+
+        assert_equal tracked_files, generated_files, "File list mismatch for #{target}"
+
+        tracked_files.each do |filename|
+          tracked_path = File.join(tracked_dir, filename)
+          generated_path = File.join(generated_dir, filename)
+          assert_equal File.read(tracked_path), File.read(generated_path), "Mismatch for #{target}: #{filename}"
+        end
+      ensure
+        FileUtils.rm_rf(build_root) if build_root && File.exist?(build_root)
+      end
+    end
+  end
+
+  def test_warp_overlay_correctly_modifies_behavior_policies
+    build_root = Dir.mktmpdir("vibe-warp-overlay")
     overlay_path = File.join(@repo_root, "examples", "project-overlay.yaml")
-    expected_support_files = %w[
-      behavior-policies.md
-      routing.md
-      safety.md
-      skills.md
-      task-routing.md
-      test-standards.md
-      workflow-notes.md
-    ].sort
 
-    capture_io do
-      @cli.run(["build", "warp", "--output", build_root, "--overlay", overlay_path])
+    begin
+      capture_io do
+        @cli.run(["build", "warp", "--output", build_root, "--overlay", overlay_path])
+      end
+
+      # Verify overlay content is present in the generated output but NOT in the tracked baseline
+      generated_policies = File.read(File.join(build_root, ".vibe", "warp", "behavior-policies.md"))
+      tracked_policies = File.read(File.join(@repo_root, ".vibe", "warp", "behavior-policies.md"))
+
+      assert_includes generated_policies, "project-context-is-release-log"
+      refute_includes tracked_policies, "project-context-is-release-log"
+    ensure
+      FileUtils.rm_rf(build_root) if build_root && File.exist?(build_root)
     end
-
-    assert_equal expected_support_files, warp_support_files(@repo_root)
-    assert_equal expected_support_files, warp_support_files(build_root)
-    
-    # Skip WARP.md comparison if not tracked (generated file)
-    warp_file = File.join(@repo_root, "WARP.md")
-    if File.exist?(warp_file)
-      assert_equal File.read(warp_file), File.read(File.join(build_root, "WARP.md"))
-    end
-
-    expected_support_files.each do |filename|
-      tracked_path = File.join(@repo_root, ".vibe", "warp", filename)
-      generated_path = File.join(build_root, ".vibe", "warp", filename)
-      assert_equal File.read(tracked_path), File.read(generated_path), "Mismatch for #{filename}"
-    end
-
-    # Skip manifest.json and target-summary.md comparison
-    # These are target-specific generated files that may differ from tracked versions
-    # The important content (support files) is already verified above
-  ensure
-    FileUtils.rm_rf(build_root) if build_root && File.exist?(build_root)
   end
 
   private
@@ -157,10 +166,6 @@ class TestVibeCLI < Minitest::Test
       output_root: File.join(@output_root, target),
       overlay: nil
     )
-  end
-
-  def warp_support_files(root)
-    Dir.glob(File.join(root, ".vibe", "warp", "*.md")).map { |path| File.basename(path) }.sort
   end
 
   def normalized_manifest(path)

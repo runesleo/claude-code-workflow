@@ -1,7 +1,7 @@
 # Portable skills
 
 Generated target: `warp`
-Applied overlay: `example-regulated-project` from `examples/project-overlay.yaml`
+Applied overlay: `none`
 
 - `systematic-debugging` (`builtin`, `P0`, `mandatory`, support: `rule-or-manual-invocation`) — Find root cause before attempting fixes.
 - `verification-before-completion` (`builtin`, `P0`, `mandatory`, support: `rule-or-checklist`) — Require fresh verification evidence before claiming completion.
