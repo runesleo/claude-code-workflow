@@ -3,7 +3,7 @@
 - Target: `opencode`
 - Profile: `opencode-default`
 - Profile maturity: `planned`
-- Generated at: `2026-03-09T00:52:49Z`
+- Generated at: `2026-03-09T03:02:08Z`
 - Applied overlay: `none`
 
 ## Capability mapping
