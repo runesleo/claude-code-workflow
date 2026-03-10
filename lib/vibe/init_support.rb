@@ -11,6 +11,7 @@ require_relative "rtk_installer"
 require_relative "integration_manager"
 require_relative "quickstart_runner"
 require_relative "superpowers_installer"
+require_relative "integration_setup"
 
 module Vibe
   # Initialization and setup support for global platform configuration.
@@ -28,6 +29,7 @@ module Vibe
   #   - Vibe::IntegrationManager — integration detection and management
   #   - Vibe::QuickstartRunner — quickstart setup logic
   #   - Vibe::SuperpowersInstaller — Superpowers installation logic
+  #   - Vibe::IntegrationSetup — integration setup logic
   #   - JSON, YAML (stdlib) — for parsing configuration files
   module InitSupport
     include PlatformUtils
@@ -38,6 +40,7 @@ module Vibe
     include IntegrationManager
     include QuickstartRunner
     include SuperpowersInstaller
+    include IntegrationSetup
     # Main initialization flow - installs global configuration
     def run_init(platform:, force: false, verify_only: false, suggest_only: false)
       @target_platform = platform
@@ -66,153 +69,12 @@ module Vibe
 
     # Note: check_and_suggest_integrations and check_environment are now defined in IntegrationManager module
     # Note: run_quickstart is now defined in QuickstartRunner module
+    # Note: setup_integrations and related methods are now defined in IntegrationSetup module
 
     private
 
     # Note: check_environment is now defined in IntegrationManager module
-
-    def setup_integrations
-      puts "Checking external integrations..."
-      puts
-      ensure_interactive_setup_available!
-
-      # Load integrations from recommended.yaml
-      integrations = get_recommended_integration_list
-      if integrations.empty?
-        # Fallback to hardcoded list if config not available
-        integrations = [
-          { name: "superpowers", label: "Superpowers Skill Pack", priority: "P1" },
-          { name: "rtk", label: "RTK (Token Optimizer)", priority: "P2" }
-        ]
-      end
-
-      integrations.each_with_index do |integration, index|
-        setup_integration(integration[:name], integration[:label], index + 1, integrations.size)
-      end
-
-      puts
-      puts "Configuration Summary"
-      puts "=" * 50
-      puts
-
-      display_summary
-
-      puts
-      puts "Next steps:"
-      if pending_integrations.any?
-        puts "1. Complete the installation steps above"
-        puts "2. Run: bin/vibe init --verify"
-      else
-        puts "1. Run: bin/vibe init --verify"
-      end
-      puts "2. Start using: claude"
-      puts
-      puts "For more information: docs/integrations.md"
-      puts
-    end
-
-    def setup_integration(name, label, order, total)
-      puts "[#{order}/#{total}] #{label}"
-
-      config = load_integration_config(name)
-      unless config
-        puts "   ⚠ Configuration not found"
-        puts
-        return
-      end
-
-      info = send("verify_#{name}")
-      puts "   Status: #{setup_status_message(name, info)}"
-
-      if info[:ready]
-        puts
-        return
-      end
-
-      if info[:installed]
-        puts
-        complete_integration_setup(name, info)
-        puts
-        return
-      end
-
-      puts
-      display_integration_description(config)
-      puts
-
-      if ask_yes_no("   Would you like to install #{label}?")
-        install_integration(name, config)
-      else
-        puts "   Skipped."
-      end
-
-      puts
-    end
-
-    def setup_status_message(name, info)
-      case name
-      when "superpowers"
-        return "Already installed (#{info[:method]})" if info[:ready]
-      when "rtk"
-        return "Already installed (binary + hook configured)" if info[:ready]
-        return "Installed, hook not configured" if info[:installed]
-        return "Hook configured, but RTK binary was not found" if info[:hook_configured]
-      end
-
-      "Not installed"
-    end
-
-    def complete_integration_setup(name, info)
-      case name
-      when "rtk"
-        puts "   Binary: #{info[:binary]}" if info[:binary]
-        puts "   Hook: #{info[:hook_configured] ? 'Configured' : 'Not configured'}"
-        return if info[:hook_configured]
-
-        if ask_yes_no("   Configure RTK hook in ~/.claude/settings.json?")
-          if configure_rtk_hook
-            puts "   ✓ Hook configured successfully"
-          else
-            puts "   ✗ Hook configuration failed"
-            puts "   You can manually run: rtk init --global"
-          end
-        else
-          puts "   Skipped hook configuration."
-          puts "   You can manually run: rtk init --global"
-        end
-      end
-    end
-
-    def display_integration_description(config)
-      puts "   #{config['description']}"
-      puts
-
-      if config["type"] == "skill_pack" && config["skills"]
-        puts "   Skills provided:"
-        config["skills"].first(3).each do |skill|
-          puts "   - #{skill['id']}: #{skill['intent']}"
-        end
-        if config["skills"].size > 3
-          puts "   - ... and #{config['skills'].size - 3} more"
-        end
-      elsif config["benefits"]
-        puts "   Benefits:"
-        config["benefits"].first(3).each do |benefit|
-          puts "   - #{benefit}"
-        end
-      end
-    end
-
-    def install_integration(name, config)
-      case name
-      when "superpowers"
-        install_superpowers(config)
-      when "rtk"
-        install_rtk(config)
-      else
-        puts "   ⚠ Installation not implemented for #{name}"
-      end
-    end
+    # Note: setup_integrations and related methods are now defined in IntegrationSetup module
 
     # Note: Superpowers installation methods are now defined in SuperpowersInstaller module
     # Note: RTK installation methods are now defined in RtkInstaller module
