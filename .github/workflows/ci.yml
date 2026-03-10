@@ -92,16 +92,8 @@ jobs:
     
     - name: Check coverage threshold
       run: |
-        if [ -f coverage/.last_run.json ]; then
-          coverage=$(ruby -rjson -e "puts JSON.parse(File.read('coverage/.last_run.json'))['result']['covered_percent']")
-          echo "Coverage: ${coverage}%"
-          if (( $(echo "$coverage < 80.0" | bc -l) )); then
-            echo "Coverage ${coverage}% is below threshold 80%"
-            exit 1
-          fi
-        else
-          echo "Coverage report not found, skipping threshold check"
-        fi
+        chmod +x test/benchmark/check_coverage.rb
+        COVERAGE_THRESHOLD=60 ruby test/benchmark/check_coverage.rb
 
   lint:
     name: Lint

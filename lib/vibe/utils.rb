@@ -10,7 +10,39 @@ module Vibe
   #   @repo_root [String] — absolute path to the workflow repository root
   #                          (used by display_path)
   module Utils
-    # --- Deep structure helpers ---
+    # Deep merge two nested data structures.
+    #
+    # DESIGN DECISION: LENIENT MODE (宽容模式)
+    # 
+    # Why lenient mode?
+    # 1. Graceful degradation: Instead of failing on type errors, return extra
+    # 2. Backward compatibility: Existing code that depends on flexible merging continues to work
+    # 3. Simplicity: No need for complex type checking at merge time
+    # 4. Predictability: The behavior is consistent and easy to reason about
+    #
+    # Trade-offs:
+    # - Less strict: Could miss type errors that would only show up in logs
+    # - Requires understanding: Developers need to understand that non-matching types are replaced
+    #
+    # Examples:
+    #   deep_merge({a: 1, b: {c: 2}}, {b: {d: 3}, e: 4})
+    #   # => {a: 1, b: {c: 2, d: 3}, e: 4}
+    #   
+    #   deep_merge([1, 2, 3], [3, 4, 5])
+    #   # => [1, 2, 3, 4, 5] (uniq)
+    #   
+    #   deep_merge({a: 1}, "invalid")
+    #   # => "invalid" (string is replaced)
+    #
+    # For strict validation mode, use ValidationError:
+    #   def validate_mergeable!(value, name)
+    #   return if value.nil? || value.is_a?(Hash) || value.is_a?(Array)
+    #   raise ValidationError, "#{name} must be a Hash, Array, or nil, got #{value.class}"
+    #   end
+    #
+    # Alternative approach (if you need strict mode)
+    # Use deep_merge(base, extra) and rescue if needed
+    # end
 
     def deep_merge(base, extra)
       return deep_copy(extra) if base.nil?
