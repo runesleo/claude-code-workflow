@@ -92,6 +92,10 @@ module Vibe
       puts
       puts "Configuration location: #{destination_root}"
       puts
+
+      # Check and suggest optional integrations
+      check_and_suggest_integrations(platform)
+
       puts "Next steps:"
       puts "1. Review and customize #{File.join(destination_root, config_entrypoint(target))}"
       puts "2. In your project directory, run: vibe switch --platform #{platform}"
@@ -163,6 +167,115 @@ module Vibe
       puts "3. Then in your project directory:"
       puts "   vibe switch --platform #{platform}"
       puts
+    end
+
+    # Check and suggest optional integrations after installation
+    def check_and_suggest_integrations(platform)
+      @target_platform = platform
+      status = integration_status
+
+      missing = []
+      pending = []
+
+      status.each do |name, info|
+        if !info[:installed]
+          missing << name
+        elsif !info[:ready]
+          pending << name
+        end
+      end
+
+      return if missing.empty? && pending.empty?
+
+      puts
+      puts "📦 Optional Integrations"
+      puts "=" * 50
+
+      if missing.include?(:superpowers)
+        puts
+        puts "⚠️  Superpowers Skill Pack not detected"
+        puts "   Superpowers provides advanced workflows like TDD, debugging, and code review."
+        puts
+        puts "   To install:"
+        puts "   1. Visit: https://github.com/anthropics/superpowers"
+        puts "   2. Follow installation instructions for #{platform_label(platform)}"
+        puts
+
+        if ask_yes_no("Would you like to open the installation page now?")
+          open_url("https://github.com/anthropics/superpowers")
+        end
+      end
+
+      if missing.include?(:rtk)
+        puts
+        puts "⚠️  RTK Token Optimizer not detected"
+        puts "   RTK reduces token consumption by 60-90% on common commands."
+        puts
+        puts "   To install:"
+        puts "   brew install rtk  # or download from https://github.com/runesleo/rtk"
+        puts
+
+        if ask_yes_no("Would you like to install RTK now? (requires Homebrew)")
+          if install_rtk
+            # Refresh status after installation
+            status = integration_status
+            pending << :rtk if status[:rtk][:installed] && !status[:rtk][:ready]
+          end
+        end
+      end
+
+      if pending.include?(:rtk)
+        rtk_status = status[:rtk] || integration_status[:rtk]
+        if rtk_status[:installed] && !rtk_status[:hook_configured]
+          puts
+          puts "⚠️  RTK is installed but hook not configured"
+          puts "   To enable RTK optimization, run: rtk init --global"
+          puts
+
+          if ask_yes_no("Would you like to configure RTK hook now?")
+            configure_rtk_hook
+          end
+        end
+      end
+
+      puts
+    end
+
+    # Install RTK via Homebrew
+    def install_rtk
+      puts
+      puts "Installing RTK..."
+      if system("brew", "install", "rtk")
+        puts "✅ RTK installed successfully"
+        return true
+      else
+        puts "❌ Failed to install RTK. Please install manually:"
+        puts "   brew install rtk"
+        puts "   or visit: https://github.com/runesleo/rtk"
+        return false
+      end
+    end
+
+    # Open URL in default browser (cross-platform)
+    def open_url(url)
+      case RbConfig::CONFIG["host_os"]
+      when /darwin/
+        system("open", url)
+      when /linux/
+        system("xdg-open", url)
+      when /mswin|mingw|cygwin/
+        system("start", url)
+      else
+        puts "Please visit: #{url}"
+      end
+    end
+
+    # Ask yes/no question with default to no
+    def ask_yes_no(question)
+      print "#{question} [y/N] "
+      response = $stdin.gets
+      return false if response.nil?
+      ["y", "yes"].include?(response.chomp.downcase)
     end
 
     def normalize_target(platform)
@@ -244,6 +357,10 @@ module Vibe
 
         puts "\n✅ Success! Claude Code workflow has been #{is_update ? 'updated' : 'installed'}."
         puts
+
+        # Check and suggest optional integrations
+        check_and_suggest_integrations("claude-code")
+
         puts "Next steps:"
         puts "1. Open #{File.join(claude_home, 'CLAUDE.md')} and customize these sections:"
         puts "   - User Info (name, project routes)"

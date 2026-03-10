@@ -55,7 +55,8 @@ class VibeCLI
     "inspect" => :run_inspect,
     "init" => :run_init_command,
     "quickstart" => :run_quickstart_command,
-    "targets" => :run_targets_command
+    "targets" => :run_targets_command,
+    "doctor" => :run_doctor_command
   }.freeze
 
   def initialize(repo_root, container: nil)
@@ -222,6 +223,98 @@ class VibeCLI
     puts SUPPORTED_TARGETS.join("\n")
   end
 
+  def run_doctor_command(_argv)
+    puts "\n🔍 Vibe Environment Check"
+    puts "=" * 50
+    puts
+
+    # Check Ruby version
+    puts "Ruby version: #{RUBY_VERSION}"
+    if RUBY_VERSION < "2.6.0"
+      puts "  ⚠️  Ruby 2.6.0+ recommended"
+    else
+      puts "  ✅ OK"
+    end
+    puts
+
+    # Check installed platforms
+    puts "Installed platforms:"
+    SUPPORTED_TARGETS.each do |target|
+      destination = default_global_destination(target)
+      if Dir.exist?(destination)
+        marker_file = File.join(destination, ".vibe-target.json")
+        if File.exist?(marker_file)
+          marker = JSON.parse(File.read(marker_file))
+          puts "  ✅ #{platform_label(target)} (#{destination})"
+          puts "     Profile: #{marker['profile']}, Mode: #{marker['mode']}"
+        else
+          puts "  ✅ #{platform_label(target)} (#{destination})"
+        end
+      else
+        puts "  ❌ #{platform_label(target)} (not installed)"
+        puts "     Run: vibe init --platform #{target}"
+      end
+    end
+    puts
+
+    # Check optional integrations
+    puts "Optional integrations:"
+    status = integration_status
+
+    status.each do |name, info|
+      if info[:installed]
+        if info[:ready]
+          puts "  ✅ #{name.to_s.capitalize} (ready)"
+          case name
+          when :superpowers
+            puts "     Location: #{info[:location]}" if info[:location]
+            puts "     Skills: #{info[:skills_count]}" if info[:skills_count]
+          when :rtk
+            puts "     Version: #{info[:version]}" if info[:version]
+            puts "     Binary: #{info[:binary]}" if info[:binary]
+          end
+        else
+          puts "  ⚠️  #{name.to_s.capitalize} (installed but not configured)"
+          case name
+          when :rtk
+            puts "     Run: rtk init --global"
+          when :superpowers
+            puts "     Platform integration needed"
+          end
+        end
+      else
+        puts "  ❌ #{name.to_s.capitalize} (not installed)"
+        case name
+        when :rtk
+          puts "     Install: brew install rtk"
+          puts "     Or visit: https://github.com/runesleo/rtk"
+        when :superpowers
+          puts "     Visit: https://github.com/anthropics/superpowers"
+        end
+      end
+    end
+    puts
+
+    # Provide recommendations
+    missing = status.select { |_name, s| !s[:installed] }.keys
+    pending = status.select { |_name, s| s[:installed] && !s[:ready] }.keys
+
+    if missing.any? || pending.any?
+      puts "Recommendations:"
+      missing.each do |name|
+        puts "  - Install #{name}"
+      end
+      pending.each do |name|
+        puts "  - Configure #{name}"
+      end
+      puts
+      puts "Run 'vibe init --platform <platform>' to set up a platform with integration checks."
+    else
+      puts "✅ All checks passed!"
+    end
+    puts
+  end
+
   def usage
     <<~TEXT
       Usage:
@@ -241,6 +334,7 @@ class VibeCLI
         use         Materialize a target into a specific destination (advanced)
         inspect     Preview resolved profiles and generated state
         targets     List all supported targets
+        doctor      Check environment and integration status
 
       Typical workflow:
         1. vibe init --platform claude-code       # Install global config to ~/.claude
