@@ -30,6 +30,13 @@ Applied overlay: `none`
 
 - `planning-with-files` (`P1`, `suggest`) — Use persistent files as working memory for complex multi-step tasks.
 - `experience-evolution` (`P1`, `suggest`) — Capture reusable lessons and patterns from repeated work.
+- `superpowers/tdd` (`P2`, `suggest`) — Test-driven development workflow with red-green-refactor cycle.
+- `superpowers/brainstorm` (`P2`, `manual`) — Structured brainstorming and ideation sessions.
+- `superpowers/refactor` (`P2`, `suggest`) — Systematic code refactoring with safety checks.
+- `superpowers/debug` (`P2`, `suggest`) — Advanced debugging workflows beyond systematic-debugging.
+- `superpowers/architect` (`P2`, `manual`) — System architecture design and documentation.
+- `superpowers/review` (`P2`, `suggest`) — Code review with comprehensive quality checks.
+- `superpowers/optimize` (`P2`, `manual`) — Performance optimization and profiling guidance.
 
 ## Safety actions
 

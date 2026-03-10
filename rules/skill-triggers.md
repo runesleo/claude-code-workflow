@@ -83,7 +83,7 @@ Banned: Scenario matches but doesn't trigger / waiting for manual trigger / down
 
 ## Superpowers Skill Pack Integration
 
-**Status**: ✅ Installed (Unknown)
+**Status**: ✅ Installed (~/.config/skills/superpowers)
 
 The following portable Superpowers skills are available for on-demand invocation:
 
