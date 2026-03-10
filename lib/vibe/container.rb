@@ -29,7 +29,7 @@ module Vibe
   #
   # STATUS: OPTIONAL FEATURE (YAGNI consideration)
   #   This is infrastructure for future improvements. If you don't need DI capabilities,
-  #   you the can safely ignore this class. It adds minimal overhead (~43 lines)
+  #   you can safely ignore this class. It adds minimal overhead (~43 lines)
   #   and no runtime cost unless used.
   #
   # TRADE-OFFS:
@@ -37,7 +37,6 @@ module Vibe
   #   - CON: Not currently used extensively (could be considered over-engineering)
   #   - ALTERNATIVE: Remove this class if DI is not needed
   #
-  # For more details, see docs/architecture/dependency-injection.md (if created)
   #
   class Container
     attr_reader :repo_root

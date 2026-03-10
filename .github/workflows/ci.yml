@@ -92,6 +92,8 @@ jobs:
     
     - name: Check coverage threshold
       run: |
+        # Threshold set to 60% (realistic baseline for current codebase size)
+        # Raise incrementally as coverage improves
         chmod +x test/benchmark/check_coverage.rb
         COVERAGE_THRESHOLD=60 ruby test/benchmark/check_coverage.rb
 
