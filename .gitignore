@@ -24,3 +24,6 @@ settings.json
 # Dynamic target state (runtime only)
 /.vibe/manifest.json
 /.vibe/target-summary.md
+
+# Git worktrees
+.worktrees/
