@@ -32,23 +32,58 @@ module Vibe
         if expanded == unsafe_expanded || expanded.start_with?("#{unsafe_expanded}/")
           # Allow if it's under a safe /var prefix
           next if unsafe == "/var" && is_safe_var
-          raise PathSafetyError, "Refusing to use #{expanded} as output root: overlaps with #{unsafe}"
+          raise PathSafetyError.new(
+            "Refusing to use #{expanded} as output root: overlaps with #{unsafe}",
+            context: {
+              output_path: expanded,
+              unsafe_path: unsafe,
+              suggestion: "Use a deeper path outside system directories."
+            }
+          )
         end
       end
 
-      raise PathSafetyError, "Refusing to use #{expanded} as output root: overlaps with $HOME (#{home})" if expanded == home
+      raise PathSafetyError.new(
+        "Refusing to use #{expanded} as output root: overlaps with $HOME (#{home})",
+        context: {
+          output_path: expanded,
+          home_path: home,
+          suggestion: "Use a subdirectory of $HOME or an external directory."
+        }
+      ) if expanded == home
 
       if expanded == repo || (expanded.start_with?("#{repo}/") && !expanded.start_with?("#{repo}/generated/"))
-        raise PathSafetyError, "Refusing to use #{expanded} as output root: overlaps with source repo (#{repo}).\nUse a path under generated/ or an external directory."
+        raise PathSafetyError.new(
+          "Refusing to use #{expanded} as output root: overlaps with source repo (#{repo})",
+          context: {
+            output_path: expanded,
+            repo_path: repo,
+            suggestion: "Use a path under generated/ or an external directory."
+          }
+        )
       end
 
       if repo.start_with?("#{expanded}/")
-        raise PathSafetyError, "Refusing to use #{expanded} as output root: source repo is inside it."
+        raise PathSafetyError.new(
+          "Refusing to use #{expanded} as output root: source repo is inside it",
+          context: {
+            output_path: expanded,
+            repo_path: repo,
+            suggestion: "Choose an output directory outside the source repo."
+          }
+        )
       end
 
       parts = expanded.split("/").reject(&:empty?)
       if parts.length < 2
-        raise PathSafetyError, "Refusing to use #{expanded} as output root: path is too shallow (need at least 2 levels)."
+        raise PathSafetyError.new(
+          "Refusing to use #{expanded} as output root: path is too shallow (need at least 2 levels)",
+          context: {
+            output_path: expanded,
+            depth: parts.length,
+            suggestion: "Use a deeper path like /path/to/output."
+          }
+        )
       end
     end
 
@@ -57,10 +92,24 @@ module Vibe
       dest = File.expand_path(destination_root)
 
       if out == dest
-        raise PathSafetyError, "Output root and destination root are the same path: #{out}\nUse separate directories."
+        raise PathSafetyError.new(
+          "Output root and destination root are the same path: #{out}",
+          context: {
+            output_path: out,
+            destination_path: dest,
+            suggestion: "Use separate directories for output and destination."
+          }
+        )
       end
       if paths_overlap?(out, dest)
-        raise PathSafetyError, "Output root (#{out}) and destination root (#{dest}) overlap.\nUse non-overlapping directories."
+        raise PathSafetyError.new(
+          "Output root (#{out}) and destination root (#{dest}) overlap",
+          context: {
+            output_path: out,
+            destination_path: dest,
+            suggestion: "Use non-overlapping directories."
+          }
+        )
       end
     end
 
@@ -112,13 +161,14 @@ module Vibe
       return if conflicts.empty?
 
       sample = conflicts.first(5).map { |path| "  - #{path}" }.join("\n")
-      raise PathSafetyError, <<~TEXT
-        Destination already contains #{conflicts.length} generated path(s).
-        Re-run with --force to overwrite them.
-
-        Sample conflicts:
-        #{sample}
-      TEXT
+      raise PathSafetyError.new(
+        "Destination already contains #{conflicts.length} generated path(s)",
+        context: {
+          conflict_count: conflicts.length,
+          sample_conflicts: conflicts.first(5),
+          suggestion: "Re-run with --force to overwrite them."
+        }
+      )
     end
 
     def write_marker(path, destination_root:, manifest:, output_root:, mode:)

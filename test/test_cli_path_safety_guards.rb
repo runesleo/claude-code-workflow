@@ -63,6 +63,47 @@ class TestCliPathSafetyGuards < Minitest::Test
     assert_aborts { host.ensure_safe_output_path!("/fake/repo") }
   end
 
+  # --- context support tests ---
+
+  def test_path_safety_error_includes_context
+    error = assert_raises(Vibe::PathSafetyError) do
+      @host.ensure_safe_output_path!("/fake/repo")
+    end
+
+    assert error.context[:suggestion]
+    assert_match(/Use a path under generated/, error.context[:suggestion])
+    assert_equal "/fake/repo", error.context[:output_path]
+    assert_equal "/fake/repo", error.context[:repo_path]
+  end
+
+  def test_path_safety_error_to_s_includes_context
+    error = assert_raises(Vibe::PathSafetyError) do
+      @host.ensure_safe_output_path!("/fake/repo")
+    end
+
+    assert_match(/\[Context:/, error.to_s)
+    assert_match(/suggestion/, error.to_s)
+  end
+
+  def test_validation_error_includes_field_and_value
+    error = Vibe::ValidationError.new(
+      "Invalid value",
+      field: "target",
+      value: "invalid-target"
+    )
+
+    assert_equal "target", error.field
+    assert_equal "invalid-target", error.value
+    assert_equal "target", error.context[:field]
+    assert_equal "invalid-target", error.context[:value]
+  end
+
+  def test_base_error_context_empty_by_default
+    error = Vibe::Error.new("Test error")
+    assert_equal({}, error.context)
+    assert_equal "Test error", error.to_s
+  end
+
   # --- ensure_no_path_overlap! ---
 
   def test_overlap_same_path
