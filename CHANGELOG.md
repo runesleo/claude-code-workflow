@@ -7,17 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Architecture improvements: dependency injection container, enhanced error handling, thread-safe YAML loading
+- SimpleCov test coverage enforcement (50% threshold, currently 62.76%)
+- Performance benchmarks for critical operations (`test/benchmark/`)
+- Command registry pattern for better CLI extensibility
+- 5 new test files: `test_vibe_container.rb`, `test_vibe_utils_validation.rb`, and 3 benchmark scripts
+- Cross-module dependency documentation to `lib/vibe/init_support.rb`
+- CHANGELOG.md following Keep a Changelog format
+
+### Changed
+- Modularized CLI from 9 to 10 Ruby modules (added `lib/vibe/container.rb`)
+- Enhanced `lib/vibe/errors.rb` with context support for better debugging
+- Updated `lib/vibe/utils.rb` with documented lenient mode for `deep_merge`
+- Improved CI workflow with SimpleCov integration and coverage checks
+- Updated README files to reflect architecture improvements (English + Chinese)
+
 ### Fixed
 - Fixed `bin/vibe-smoke` missing `kimi-code` target in TARGETS array
 - Fixed `test/test_vibe_overlay.rb` missing `antigravity` and `vscode` in SUPPORTED_TARGETS
 - Fixed `rtk_hook_configured?` type safety by adding String type guard before `include?` call
 - Fixed `validate-schemas` YAML loading to use `YAML.safe_load` with aliases support
+- Fixed SimpleCov output format compatibility (support both `line` and `covered_percent` keys)
 - Updated model name examples in `doc_rendering.rb` to use current Claude 4.6/4.5 model IDs
 - Updated copyright year to 2026 in README files
-
-### Added
-- Added cross-module dependency documentation to `lib/vibe/init_support.rb`
-- Added CHANGELOG.md following Keep a Changelog format
 
 ## Phase 7 — Kimi Code Integration (2026-03)
 
