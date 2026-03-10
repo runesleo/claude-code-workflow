@@ -12,6 +12,7 @@ require_relative "integration_manager"
 require_relative "quickstart_runner"
 require_relative "superpowers_installer"
 require_relative "integration_setup"
+require_relative "integration_recommendations"
 
 module Vibe
   # Initialization and setup support for global platform configuration.
@@ -30,6 +31,7 @@ module Vibe
   #   - Vibe::QuickstartRunner — quickstart setup logic
   #   - Vibe::SuperpowersInstaller — Superpowers installation logic
   #   - Vibe::IntegrationSetup — integration setup logic
+  #   - Vibe::IntegrationRecommendations — integration recommendations
   #   - JSON, YAML (stdlib) — for parsing configuration files
   module InitSupport
     include PlatformUtils
@@ -41,6 +43,7 @@ module Vibe
     include QuickstartRunner
     include SuperpowersInstaller
     include IntegrationSetup
+    include IntegrationRecommendations
     # Main initialization flow - installs global configuration
     def run_init(platform:, force: false, verify_only: false, suggest_only: false)
       @target_platform = platform
@@ -70,11 +73,13 @@ module Vibe
     # Note: check_and_suggest_integrations and check_environment are now defined in IntegrationManager module
     # Note: run_quickstart is now defined in QuickstartRunner module
     # Note: setup_integrations and related methods are now defined in IntegrationSetup module
+    # Note: suggest_integrations, install_recommended, and related methods are now defined in IntegrationRecommendations module
 
     private
 
     # Note: check_environment is now defined in IntegrationManager module
     # Note: setup_integrations and related methods are now defined in IntegrationSetup module
+    # Note: suggest_integrations, install_recommended, and related methods are now defined in IntegrationRecommendations module
 
     # Note: Superpowers installation methods are now defined in SuperpowersInstaller module
     # Note: RTK installation methods are now defined in RtkInstaller module
