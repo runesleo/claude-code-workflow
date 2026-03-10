@@ -7,6 +7,7 @@ require "optparse"
 require "time"
 require "digest"
 require "yaml"
+require "thread"
 require_relative "../lib/vibe/errors"
 require_relative "../lib/vibe/utils"
 require_relative "../lib/vibe/doc_rendering"
@@ -49,36 +50,50 @@ class VibeCLI
   def initialize(repo_root)
     @repo_root = repo_root
     @skip_integrations = false
-    # YAML files are now loaded lazily on first access
+    @yaml_mutex = Mutex.new
   end
 
-  # Lazy-loaded YAML documents with caching
+  # Lazy-loaded YAML documents with caching (thread-safe)
   def tiers_doc
-    @tiers_doc ||= read_yaml("core/models/tiers.yaml")
+    @yaml_mutex.synchronize do
+      @tiers_doc ||= read_yaml("core/models/tiers.yaml")
+    end
   end
 
   def providers
-    @providers ||= read_yaml("core/models/providers.yaml")
+    @yaml_mutex.synchronize do
+      @providers ||= read_yaml("core/models/providers.yaml")
+    end
   end
 
   def skills_doc
-    @skills_doc ||= read_yaml("core/skills/registry.yaml")
+    @yaml_mutex.synchronize do
+      @skills_doc ||= read_yaml("core/skills/registry.yaml")
+    end
   end
 
   def security_doc
-    @security_doc ||= read_yaml("core/security/policy.yaml")
+    @yaml_mutex.synchronize do
+      @security_doc ||= read_yaml("core/security/policy.yaml")
+    end
   end
 
   def policies_doc
-    @policies_doc ||= read_yaml("core/policies/behaviors.yaml")
+    @yaml_mutex.synchronize do
+      @policies_doc ||= read_yaml("core/policies/behaviors.yaml")
+    end
   end
 
   def task_routing_doc
-    @task_routing_doc ||= read_yaml("core/policies/task-routing.yaml")
+    @yaml_mutex.synchronize do
+      @task_routing_doc ||= read_yaml("core/policies/task-routing.yaml")
+    end
   end
 
   def test_standards_doc
-    @test_standards_doc ||= read_yaml("core/policies/test-standards.yaml")
+    @yaml_mutex.synchronize do
+      @test_standards_doc ||= read_yaml("core/policies/test-standards.yaml")
+    end
   end
 
   def run(argv)

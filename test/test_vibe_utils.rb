@@ -7,6 +7,7 @@ require "yaml"
 require "fileutils"
 require "tmpdir"
 require_relative "../lib/vibe/utils"
+load File.expand_path("../bin/vibe", __dir__)
 
 # Lightweight host that satisfies Vibe::Utils dependency on @repo_root.
 class UtilsHost
@@ -196,5 +197,75 @@ class TestVibeUtils < Minitest::Test
     # Absolute paths in system temp directory are allowed
     tmp_path = File.join(Dir.tmpdir, "vibe-output")
     assert_equal tmp_path, @host.validate_path!(tmp_path)
+  end
+end
+
+class TestVibeCLIThreadSafety < Minitest::Test
+  def setup
+    repo_root = File.expand_path("..", __dir__)
+    @cli = VibeCLI.new(repo_root)
+  end
+
+  def test_tiers_doc_is_thread_safe
+    threads = 10.times.map do
+      Thread.new { @cli.tiers_doc }
+    end
+    results = threads.map(&:value)
+
+    assert_equal 1, results.map(&:object_id).uniq.length
+  end
+
+  def test_providers_is_thread_safe
+    threads = 10.times.map do
+      Thread.new { @cli.providers }
+    end
+    results = threads.map(&:value)
+
+    assert_equal 1, results.map(&:object_id).uniq.length
+  end
+
+  def test_skills_doc_is_thread_safe
+    threads = 10.times.map do
+      Thread.new { @cli.skills_doc }
+    end
+    results = threads.map(&:value)
+
+    assert_equal 1, results.map(&:object_id).uniq.length
+  end
+
+  def test_security_doc_is_thread_safe
+    threads = 10.times.map do
+      Thread.new { @cli.security_doc }
+    end
+    results = threads.map(&:value)
+
+    assert_equal 1, results.map(&:object_id).uniq.length
+  end
+
+  def test_policies_doc_is_thread_safe
+    threads = 10.times.map do
+      Thread.new { @cli.policies_doc }
+    end
+    results = threads.map(&:value)
+
+    assert_equal 1, results.map(&:object_id).uniq.length
+  end
+
+  def test_task_routing_doc_is_thread_safe
+    threads = 10.times.map do
+      Thread.new { @cli.task_routing_doc }
+    end
+    results = threads.map(&:value)
+
+    assert_equal 1, results.map(&:object_id).uniq.length
+  end
+
+  def test_test_standards_doc_is_thread_safe
+    threads = 10.times.map do
+      Thread.new { @cli.test_standards_doc }
+    end
+    results = threads.map(&:value)
+
+    assert_equal 1, results.map(&:object_id).uniq.length
   end
 end
