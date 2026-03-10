@@ -31,10 +31,12 @@ end
 
 begin
   result = JSON.parse(File.read(coverage_file))
-  covered_percent = result['result']['covered_percent']
+  # SimpleCov format: result['result']['line'] or result['result']['covered_percent']
+  covered_percent = result['result']['line'] || result['result']['covered_percent']
 
   unless covered_percent.is_a?(Numeric)
     puts "ERROR: Coverage data is not numeric"
+    puts "Available keys: #{result['result'].keys.inspect}"
     exit 1
   end
 rescue JSON::ParserError => e
