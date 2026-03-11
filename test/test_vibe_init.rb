@@ -83,12 +83,21 @@ class TestVibeInit < Minitest::Test
   end
 
   def test_detect_superpowers_skills_symlink
+    # Set target platform to claude-code for platform-specific detection
+    @target_platform = "claude-code"
+
+    # Create the source directory that symlinks should point to
+    source_dir = File.join(@test_home, ".config", "skills", "superpowers", "skills")
+    FileUtils.mkdir_p(source_dir)
+    File.write(File.join(source_dir, "test-skill.md"), "test")
+
+    # Create skills directory and symlink pointing into the source
     skills_dir = File.join(@test_home, ".claude", "skills")
     FileUtils.mkdir_p(skills_dir)
-    FileUtils.ln_s("/fake/superpowers", File.join(skills_dir, "superpowers-test"))
+    FileUtils.ln_s(File.join(source_dir, "test-skill.md"), File.join(skills_dir, "test-skill"))
 
     status = detect_superpowers
-    assert_equal :skills_symlink, status
+    assert_equal :platform_skills, status
   end
 
   def test_detect_superpowers_local_clone

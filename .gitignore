@@ -1,4 +1,5 @@
 /generated/
+/.vibe-generated/
 /.vibe-target.json
 .alma-snapshots
 /AGENTS.md

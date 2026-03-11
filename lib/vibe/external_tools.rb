@@ -3,6 +3,7 @@
 require "json"
 require "yaml"
 require "open3"
+require "pathname"
 require_relative "errors"
 
 module Vibe
@@ -63,9 +64,11 @@ module Vibe
     }.freeze
 
     def detect_superpowers(target_platform = nil)
-      return :not_installed if @skip_integrations
+      skip_integrations = defined?(@skip_integrations) ? @skip_integrations : false
+      return :not_installed if skip_integrations
 
-      platform = target_platform || @target_platform
+      current_platform = defined?(@target_platform) ? @target_platform : nil
+      platform = target_platform || current_platform
 
       # Platform-specific detection
       if platform && SUPERPOWERS_PLATFORM_PATHS[platform]
@@ -103,7 +106,8 @@ module Vibe
     end
 
     def superpowers_location(target_platform = nil)
-      platform = target_platform || @target_platform
+      current_platform = defined?(@target_platform) ? @target_platform : nil
+      platform = target_platform || current_platform
 
       case detect_superpowers(platform)
       when :platform_plugin
@@ -126,7 +130,8 @@ module Vibe
     end
 
     def superpowers_skills_count(target_platform = nil)
-      platform = target_platform || @target_platform
+      current_platform = defined?(@target_platform) ? @target_platform : nil
+      platform = target_platform || current_platform
 
       if platform && SUPERPOWERS_PLATFORM_PATHS[platform]
         paths = SUPERPOWERS_PLATFORM_PATHS[platform]
@@ -160,7 +165,7 @@ module Vibe
           # Resolve symlink target to absolute path
           target = File.readlink(link_path)
           # Handle relative symlinks by resolving from the link's directory
-          absolute_target = File.absolute_path?(target) ? target : File.expand_path(target, skills_dir)
+          absolute_target = Pathname.new(target).absolute? ? target : File.expand_path(target, skills_dir)
 
           # Check if target is inside source_dir
           absolute_target.start_with?(normalized_source)
@@ -175,7 +180,8 @@ module Vibe
     # --- RTK Detection ---
 
     def detect_rtk
-      return :not_installed if @skip_integrations
+      skip_integrations = defined?(@skip_integrations) ? @skip_integrations : false
+      return :not_installed if skip_integrations
 
       # Method 1: Check if rtk binary is in PATH
       return :installed if system("which", "rtk", out: File::NULL, err: File::NULL)
@@ -255,7 +261,8 @@ module Vibe
     # --- Verification ---
 
     def verify_superpowers(target_platform = nil)
-      platform = target_platform || @target_platform
+      current_platform = defined?(@target_platform) ? @target_platform : nil
+      platform = target_platform || current_platform
       
       status = detect_superpowers(platform)
       return { installed: false } if status == :not_installed
@@ -303,7 +310,8 @@ module Vibe
     end
 
     def verify_rtk(target_platform = nil)
-      platform = target_platform || @target_platform
+      current_platform = defined?(@target_platform) ? @target_platform : nil
+      platform = target_platform || current_platform
       
       status = detect_rtk
       hook_configured = rtk_hook_configured?

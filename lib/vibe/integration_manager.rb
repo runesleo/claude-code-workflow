@@ -121,7 +121,8 @@ module Vibe
     end
 
     def check_environment(target_platform = nil)
-      platform = target_platform || @target_platform
+      current_platform = defined?(@target_platform) ? @target_platform : nil
+      platform = target_platform || current_platform
       
       puts "Checking your environment..."
       puts
