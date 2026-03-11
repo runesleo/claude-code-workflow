@@ -146,12 +146,29 @@ module Vibe
     end
 
     # Returns entries in skills_dir whose symlink targets are inside source_dir.
+    # Handles both relative and absolute symlink paths, and skips broken symlinks.
     def superpowers_symlinks_in(skills_dir, source_dir)
       return [] unless Dir.exist?(skills_dir)
 
+      normalized_source = File.expand_path(source_dir)
+
       Dir.children(skills_dir).select do |entry|
-        link = File.join(skills_dir, entry)
-        File.symlink?(link) && File.readlink(link).start_with?(source_dir)
+        link_path = File.join(skills_dir, entry)
+        next false unless File.symlink?(link_path)
+
+        begin
+          # Resolve symlink target to absolute path
+          target = File.readlink(link_path)
+          # Handle relative symlinks by resolving from the link's directory
+          absolute_target = File.absolute_path?(target) ? target : File.expand_path(target, skills_dir)
+
+          # Check if target is inside source_dir
+          absolute_target.start_with?(normalized_source)
+        rescue Errno::ENOENT, Errno::ELOOP
+          # Skip broken or circular symlinks
+          warn "Warning: Broken symlink detected: #{link_path}" if ENV["VIBE_DEBUG"]
+          false
+        end
       end
     end
 
