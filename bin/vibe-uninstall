@@ -16,7 +16,7 @@ class VibeUninstaller
   PLATFORM_DIRS = {
     "claude-code" => "~/.claude",
     "opencode" => "~/.opencode",
-    "kimi-code" => "~/.kimi",
+    "kimi-code" => "~/.config/agents",
     "cursor" => "~/.cursor",
     "codex-cli" => "~/.codex",
     "vscode" => "~/.vscode",
@@ -247,7 +247,7 @@ def show_help
 
       With --remove-configs:
         - All of the above
-        - Platform configurations (e.g., ~/.claude, ~/.opencode, ~/.kimi)
+        - Platform configurations (e.g., ~/.claude, ~/.opencode, ~/.config/agents)
 
       With --remove-all:
         - All of the above

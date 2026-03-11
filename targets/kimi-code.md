@@ -4,15 +4,15 @@ Kimi Code is a command-line AI coding assistant by Moonshot AI. It supports proj
 
 ## Native Primitives
 
-- `SKILL.md` files in `.kimi/skills/` for reusable capabilities
-- Global config in `~/.kimi/` for user-level preferences
-- `.kimi/` directory in project root for project-specific skills
+- `SKILL.md` files in `.agents/skills/` for reusable capabilities
+- Global config in `~/.config/agents/` for user-level preferences
+- `.agents/` directory in project root for project-specific skills
 - Command-line interface with subcommands and flags
 
 ## Portable Mapping
 
-- `core/models/*.yaml` -> skill instructions and routing guidance in `.kimi/skills/`
-- `core/skills/registry.yaml` -> individual SKILL.md files under `.kimi/skills/`
+- `core/models/*.yaml` -> skill instructions and routing guidance in `.agents/skills/`
+- `core/skills/registry.yaml` -> individual SKILL.md files under `.agents/skills/`
 - `core/security/policy.yaml` -> safety instructions embedded in relevant skills
 - `core/policies/*.yaml` -> behavior guidance in generated skills
 
@@ -25,7 +25,7 @@ Kimi Code is a command-line AI coding assistant by Moonshot AI. It supports proj
 
 ## Phase 2 Build Output
 
-- `bin/vibe build --target kimi-code` generates `.kimi/skills/*.md` files.
+- `bin/vibe build --target kimi-code` generates `.agents/skills/*.md` files.
 - The generator creates SKILL.md files with proper frontmatter for Kimi CLI.
 - A root `KIMI.md` file serves as the project entrypoint for context.
 
@@ -123,7 +123,7 @@ kimi skill run session-end
 kimi skill list
 
 # Build Vibe workflow for Kimi
-bin/vibe build kimi-code --output ./.kimi
+bin/vibe build kimi-code --output ./.agents
 
 # Or apply directly to a project
 bin/vibe use kimi-code --destination ~/my-project
@@ -134,7 +134,7 @@ bin/vibe use kimi-code --destination ~/my-project
 When built for Kimi Code, the target generates:
 
 ```
-.kimi/
+.agents/
 ├── skills/
 │   ├── session-end/SKILL.md
 │   ├── systematic-debugging/SKILL.md
@@ -151,8 +151,8 @@ When built for Kimi Code, the target generates:
 | Config format | Markdown rules + docs | SKILL.md files |
 | Entry point | CLAUDE.md | KIMI.md |
 | Skill system | Native with triggers | SKILL.md based |
-| Global config | `~/.claude/` | `~/.kimi/` |
-| Project config | `CLAUDE.md` + `rules/` | `.kimi/skills/` |
+| Global config | `~/.claude/` | `~/.config/agents/` |
+| Project config | `CLAUDE.md` + `rules/` | `.agents/skills/` |
 | Permission model | Settings + hooks | Tool restrictions in skills |
 
 ## Migration from Other Targets
@@ -164,11 +164,11 @@ To migrate an existing project to Kimi Code:
 bin/vibe switch kimi-code
 
 # This creates:
-# - .kimi/skills/ with SKILL.md files
+# - .agents/skills/ with SKILL.md files
 # - KIMI.md at project root
 # - .vibe/kimi-code/ with supporting docs
 
 # Commit the generated files
-git add .kimi/ KIMI.md
+git add .agents/ KIMI.md
 git commit -m "Add Kimi Code workflow support"
 ```

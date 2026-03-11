@@ -595,7 +595,7 @@ module Vibe
     end
 
     def render_kimi_code_global(output_root, manifest)
-      kimi_skills_dir = File.join(output_root, ".kimi", "skills")
+      kimi_skills_dir = File.join(output_root, ".agents", "skills")
       kimi_support_dir = File.join(output_root, ".vibe", "kimi-code")
       FileUtils.mkdir_p(kimi_skills_dir)
       FileUtils.mkdir_p(kimi_support_dir)
@@ -603,7 +603,7 @@ module Vibe
       extra = <<~MD
         ## Skills
 
-        Skills are defined in `.kimi/skills/*/SKILL.md` files.
+        Skills are defined in `.agents/skills/*/SKILL.md` files.
 
         ## Supporting documentation
 
@@ -695,7 +695,7 @@ module Vibe
         Generated from the portable `core/` spec with profile `#{manifest["profile"]}`.
         Applied overlay: #{overlay_sentence(manifest)}
 
-        Global workflow rules are loaded from `~/.kimi/`. This file adds project-specific context only.
+        Global workflow rules are loaded from `~/.config/agents/`. This file adds project-specific context only.
 
         ## Project Context
 
@@ -861,7 +861,7 @@ module Vibe
         git clone https://github.com/obra/superpowers ~/.config/skills/superpowers
 
         # Then create symlinks to your skills directory
-        ln -s ~/.config/skills/superpowers/skills/* ~/.kimi/skills/  # Adjust path as needed
+        ln -s ~/.config/skills/superpowers/skills/* ~/.config/agents/skills/  # Adjust path as needed
       NOTE
       warp_specific: <<~NOTE.chomp,
         # Clone the repository

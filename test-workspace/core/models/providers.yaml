@@ -104,7 +104,7 @@ profiles:
       independent_verifier: second-model.or.manual-review
       cheap_local: local.ollama-class
     notes:
-      - Kimi Code uses SKILL.md files for capabilities. Generate portable skills into `.kimi/skills/`.
+      - Kimi Code uses SKILL.md files for capabilities. Generate portable skills into `.agents/skills/`.
       - Use `KIMI.md` as the project entrypoint for top-level instructions.
       - Tool restrictions in skills enforce safety policy at the capability level.
 

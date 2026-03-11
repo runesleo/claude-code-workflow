@@ -303,7 +303,7 @@ vibe init --platform kimi-code
 vibe init --platform cursor
 ```
 
-This installs the workflow configuration to the tool's global directory (e.g., `~/.claude`, `~/.opencode`, `~/.kimi`).
+This installs the workflow configuration to the tool's global directory (e.g., `~/.claude`, `~/.opencode`, `~/.config/agents`).
 
 **Step 2: Apply to Your Project**
 
@@ -425,7 +425,7 @@ Open your tool's config file and personalize:
 | Tool | Config File |
 |------|------------|
 | Claude Code | `~/.claude/CLAUDE.md` |
-| Kimi Code | `~/.kimi/KIMI.md` |
+| Kimi Code | `~/.config/agents/KIMI.md` |
 | OpenCode | `~/.opencode/AGENTS.md` |
 | Cursor | `~/.cursor/CURSOR.md` |
 
@@ -616,7 +616,7 @@ See `docs/task-routing.md` for detailed routing guidelines.
 
 | Command | Purpose | Example |
 |---------|---------|---------|
-| `bin/vibe use <target> <dir>` | Generate global config for a tool | `bin/vibe use kimi-code ~/.kimi` |
+| `bin/vibe use <target> <dir>` | Generate global config for a tool | `bin/vibe use kimi-code ~/.config/agents` |
 | `bin/vibe switch <target>` | Apply workflow to current project | `bin/vibe switch kimi-code` |
 | `bin/vibe init --platform=<tool>` | Install integrations (Superpowers, RTK) | `bin/vibe init --platform=kimi-code` |
 | `bin/vibe quickstart` | One-command setup for Claude Code | `bin/vibe quickstart` |

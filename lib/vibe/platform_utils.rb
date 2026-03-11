@@ -78,7 +78,7 @@ module Vibe
       when "opencode"
         File.expand_path("~/.opencode")
       when "kimi-code"
-        File.expand_path("~/.kimi")
+        File.expand_path("~/.config/agents")
       when "cursor"
         File.expand_path("~/.cursor")
       when "codex-cli"

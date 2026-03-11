@@ -176,7 +176,7 @@ vibe init --platform kimi-code
 vibe init --platform cursor
 ```
 
-这会将工作流配置安装到工具的全局目录（如 `~/.claude`、`~/.opencode`、`~/.kimi`）。
+这会将工作流配置安装到工具的全局目录（如 `~/.claude`、`~/.opencode`、`~/.config/agents`）。
 
 **步骤 2：应用到项目**
 

@@ -49,8 +49,8 @@ module Vibe
         skills: "~/.config/opencode/skills/superpowers"
       },
       "kimi-code" => {
-        plugin: "~/.kimi/plugins/superpowers",
-        skills: "~/.kimi/skills",
+        plugin: "~/.config/agents/plugins/superpowers",
+        skills: "~/.config/agents/skills",
         skills_glob: "superpowers-*"
       },
       "codex-cli" => {
