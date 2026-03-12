@@ -126,7 +126,7 @@ module Vibe
         { 'schema_version' => 1 }
       end
 
-      config['last_checked'] = Time.now.iso8601
+      config['last_checked'] = Time.now.strftime('%Y-%m-%dT%H:%M:%S%z')
 
       FileUtils.mkdir_p(File.dirname(config_path))
       File.write(config_path, YAML.dump(config))

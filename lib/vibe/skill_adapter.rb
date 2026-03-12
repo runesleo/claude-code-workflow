@@ -75,7 +75,7 @@ module Vibe
         config['adapted_skills'] ||= {}
         config['adapted_skills'][skill_id] = {
           'mode' => mode.to_s,
-          'adapted_at' => Time.now.iso8601,
+          'adapted_at' => Time.now.strftime('%Y-%m-%dT%H:%M:%S%z'),
           'adapted_by' => 'user_choice'
         }
 
@@ -86,7 +86,7 @@ module Vibe
         config['skipped_skills'] ||= []
         config['skipped_skills'] << {
           'id' => skill_id,
-          'skipped_at' => Time.now.iso8601,
+          'skipped_at' => Time.now.strftime('%Y-%m-%dT%H:%M:%S%z'),
           'reason' => 'user_choice'
         }
 
@@ -330,7 +330,7 @@ module Vibe
       FileUtils.mkdir_p(File.dirname(config_path))
       
       # Update timestamp
-      config['last_checked'] = Time.now.iso8601
+      config['last_checked'] = Time.now.strftime('%Y-%m-%dT%H:%M:%S%z')
       
       File.write(config_path, YAML.dump(config))
     end
