@@ -1,0 +1,78 @@
+# Target Platform Configurations
+# Simplified, declarative configuration for supported platforms
+
+schema_version: 1
+
+platforms:
+  claude-code:
+    target_id: claude-code
+    display_name: Claude Code
+    description: Full-featured Claude Code workflow configuration
+
+    output_paths:
+      global:
+        vibe_subdir: .vibe/claude-code
+        entrypoint_name: CLAUDE.md
+      project:
+        vibe_subdir: .vibe/claude-code
+        entrypoint_name: CLAUDE.md
+
+    doc_types:
+      global: [behavior, safety, task_routing, test_standards]
+      project: [behavior, safety, task_routing, test_standards]
+
+    native_config:
+      global:
+        type: json
+        filename: settings.json
+        template: claude-code/settings.json.erb
+      project:
+        type: json
+        filename: settings.json
+        template: claude-code/settings.json.erb
+
+    runtime_dirs:
+      - rules
+      - docs
+      - skills
+      - agents
+      - commands
+      - memory
+
+    copy_mode: full
+
+  opencode:
+    target_id: opencode
+    display_name: OpenCode
+    description: OpenCode workflow configuration
+
+    output_paths:
+      global:
+        vibe_subdir: .vibe/opencode
+        entrypoint_name: AGENTS.md
+      project:
+        vibe_subdir: .vibe/opencode
+        entrypoint_name: AGENTS.md
+
+    doc_types:
+      global: [behavior, general, routing, skills, safety, execution]
+      project: [behavior, general, routing, skills, safety, execution]
+
+    native_config:
+      global:
+        type: json
+        filename: opencode.json
+        template: opencode/opencode.json.erb
+      project:
+        type: json
+        filename: opencode.json
+        template: opencode/opencode.json.erb
+
+    runtime_dirs: []
+
+    copy_mode: minimal
+
+# Platform aliases for user convenience
+aliases:
+  claude: claude-code
+  cc: claude-code
