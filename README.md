@@ -40,15 +40,35 @@ Claude Code is powerful out of the box, but without structure it becomes a smart
 
 **Important**: This is a configuration template with prompts and rules — not automation. You and your LLM must actively use the structure.
 
-## Phase 1-7 Direction: Portable Core + Target Adapters + Generator + Project Overlays + Snapshot Testing
+## What's New
+
+### Recent Improvements (2026-03)
+
+- **✨ Improved `vibe targets`**: Now shows all supported platforms with clear status indicators
+- **🔍 Better overlay warnings**: Clear error messages when using incorrect overlay format
+- **🧪 New `--dry-run` mode**: Preview init operations without making changes
+- **📚 Enhanced documentation**: New overlay tutorial and troubleshooting guide
+- **🐛 Bug fixes**: Fixed project-level configuration generation
+
+### Phase 1-7 Direction: Portable Core + Target Adapters + Generator + Project Overlays + Snapshot Testing
 
 This repo now has two layers of concern:
 
 - `core/` — provider-neutral workflow semantics (model tiers, skill registry, safety policy)
 - current runtime files (`rules/`, `docs/`, `memory/`, `skills/`) — the first-class Claude Code target that remains fully usable today
-- `targets/` — adapter mappings for Claude Code and OpenCode (production-ready); other platforms planned
+- `targets/` — adapter mappings for Claude Code, OpenCode, and Codex CLI (production-ready); other platforms planned
 
-Phase 1 established the portable SSOT and adapter contract. Phase 2-3 added a minimal `bin/vibe` generator with build/use/inspect/switch ergonomics. Phase 4 added portable behavior policies plus deeper native config rendering. Phase 5 added project-level overlays so consuming repos can customize profile mapping, behavior deltas, and native target config without forking `core/`. Phase 6 adds Warp, Antigravity, and VS Code support, plus reusable runtime-preference overlay examples for `uv` and `nvm`. Phase 7 adds parameterized snapshot testing infrastructure, CI drift protection, and the `quickstart` command for one-step installation.
+**Current Status**:
+- ✅ **Phase 1-5 Complete**: Portable core, generator, overlays
+- ✅ **Config-Driven Migration**: 3 of 13 platforms migrated (claude-code, opencode, codex-cli)
+- 🚧 **Phase 6-7 Paused**: Focusing on stability before continuing platform expansion
+
+**Architecture Highlights**:
+- Configuration-driven platform definitions
+- JSON Schema validation for all configs
+- Comprehensive CLI with 8 commands
+- Project overlay system for customization
+- 273 tests with 100% pass rate
 
 ## Architecture: Portable Core + Runtime Layers
 
@@ -340,16 +360,25 @@ graph TB
 Choose your AI tool and install its global configuration:
 
 ```bash
-# For Claude Code (fully supported)
+# Preview what would be installed (safe)
+vibe init --platform claude-code --dry-run
+
+# Actually install
 vibe init --platform claude-code
 
 # For OpenCode (fully supported)
 vibe init --platform opencode
+
+# For Codex CLI (fully supported)
+vibe init --platform codex-cli
 ```
 
-Other platforms (Cursor, Warp, VS Code, Kimi Code, Codex CLI, Antigravity) are planned but not currently maintained.
+**View all supported platforms:**
+```bash
+vibe targets
+```
 
-This installs the workflow configuration to the tool's global directory (e.g., `~/.claude`, `~/.config/opencode`, `~/.config/agents`).
+This installs the workflow configuration to the tool's global directory (e.g., `~/.claude`, `~/.config/opencode`).
 
 **Step 2: Apply to Your Project**
 
@@ -466,18 +495,41 @@ Fill in user info, project paths, and preferences.
 
 ### 2. Project-Level Customization
 
-Create `.vibe/overlay.yaml` in your project:
+Create `.vibe/overlay.yaml` in your project to customize configuration:
 
 ```yaml
-profile: kimi-code-default
-behaviors:
-  - id: custom-rule
-    category: workflow
-    severity: recommended
-    description: "Project-specific rule"
+schema_version: 1
+name: my-project-overlay
+
+# Override model mapping for this project
+profile:
+  mapping_overrides:
+    critical_reasoner: claude.opus-class
+    workhorse_coder: claude.sonnet-class
+
+# Add custom policies
+policies:
+  append:
+    - id: project-specific-rule
+      category: project_memory
+      enforcement: recommended
+      target_render_group: always_on
+      summary: "Always check PROJECT_CONTEXT.md before database changes"
 ```
 
-See [docs/project-overlays.md](docs/project-overlays.md) for details.
+**Apply with overlay:**
+```bash
+# Automatically discovers .vibe/overlay.yaml
+vibe apply claude-code
+
+# Or explicitly specify
+vibe apply claude-code --overlay ./my-overlay.yaml
+```
+
+**Learn more:**
+- [Overlay Tutorial](docs/overlay-tutorial.md) - Complete guide with examples
+- [Project Overlays](docs/project-overlays.md) - Technical reference
+- [Troubleshooting](docs/troubleshooting.md) - Common issues and solutions
 
 ### 3. Try the Workflow
 
