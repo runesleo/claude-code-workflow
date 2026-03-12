@@ -72,10 +72,15 @@
   - `test_claude_settings_config`
   - `test_opencode_config`
 
-#### 1.2 多语言关键词支持
-- [ ] 更新 `rules/memory-flush.md` 中英文退出信号
-- [ ] 更新 `rules/behaviors.md` 中英文关键词
-- [ ] 更新 `rules/skill-triggers.md` 中英文触发条件
+#### 1.2 多语言关键词支持 ✅ 已完成
+- [x] 更新 `rules/memory-flush.md` 中英文退出信号
+- [x] 更新 `rules/skill-triggers.md` 中英文触发条件
+
+**添加的中文支持：**
+- 退出信号：我要走了, 结束了, 保存一下, 先这样吧, etc.
+- 错误关键词：错误, 故障, 失败, 坏了, 报错, etc.
+- 完成关键词：完成, 搞定, 做完了, etc.
+- 卡住关键词：卡住了, 不知道怎么, 没思路, etc.
 
 ### 目标
 - 测试覆盖率从 58% 提升到 75%
