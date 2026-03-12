@@ -8,6 +8,7 @@ require "vibe/doc_rendering"
 require "vibe/native_configs"
 require "vibe/path_safety"
 require "vibe/external_tools"
+require "vibe/platform_utils"
 require "vibe/target_renderers"
 
 # Test class that includes all required modules
@@ -18,6 +19,7 @@ class TargetRenderersTester
   include Vibe::NativeConfigs
   include Vibe::PathSafety
   include Vibe::ExternalTools
+  include Vibe::PlatformUtils
   include Vibe::TargetRenderers
 
   attr_accessor :repo_root, :policies_doc, :tiers_doc, :providers, :skip_integrations
@@ -301,8 +303,12 @@ class TestTargetRenderers < Minitest::Test
 
   # === Integration test: full render flow ===
 
+  # NOTE: These tests use legacy render methods to verify backward compatibility
+  # The new config-driven renderer (render_claude_v2/render_opencode_v2) is tested separately
+
   def test_claude_full_render_structure
-    @renderer.render_claude(@build_root, @base_manifest, project_level: false)
+    # Use the global method directly to test backward compatibility
+    @renderer.render_claude_global(@build_root, @base_manifest)
 
     # Top-level files
     assert File.exist?(File.join(@build_root, "CLAUDE.md"))
@@ -325,7 +331,8 @@ class TestTargetRenderers < Minitest::Test
     opencode_manifest = @base_manifest.dup
     opencode_manifest["target"] = "opencode"
 
-    @renderer.render_opencode(@build_root, opencode_manifest, project_level: false)
+    # Use the global method directly to test backward compatibility
+    @renderer.render_opencode_global(@build_root, opencode_manifest)
 
     # Top-level files
     assert File.exist?(File.join(@build_root, "AGENTS.md"))

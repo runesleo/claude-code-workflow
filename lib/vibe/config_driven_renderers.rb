@@ -9,7 +9,13 @@ module Vibe
     # Load platform configuration from YAML
     def platform_configs
       @platform_configs ||= begin
+        # Try current repo root first, then fall back to original repo
         config_path = File.join(@repo_root, "config", "platforms.yaml")
+        unless File.exist?(config_path)
+          # Fall back to original workflow repo
+          original_repo = File.expand_path("../../../..", __FILE__)
+          config_path = File.join(original_repo, "config", "platforms.yaml")
+        end
         YAML.safe_load(File.read(config_path), aliases: true)["platforms"]
       end
     end
@@ -27,6 +33,9 @@ module Vibe
       vibe_dir = File.join(output_root, path_config["vibe_subdir"])
       FileUtils.mkdir_p(vibe_dir)
       write_target_docs(vibe_dir, manifest, doc_types.map(&:to_sym))
+
+      # Generate README.md in vibe directory
+      File.write(File.join(vibe_dir, "README.md"), generate_vibe_readme(manifest, platform_id))
 
       # Copy runtime directories if configured
       if config["runtime_dirs"] && !config["runtime_dirs"].empty?
@@ -124,6 +133,27 @@ module Vibe
       enhanced_content = superpowers_section.empty? ? content : content + "\n" + superpowers_section
 
       File.write(skill_triggers_dest, enhanced_content)
+    end
+
+    # Generate README for .vibe/<target>/ directory
+    def generate_vibe_readme(manifest, platform_id)
+      target_label = platform_label(platform_id)
+      config = platform_configs[platform_id]
+      runtime_assets = config["runtime_dirs"]&.map { |d| "- `#{d}/`" }&.join("\n") || ""
+
+      <<~MD
+        # #{target_label} target
+
+        This output is intended to be copied into a #{target_label} config directory such as `~/.#{platform_id}`.
+
+        Included runtime assets:
+        #{runtime_assets}
+        - `#{config.dig("native_config", "global", "filename") || "settings.json"}`
+
+        Active profile: `#{manifest["profile"]}``
+        Applied overlay: #{overlay_sentence(manifest)}
+        Generated summary: `.vibe/target-summary.md`
+      MD
     end
   end
 end

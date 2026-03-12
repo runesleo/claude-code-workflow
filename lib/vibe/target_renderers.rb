@@ -1,7 +1,12 @@
 # frozen_string_literal: true
 
+require_relative "config_driven_renderers"
+
 module Vibe
   # Per-target file renderers that write generated output to disk.
+  #
+  # This module now uses configuration-driven rendering via ConfigDrivenRenderers
+  # for supported platforms, while maintaining backward compatibility.
   #
   # Host requirements:
   #   @repo_root [String] — absolute path to the workflow repository root
@@ -12,7 +17,10 @@ module Vibe
   #   Vibe::NativeConfigs  — claude_settings_config, cursor_cli_permissions_config, opencode_config
   #   Vibe::OverlaySupport — overlay_sentence
   #   Vibe::PathSafety     — copy_tree_contents
+  #   Vibe::ConfigDrivenRenderers — modern config-driven platform rendering
   module TargetRenderers
+    include Vibe::ConfigDrivenRenderers
+
     COPY_RUNTIME_ENTRIES = %w[rules docs skills agents commands memory].freeze
 
     def write_target_docs(output_dir, manifest, doc_types)
@@ -42,14 +50,14 @@ module Vibe
       end
     end
 
+    # Render Claude Code configuration
+    # Now uses configuration-driven rendering for better maintainability
     def render_claude(output_root, manifest, project_level: false)
-      if project_level
-        render_claude_project(output_root, manifest)
-      else
-        render_claude_global(output_root, manifest)
-      end
+      render_platform(output_root, manifest, "claude-code", project_level: project_level)
     end
 
+    # Legacy method - delegates to unified render_claude
+    # Kept for backward compatibility
     def render_claude_global(output_root, manifest)
       COPY_RUNTIME_ENTRIES.each do |entry|
         source = File.join(@repo_root, entry)
@@ -337,12 +345,10 @@ module Vibe
       MD
     end
 
+    # Render OpenCode configuration
+    # Now uses configuration-driven rendering for better maintainability
     def render_opencode(output_root, manifest, project_level: false)
-      if project_level
-        render_opencode_project(output_root, manifest)
-      else
-        render_opencode_global(output_root, manifest)
-      end
+      render_platform(output_root, manifest, "opencode", project_level: project_level)
     end
 
     def render_opencode_global(output_root, manifest)
