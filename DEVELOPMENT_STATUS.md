@@ -46,24 +46,28 @@
 
 ### 已完成 ✅
 
-#### 1.1 测试覆盖提升 - doc_rendering
+#### 1.1 测试覆盖提升
 - [x] `test/renderers/test_doc_rendering.rb` (21 个测试)
-  - `test_render_inspect_*` (4 个测试)
-  - `test_render_target_summary_*` (4 个测试)
-  - `test_render_behavior_doc_*` (4 个测试)
-  - `test_render_general_doc_*` (1 个测试)
-  - `test_render_routing_doc_*` (4 个测试)
-  - `test_render_skills_doc_*` (3 个测试)
-  - `test_yaml_caching` (1 个测试)
+- [x] `test/renderers/test_target_renderers.rb` (16 个测试)
+  - `test_render_claude_global_*` (4 个测试)
+  - `test_render_claude_project_*` (3 个测试)
+  - `test_render_opencode_global_*` (3 个测试)
+  - `test_render_opencode_project_*` (2 个测试)
+  - `test_write_target_docs_*` (2 个测试)
+  - Integration tests (2 个测试)
+
+### 测试指标
+
+| 指标 | 当前值 | 增长 |
+|------|--------|------|
+| 测试数量 | 231 | +37 (从 194) |
+| 断言数量 | 716 | +202 (从 514) |
+| 通过率 | 100% | ✅ 保持 |
+| 目标覆盖率 | 75% | 进行中 |
 
 ### 进行中
 
 #### 1.1 测试覆盖提升 - 剩余任务
-- [ ] `test/renderers/test_target_renderers.rb` (8h)
-  - `test_render_claude_creates_expected_files`
-  - `test_render_opencode_creates_expected_files`
-  - `test_render_claude_project_mode`
-
 - [ ] `test/unit/test_native_configs.rb` (4h)
   - `test_claude_settings_config`
   - `test_opencode_config`
