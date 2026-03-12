@@ -19,6 +19,7 @@ require_relative "../lib/vibe/target_renderers"
 require_relative "../lib/vibe/external_tools"
 require_relative "../lib/vibe/builder"
 require_relative "../lib/vibe/init_support"
+require_relative "../lib/vibe/cli/skills_commands"
 
 class VibeCLI
   include Vibe::Utils
@@ -30,6 +31,7 @@ class VibeCLI
   include Vibe::ExternalTools
   include Vibe::Builder
   include Vibe::InitSupport
+  include Vibe::SkillsCommands
 
   attr_accessor :skip_integrations
 
@@ -46,7 +48,8 @@ class VibeCLI
     "init" => :run_init_command,
     "quickstart" => :run_quickstart_command,
     "targets" => :run_targets_command,
-    "doctor" => :run_doctor_command
+    "doctor" => :run_doctor_command,
+    "skills" => :run_skills_command
   }.freeze unless defined?(COMMAND_REGISTRY)
 
   def initialize(repo_root)
