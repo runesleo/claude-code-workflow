@@ -7,13 +7,15 @@ module Vibe
   #   None (self-contained utilities)
   module PlatformUtils
     # Focused on Claude Code and OpenCode for stability
-    # Other platforms temporarily disabled: antigravity, codex-cli, cursor, kimi-code, vscode, warp
-    VALID_TARGETS = %w[claude-code opencode].freeze
+    # Other platforms temporarily disabled: antigravity, cursor, kimi-code, vscode, warp
+    VALID_TARGETS = %w[claude-code opencode codex-cli].freeze
 
     TARGET_ALIAS_MAP = {
       "claude" => "claude-code",
       "claude-code" => "claude-code",
-      "opencode" => "opencode"
+      "opencode" => "opencode",
+      "codex" => "codex-cli",
+      "codex-cli" => "codex-cli"
     }.freeze
 
     # Normalize platform name to internal target name.

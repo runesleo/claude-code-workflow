@@ -72,7 +72,31 @@ platforms:
 
     copy_mode: minimal
 
+  codex-cli:
+    target_id: codex-cli
+    display_name: Codex CLI
+    description: OpenAI Codex CLI workflow configuration
+
+    output_paths:
+      global:
+        vibe_subdir: .vibe/codex-cli
+        entrypoint_name: AGENTS.md
+      project:
+        vibe_subdir: .vibe/codex-cli
+        entrypoint_name: AGENTS.md
+
+    doc_types:
+      global: [behavior, routing, skills, safety, execution_policy, task_routing, test_standards]
+      project: [behavior, routing, skills, safety, execution_policy, task_routing, test_standards]
+
+    native_config: {}
+
+    runtime_dirs: []
+
+    copy_mode: minimal
+
 # Platform aliases for user convenience
 aliases:
   claude: claude-code
   cc: claude-code
+  codex: codex-cli

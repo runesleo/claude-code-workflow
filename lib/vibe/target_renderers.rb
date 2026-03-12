@@ -132,65 +132,7 @@ module Vibe
     end
 
     def render_codex(output_root, manifest, project_level: false)
-      if project_level
-        render_codex_project(output_root, manifest)
-      else
-        render_codex_global(output_root, manifest)
-      end
-    end
-
-    def render_codex_global(output_root, manifest)
-      codex_dir = File.join(output_root, ".vibe", "codex-cli")
-      FileUtils.mkdir_p(codex_dir)
-      write_target_docs(codex_dir, manifest, %i[behavior routing skills safety execution_policy task_routing test_standards])
-
-      extra = <<~MD
-        ## Execution model
-
-        - Use `.vibe/codex-cli/execution-policy.md` for the default flow and review protocol.
-        - Use `.vibe/codex-cli/routing.md` when task routing is ambiguous.
-        - Use `.vibe/codex-cli/safety.md` when a task touches risky behavior or permissions.
-        - Use `.vibe/codex-cli/behavior-policies.md` for the portable behavior baseline.
-      MD
-
-      File.write(File.join(output_root, "AGENTS.md"), render_target_entrypoint_md("Codex CLI", manifest, extra_sections: extra))
-    end
-
-    def render_codex_project(output_root, manifest)
-      codex_dir = File.join(output_root, ".vibe", "codex-cli")
-      FileUtils.mkdir_p(codex_dir)
-      write_target_docs(codex_dir, manifest, %i[behavior routing skills safety execution_policy task_routing test_standards])
-
-      File.write(File.join(output_root, "AGENTS.md"), render_codex_project_md(manifest))
-    end
-
-    def render_codex_project_md(manifest)
-      <<~MD
-        # Project Codex CLI Configuration
-
-        Generated from the portable `core/` spec with profile `#{manifest["profile"]}`.  
-        Applied overlay: #{overlay_sentence(manifest)}
-
-        Global workflow rules are loaded from `~/.codex/`. This file adds project-specific context only.
-
-        ## Project Context
-
-        <!-- Describe your project: tech stack, architecture, key constraints -->
-
-        ## Project-specific rules
-
-        <!-- Add rules that apply only to this project -->
-
-        ## Reference docs
-
-        Supporting notes are under `.vibe/codex-cli/`:
-        - `behavior-policies.md` — portable behavior baseline
-        - `safety.md` — safety policy
-        - `execution-policy.md` — execution and review protocol
-        - `routing.md` — capability tier routing
-        - `task-routing.md` — task complexity routing
-        - `test-standards.md` — testing requirements
-      MD
+      render_platform(output_root, manifest, "codex-cli", project_level: project_level)
     end
 
     def render_cursor(output_root, manifest, project_level: false)
