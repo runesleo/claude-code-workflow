@@ -60,7 +60,7 @@
 
 | 指标 | 当前值 | 增长 |
 |------|--------|------|
-| 测试数量 | **261** | **+67** (从 194) |
+| 测试数量 | **271** | **+77** (从 194) |
 | 断言数量 | **886** | **+372** (从 514) |
 | 通过率 | **100%** | ✅ 保持 |
 | 目标覆盖率 | 75% | **待验证** |
@@ -124,7 +124,46 @@
 
 ---
 
-## Phase 3+（计划中）
+## Phase 3：结构化记忆 ✅ 已完成
+
+### 已完成内容
+
+#### 3.1 YAML 格式知识库
+- [x] 创建 `memory/knowledge.yaml` - 结构化知识存储
+- [x] 支持多语言（中英文关键词、描述）
+- [x] 包含 pitfalls、patterns、ADRs 三个主要类别
+- [x] 快速参考（常用命令和文件位置）
+
+#### 3.2 知识库管理器
+- [x] 创建 `lib/vibe/knowledge_base.rb`
+- [x] 实现关键词搜索（支持中英文）
+- [x] 实现导出为 Markdown（向后兼容）
+- [x] 记录使用次数（times_encountered, times_used）
+
+#### 3.3 测试覆盖
+- [x] 创建 `test/unit/test_knowledge_base.rb`
+- [x] 10 个测试用例，全部通过
+
+### 数据结构示例
+
+```yaml
+pitfalls:
+  - id: yaml-schema-validation
+    keywords:
+      en: [yaml, validation, schema]
+      zh: [YAML, 验证, 模式]
+    issue:
+      en: "YAML files can be syntactically valid..."
+      zh: "YAML 文件语法正确但语义可能错误..."
+    solution:
+      en: "Use JSON Schema to validate..."
+      zh: "使用 JSON Schema 验证..."
+    times_encountered: 2
+```
+
+---
+
+## Phase 4+（计划中）
 - [x] `test/renderers/test_doc_rendering.rb` (21 个测试)
 - [x] `test/renderers/test_target_renderers.rb` (16 个测试)
 - [x] `test/unit/test_native_configs.rb` (24 个测试)
