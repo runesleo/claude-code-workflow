@@ -1,0 +1,134 @@
+schema_version: 1
+name: superpowers
+type: skill_pack
+namespace: superpowers
+source: https://github.com/obra/superpowers
+description: Advanced skill pack providing design refinement, TDD enforcement, systematic debugging, and more
+
+installation_methods:
+  claude-code:
+    preferred: plugin
+    commands:
+      - /plugin marketplace add obra/superpowers-marketplace
+      - /plugin install superpowers@superpowers-marketplace
+    notes: Recommended method for Claude Code users
+
+  cursor:
+    preferred: plugin
+    commands:
+      - /plugin-add superpowers
+    notes: Native plugin support in Cursor
+
+  codex-cli:
+    preferred: manual
+    url: https://github.com/obra/superpowers/.codex/README.md
+    notes: Follow Codex-specific installation instructions
+
+  opencode:
+    preferred: manual
+    url: https://github.com/obra/superpowers/.opencode/README.md
+    notes: Follow OpenCode-specific installation instructions
+
+  manual:
+    steps:
+      - Clone repository to ~/.config/skills/superpowers or preferred location
+      - Symlink skills directory to target tool's skills path
+      - Register namespace in core/skills/registry.yaml
+    notes: Universal fallback method for any tool
+
+detection:
+  paths:
+    - ~/.claude/plugins/superpowers
+    - ~/.claude/skills/superpowers-*
+    - ~/.cursor/plugins/superpowers
+    - ~/.config/skills/superpowers
+    - ~/superpowers
+
+  verification:
+    method: check_skill_availability
+    sample_skills:
+      - brainstorming
+      - writing-plans
+      - test-driven-development
+
+skills:
+  - id: brainstorming
+    registry_id: superpowers/brainstorm
+    intent: Design refinement and feature exploration
+    trigger_context: When designing new features or refining ideas
+
+  - id: writing-plans
+    registry_id: superpowers/plan
+    intent: Implementation planning for complex changes
+    trigger_context: Before starting multi-file changes
+
+  - id: test-driven-development
+    registry_id: superpowers/tdd
+    intent: TDD enforcement and test-first workflow
+    trigger_context: When implementing new functionality
+
+  - id: systematic-debugging
+    registry_id: superpowers/debug
+    intent: Root cause analysis and structured debugging
+    trigger_context: When encountering bugs (note - builtin equivalent exists)
+
+  - id: subagent-driven-development
+    registry_id: superpowers/subagent
+    intent: Parallel task execution with multiple agents
+    trigger_context: For independent parallel work
+
+  - id: using-git-worktrees
+    registry_id: superpowers/worktree
+    intent: Branch isolation using git worktrees
+    trigger_context: When working on multiple branches simultaneously
+
+  - id: requesting-code-review
+    registry_id: superpowers/review
+    intent: Code review preparation and workflow
+    trigger_context: Before creating pull requests
+
+  # Additional skills in registry but not in original superpowers repo
+  - id: refactor
+    registry_id: superpowers/refactor
+    intent: Systematic code refactoring with safety checks
+    trigger_context: When refactoring code for better structure or maintainability
+
+  - id: architect
+    registry_id: superpowers/architect
+    intent: System architecture design and documentation
+    trigger_context: When designing system architecture or documenting design decisions
+
+  - id: optimize
+    registry_id: superpowers/optimize
+    intent: Performance optimization and profiling guidance
+    trigger_context: When optimizing performance or investigating bottlenecks
+
+integration:
+  auto_enable: ask_user
+  priority: P1
+  fallback_strategy: use_builtin_equivalent
+
+  registry_update:
+    file: core/skills/registry.yaml
+    action: append_namespace
+    namespace_config:
+      owner: external_skill_pack
+      default_trust: review_required
+      purpose: Third-party skill pack extending built-in workflow
+
+compatibility:
+  min_claude_code_version: "0.1.0"
+  tested_versions:
+    - superpowers@latest
+
+  conflicts:
+    - name: builtin:systematic-debugging
+      resolution: prefer_superpowers_if_installed
+      note: Superpowers version may have additional features
+
+benefits:
+  - Advanced brainstorming and design workflows
+  - Enforced test-driven development practices
+  - Git worktree management for complex branching
+  - Structured code review preparation
+  - Parallel development with subagents

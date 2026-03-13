@@ -19,13 +19,13 @@
 | **pr-reviewer** | Code review | PR quality, architecture consistency |
 | **security-reviewer** | Security audit | Vulnerability detection, sensitive info |
 | **performance-analyzer** | Performance analysis | Bottleneck identification, optimization |
-| **learning-agent** | Experience recording | patterns.md, recall queries |
+| **your-custom-agent** | *Your domain* | *Customize to your project needs* |
 
 ### Haiku Tier (Quick tasks)
 
 | Agent | Scope | Core Duty |
 |-------|-------|-----------|
-| **build-error-resolver** | Build fixes | TypeScript error quick fixes |
+| **your-quick-agent** | *Quick tasks* | *Customize: e.g. build fixes, formatting* |
 
 ### Built-in Agents
 
@@ -42,7 +42,7 @@
 |------|-------------|
 | **Orchestrate** | Dispatch tasks to other Agents/Codex |
 | **Decide** | Final judgment on critical matters |
-| **Memory** | Maintain hot data layer (today.md) |
+| **Memory** | Maintain hot data layer (session.md) |
 | **Align** | Daily status alignment |
 
 ---
@@ -62,7 +62,7 @@
 You are working on [project-name].
 
 ## Context Loading (must read first)
-1. ~/.claude/memory/today.md — Today's work context
+1. ~/.claude/memory/session.md — Today's work context
 2. /path/to/project/PROJECT_CONTEXT.md — Project status
 
 ## Task

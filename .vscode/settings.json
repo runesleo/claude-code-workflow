@@ -1,0 +1,16 @@
+{
+  "github.copilot.chat.codeGeneration.instructions": [
+    {
+      "file": "AGENTS.md"
+    },
+    {
+      "file": ".vibe/vscode/behavior-policies.md"
+    },
+    {
+      "file": ".vibe/vscode/routing.md"
+    },
+    {
+      "file": ".vibe/vscode/safety.md"
+    }
+  ]
+}

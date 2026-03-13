@@ -1,0 +1,104 @@
+schema_version: 1
+name: task-complexity-routing
+description: Route tasks by complexity to balance quality and efficiency
+
+complexity_levels:
+  trivial:
+    description: Simple, low-risk changes that don't require full process
+    criteria:
+      lines_changed: "<20"
+      files_changed: "1"
+      risk_level: "low"
+    examples:
+      - "Fix typo in documentation"
+      - "Update version number"
+      - "Add simple log statement"
+      - "Rename variable (single file)"
+
+    process_requirements:
+      memory_recall: optional
+      test_requirement: manual_only
+      verification: manual_check
+      documentation: inline_comments_only
+      review: optional
+
+    time_estimate: "5-10 minutes"
+
+  standard:
+    description: Normal development tasks with moderate complexity
+    criteria:
+      lines_changed: "20-100"
+      files_changed: "1-5"
+      risk_level: "medium"
+    examples:
+      - "Add new CLI command"
+      - "Refactor existing module"
+      - "Fix non-critical bug"
+      - "Add new feature (isolated)"
+
+    process_requirements:
+      memory_recall: required
+      test_requirement: unit_tests
+      verification: automated_and_manual
+      documentation: update_relevant_docs
+      review: recommended
+
+    time_estimate: "30-60 minutes"
+
+  critical:
+    description: High-risk or complex changes requiring full process
+    criteria:
+      lines_changed: ">100"
+      files_changed: ">5"
+      risk_level: "high"
+    examples:
+      - "Database migration"
+      - "Security-sensitive changes"
+      - "API contract changes"
+      - "Architecture refactoring"
+      - "Data deletion/export logic"
+
+    process_requirements:
+      memory_recall: required
+      test_requirement: unit_and_integration
+      verification: full_suite
+      documentation: comprehensive
+      review: required
+      cross_verification: recommended
+
+    time_estimate: "2+ hours"
+
+auto_detection:
+  enabled: true
+  rules:
+    - condition: "path contains 'test/'"
+      complexity: "standard"
+      reason: "Test changes are at least standard"
+
+    - condition: "path contains 'core/security/'"
+      complexity: "critical"
+      reason: "Security changes are always critical"
+
+    - condition: "path is 'README.md' AND lines_changed < 10"
+      complexity: "trivial"
+      reason: "Small doc changes are trivial"
+
+    - condition: "commit_message contains 'BREAKING CHANGE'"
+      complexity: "critical"
+      reason: "Breaking changes are critical"
+
+    - condition: "path matches '**/path_safety.rb'"
+      complexity: "critical"
+      reason: "File system safety is critical"
+
+    - condition: "function_name matches '(delete|remove|destroy)'"
+      complexity: "critical"
+      reason: "Destructive operations are critical"
+
+override:
+  user_can_override: true
+  require_justification: true
+  examples:
+    - "User says: 'this is urgent, skip full process'"
+    - "User says: 'treat this as trivial'"
+    - "User says: 'this needs full review despite being small'"

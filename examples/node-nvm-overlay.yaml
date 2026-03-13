@@ -1,0 +1,20 @@
+schema_version: 1
+name: node-nvm-preferred
+description: Example overlay for Node/npm projects that prefer nvm-managed Node versions.
+
+profile:
+  note_append:
+    - For Node/npm work, align the active shell runtime with `.nvmrc` before install, test, or build commands.
+
+policies:
+  append:
+    - id: node-nvm-version-alignment
+      category: toolchain
+      enforcement: recommended
+      target_render_group: always_on
+      summary: For Node/npm projects, prefer `nvm use` and `nvm install` from the project `.nvmrc` before running `npm install`, tests, or build commands.
+    - id: node-runtime-ssot
+      category: toolchain
+      enforcement: recommended
+      target_render_group: always_on
+      summary: Treat `.nvmrc` and any declared engine constraints as runtime-version hints, and avoid mixing unrelated global Node versions into project workflows without explicit justification.

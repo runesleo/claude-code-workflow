@@ -1,0 +1,40 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Vibe wrapper - loads repo_root from config
+
+require "json"
+
+CONFIG_FILE = File.expand_path("~/.vibe/config.json")
+
+unless File.exist?(CONFIG_FILE)
+  warn "Error: Vibe not properly installed. Run vibe-install from the repository."
+  exit 1
+end
+
+config = JSON.parse(File.read(CONFIG_FILE))
+repo_root = config["repo_root"]
+
+unless Dir.exist?(repo_root)
+  warn "Error: Vibe repository not found at #{repo_root}"
+  warn "Please reinstall or update ~/.vibe/config.json"
+  exit 1
+end
+
+# Load vibe without executing the if __FILE__ == $PROGRAM_NAME block
+ENV["VIBE_REPO_ROOT"] = repo_root
+vibe_main = File.join(repo_root, "bin", "vibe")
+
+# Load the file to get VibeCLI class definition
+load vibe_main
+
+# Now manually invoke it
+begin
+  VibeCLI.new(repo_root).run(ARGV)
+rescue Vibe::PathSafetyError, Vibe::SecurityError, Vibe::ValidationError, Vibe::ConfigurationError => e
+  warn "Error: #{e.message}"
+  exit 1
+rescue Vibe::Error => e
+  warn "Vibe error: #{e.message}"
+  exit 1
+end

@@ -1,0 +1,209 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "fileutils"
+require "json"
+require "time"
+
+# Vibe installation script
+# Installs vibe command to system PATH and records project location
+
+class VibeInstaller
+  INSTALL_DIR = "/usr/local/bin"
+  CONFIG_DIR = File.expand_path("~/.vibe")
+  CONFIG_FILE = File.join(CONFIG_DIR, "config.json")
+
+  def initialize(repo_root)
+    @repo_root = File.expand_path(repo_root)
+  end
+
+  def run
+    validate_repo!
+
+    puts "Vibe Installation"
+    puts "=" * 50
+    puts
+    puts "Project location: #{@repo_root}"
+    puts "Install target: #{INSTALL_DIR}/vibe"
+    puts
+
+    unless writable?(INSTALL_DIR)
+      puts "⚠️  #{INSTALL_DIR} requires sudo access."
+      puts
+    end
+
+    print "Continue? [y/N] "
+    response = $stdin.gets
+    if response.nil?
+      puts "\nInstallation cancelled."
+      exit 0
+    end
+    response = response.chomp.downcase
+    unless response == "y" || response == "yes"
+      puts "Installation cancelled."
+      exit 0
+    end
+
+    install!
+    puts
+    puts "✅ Installation complete!"
+    puts
+    puts "Verify installation: vibe --version"
+    puts
+    puts "Next steps:"
+    puts "1. Run 'vibe init --platform claude-code' to set up global configuration"
+    puts "2. In your project directory, run 'vibe switch --platform claude-code'"
+    puts
+  end
+
+  private
+
+  def validate_repo!
+    required_dirs = %w[core lib bin]
+    missing = required_dirs.reject { |dir| Dir.exist?(File.join(@repo_root, dir)) }
+
+    unless missing.empty?
+      warn "Error: Invalid vibe repository. Missing directories: #{missing.join(', ')}"
+      exit 1
+    end
+
+    vibe_bin = File.join(@repo_root, "bin", "vibe")
+    unless File.exist?(vibe_bin)
+      warn "Error: bin/vibe not found in #{@repo_root}"
+      exit 1
+    end
+  end
+
+  def writable?(dir)
+    File.writable?(dir)
+  end
+
+  def install!
+    # Save config
+    FileUtils.mkdir_p(CONFIG_DIR)
+    config = {
+      "repo_root" => @repo_root,
+      "installed_at" => Time.now.iso8601,
+      "version" => read_version
+    }
+    File.write(CONFIG_FILE, JSON.pretty_generate(config))
+    puts "✓ Saved configuration to #{CONFIG_FILE}"
+
+    # Create wrapper script
+    wrapper_path = File.join(@repo_root, "bin", "vibe-wrapper")
+    File.write(wrapper_path, wrapper_script)
+    FileUtils.chmod(0755, wrapper_path)
+    puts "✓ Created wrapper script"
+
+    # Ensure install directory exists
+    unless Dir.exist?(INSTALL_DIR)
+      puts "Creating install directory: #{INSTALL_DIR}"
+      if writable?(File.dirname(INSTALL_DIR))
+        FileUtils.mkdir_p(INSTALL_DIR)
+        puts "✓ Created directory: #{INSTALL_DIR}"
+      else
+        puts "This requires sudo access. Please enter your password when prompted."
+        unless system("sudo", "mkdir", "-p", INSTALL_DIR)
+          puts
+          puts "❌ Failed to create #{INSTALL_DIR}"
+          puts
+          puts "Alternative: Install to user directory instead"
+          puts "  mkdir -p ~/.local/bin"
+          puts "  ln -s #{wrapper_path} ~/.local/bin/vibe"
+          puts "  export PATH=\"$HOME/.local/bin:$PATH\"  # Add to ~/.zshrc or ~/.bashrc"
+          puts
+          raise "Installation failed. See alternative method above."
+        end
+        puts "✓ Created directory: #{INSTALL_DIR}"
+      end
+    end
+
+    # Install to system PATH
+    target = File.join(INSTALL_DIR, "vibe")
+    if File.exist?(target) || File.symlink?(target)
+      if writable?(INSTALL_DIR)
+        FileUtils.rm_f(target)
+      else
+        puts "Removing existing vibe symlink..."
+        unless system("sudo", "rm", "-f", target)
+          raise "Failed to remove existing symlink"
+        end
+      end
+    end
+
+    if writable?(INSTALL_DIR)
+      FileUtils.ln_s(wrapper_path, target)
+      puts "✓ Installed vibe to #{target}"
+    else
+      puts "Creating symlink..."
+      if system("sudo", "ln", "-s", wrapper_path, target)
+        puts "✓ Installed vibe to #{target}"
+      else
+        puts
+        puts "❌ Failed to create symlink"
+        puts
+        puts "Alternative: Install to user directory instead"
+        puts "  mkdir -p ~/.local/bin"
+        puts "  ln -s #{wrapper_path} ~/.local/bin/vibe"
+        puts "  export PATH=\"$HOME/.local/bin:$PATH\"  # Add to ~/.zshrc or ~/.bashrc"
+        puts
+        raise "Installation failed. See alternative method above."
+      end
+    end
+  end
+
+  def read_version
+    version_file = File.join(@repo_root, "VERSION")
+    File.exist?(version_file) ? File.read(version_file).strip : "unknown"
+  end
+
+  def wrapper_script
+    <<~RUBY
+      #!/usr/bin/env ruby
+      # frozen_string_literal: true
+
+      # Vibe wrapper - loads repo_root from config
+
+      require "json"
+
+      CONFIG_FILE = File.expand_path("~/.vibe/config.json")
+
+      unless File.exist?(CONFIG_FILE)
+        warn "Error: Vibe not properly installed. Run vibe-install from the repository."
+        exit 1
+      end
+
+      config = JSON.parse(File.read(CONFIG_FILE))
+      repo_root = config["repo_root"]
+
+      unless Dir.exist?(repo_root)
+        warn "Error: Vibe repository not found at \#{repo_root}"
+        warn "Please reinstall or update ~/.vibe/config.json"
+        exit 1
+      end
+
+      # Load vibe without executing the if __FILE__ == $PROGRAM_NAME block
+      ENV["VIBE_REPO_ROOT"] = repo_root
+      vibe_main = File.join(repo_root, "bin", "vibe")
+
+      # Load the file to get VibeCLI class definition
+      load vibe_main
+
+      # Now manually invoke it
+      begin
+        VibeCLI.new(repo_root).run(ARGV)
+      rescue Vibe::PathSafetyError, Vibe::SecurityError, Vibe::ValidationError, Vibe::ConfigurationError => e
+        warn "Error: \#{e.message}"
+        exit 1
+      rescue Vibe::Error => e
+        warn "Vibe error: \#{e.message}"
+        exit 1
+      end
+    RUBY
+  end
+end
+
+if __FILE__ == $PROGRAM_NAME
+  repo_root = File.expand_path("..", __dir__)
+  VibeInstaller.new(repo_root).run
+end

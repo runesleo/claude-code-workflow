@@ -1,0 +1,114 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://claude-code-workflow/schemas/security.schema.json",
+  "title": "Security Policy",
+  "description": "Schema for core/security/policy.yaml",
+  "type": "object",
+  "required": ["schema_version", "severity_levels", "signal_categories", "actions_by_target"],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "status": {
+      "type": "string"
+    },
+    "severity_levels": {
+      "type": "object",
+      "required": ["P0", "P1", "P2"],
+      "properties": {
+        "P0": {
+          "$ref": "#/definitions/severity_level"
+        },
+        "P1": {
+          "$ref": "#/definitions/severity_level"
+        },
+        "P2": {
+          "$ref": "#/definitions/severity_level"
+        }
+      }
+    },
+    "signal_categories": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/signal_category"
+      }
+    },
+    "adjudication_factors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ownership": {
+      "type": "object"
+    },
+    "actions_by_target": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-z0-9-]*$": {
+          "type": "object",
+          "properties": {
+            "P0": {
+              "type": "string"
+            },
+            "P1": {
+              "type": "string"
+            },
+            "P2": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "severity_level": {
+      "type": "object",
+      "required": ["label", "meaning", "runtime_action"],
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "meaning": {
+          "type": "string"
+        },
+        "runtime_action": {
+          "type": "string"
+        },
+        "examples": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "signal_category": {
+      "type": "object",
+      "required": ["id", "base_severity", "indicators"],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "base_severity": {
+          "type": "string",
+          "enum": ["P0", "P1", "P2"]
+        },
+        "indicators": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "upgrade_to_p0_when": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,7 +1,7 @@
 ---
 name: session-end
 description: Session wrap-up - update handoff + commit + auto-record experience
-version: 1.0.0
+version: 2.0.0
 allowed-tools:
   - Read
   - Write
@@ -27,11 +27,17 @@ Review the session for valuable learnings:
 **Don't record**:
 - One-shot small fixes
 - Project-specific temporary config
-- Issues already in patterns.md
+- Issues already in project-knowledge.md
 
-### 2. today.md Hot Data Layer
+**Write target**:
+- Technical pitfalls → `memory/project-knowledge.md` (Technical Pitfalls section)
+- Reusable patterns → `memory/project-knowledge.md` (Reusable Patterns section)
+- Architecture decisions → `memory/project-knowledge.md` (Architecture Decisions section)
 
-Append to `memory/today.md`:
+### 2. session.md Hot Data Layer
+
+Append to `memory/session.md` under `## Current Session`:
+
 ```markdown
 ### SN (HH:MM~) [project/topic]
 - [1-2 sentences of what was done]
@@ -40,31 +46,26 @@ Append to `memory/today.md`:
 - [Recorded: yes/no - brief description]
 ```
 
-### 2.5. goals.md + projects.md Status Refresh
+Also update `## In-Flight Tasks (Cross-Session)` if applicable:
+- Tasks progressed → Update context/next_action/updated
+- New multi-session tasks → Append new entry
+- Completed tasks → Remove (session.md already has the completion record)
+- Blocker resolved → Change status from blocked to active
 
-**Identify projects touched in this session** (from today.md, changed files, conversation content).
+### 3. overview.md Status Refresh (if needed)
 
-**goals.md update**:
-- **Completed** → Remove entry (today.md already has the record)
+**Identify projects touched in this session** (from session.md, changed files, conversation content).
+
+**Goals section update**:
+- **Completed** → Remove entry (session.md already has the record)
 - **Progress made** → Update description
 - **New important item discovered** → Add to current week (max 5 items)
 
-**projects.md update** (only rows for touched projects):
+**Projects Summary update** (only rows for touched projects):
 - Metric changes → Update (e.g. follower count, stars, metrics)
 - Status changes → Update (e.g. "not started" → "first version shipped")
 
-### 2.7. active-tasks.json In-flight Task Update
-
-Read `memory/active-tasks.json`, update based on session work:
-
-**Rules**:
-- Tasks progressed → Update `context`/`next_action`/`updated`
-- New multi-session tasks → Append new entry
-- Completed tasks → Remove (today.md has the record)
-- Blocker resolved → Change `status` from `blocked` to `active`
-- Stale (>14 days no update) → Remind user if still needed
-
-### 3. PROJECT_CONTEXT.md Handoff
+### 4. PROJECT_CONTEXT.md Handoff
 
 Update `<!-- handoff:start/end -->` block.
 
@@ -73,18 +74,18 @@ Update `<!-- handoff:start/end -->` block.
 - Delete older handoffs (git history has full record)
 - Target: SESSION_HANDOFF section ≤80 lines
 
-### 4. Git Commit (when there are changes)
+### 5. Git Commit (when there are changes)
 
 ```bash
 git add [specific files]  # Never git add .
 git commit -m "[type]: [description]"
 ```
 
-### 5. Content Mining (Optional)
+### 6. Content Mining (Optional)
 
-**Condition**: today.md has ≥3 session records for the day.
+**Condition**: session.md has ≥3 session records for the day.
 
-Quick scan today.md for 1-2 findings with sharing potential (counter-intuitive / data-driven / pitfall-to-solution).
+Quick scan session.md for 1-2 findings with sharing potential (counter-intuitive / data-driven / pitfall-to-solution).
 
 **Output (when found)**:
 ```
@@ -99,9 +100,19 @@ Content material: Found N shareable discoveries today
 
 ```
 Experience: [Recorded N items / None needed]
-today.md updated
-Task registry: [+N new / ~N updated / -N completed | Total N in-flight]
+session.md updated
+overview.md: [goals updated / projects updated / no changes]
 Handoff updated
 Committed [N] files
 Content material: [N items / none (<3 sessions)]
 ```
+
+## Migration Notes
+
+> This skill was updated for the 3-tier memory architecture (v2.0.0).
+> 
+> Old files replaced:
+> - `memory/today.md` → `memory/session.md`
+> - `memory/active-tasks.json` → inline in `memory/session.md`
+> - `memory/goals.md` + `memory/projects.md` + `memory/infra.md` → `memory/overview.md`
+> - `patterns.md` → `memory/project-knowledge.md` (Reusable Patterns section)

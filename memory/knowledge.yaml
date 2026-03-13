@@ -1,0 +1,116 @@
+# Structured Project Knowledge
+# Replaces project-knowledge.md with searchable, typed data
+
+schema_version: 1
+last_updated: 2026-03-12
+
+# Technical Pitfalls - things to watch out for
+pitfalls:
+  - id: yaml-schema-validation
+    keywords:
+      en: [yaml, validation, schema, json schema, semantic validation]
+      zh: [YAML, 验证, 模式, JSON模式, 语义验证]
+    issue:
+      en: YAML files can be syntactically valid but semantically incorrect (missing required fields, wrong types)
+      zh: YAML 文件语法正确但语义可能错误（缺少必填字段、类型错误）
+    solution:
+      en: Use JSON Schema to validate YAML structure beyond basic syntax
+      zh: 使用 JSON Schema 验证 YAML 结构，而不仅是基本语法
+    implementation: "Created schemas/ directory with JSON Schema files and bin/validate-schemas script"
+    discovered: "2026-03-07"
+    source: "Review feedback - make validate only checks syntax, not semantics"
+    times_encountered: 2
+
+  - id: documentation-scattering
+    keywords:
+      en: [documentation, scattered, hard to find, README, docs]
+      zh: [文档, 分散, 难找, 找不到]
+    issue:
+      en: Documentation spread across README, docs/, targets/, core/ makes it hard to find information
+      zh: 文档分散在 README、docs/、targets/、core/ 中，难以查找
+    solution:
+      en: Create a unified documentation index (docs/README.md) and add navigation table to main README
+      zh: 创建统一的文档索引（docs/README.md），并在主 README 中添加导航表
+    discovered: "2026-03-07"
+    source: "Review finding P2 - Documentation scattered"
+    times_encountered: 1
+
+# Reusable Patterns - proven solutions to common problems
+patterns:
+  - id: ci-cd-pipeline-config
+    name:
+      en: CI/CD Pipeline for Configuration Projects
+      zh: 配置项目的 CI/CD 流水线
+    when_to_use:
+      en: Projects with YAML/JSON configuration files that need validation
+      zh: 需要验证 YAML/JSON 配置文件的项目
+    implementation:
+      - YAML syntax validation
+      - JSON Schema semantic validation
+      - Tool-specific validation (bin/vibe inspect)
+      - Generation verification (make generate)
+      - Test suite execution
+    example: "See .github/workflows/ci.yml"
+    discovered: "2026-03-07"
+    times_used: 3
+
+  - id: three-tier-memory
+    name:
+      en: Three-Tier Memory Architecture
+      zh: 三层记忆架构
+    when_to_use:
+      en: Any project needing organized note-taking
+      zh: 任何需要有组织笔记的项目
+    implementation:
+      - session.md (hot): Active tasks, daily progress
+      - project-knowledge.md (warm): Pitfalls, patterns, ADRs
+      - overview.md (cold): Goals, infrastructure
+    discovered: "2026-03-07"
+    source: "Architecture optimization refactor"
+    times_used: 5
+
+# Architecture Decision Records (ADRs)
+adrs:
+  - id: ADR-001
+    title: JSON Schema for YAML Validation
+    date: "2026-03-07"
+    status: accepted
+    context: make validate only checks YAML syntax, not structure
+    decision: Add JSON Schema validation for core YAML files
+    consequences:
+      positive:
+        - Better error messages for configuration mistakes
+        - Can validate required fields and types
+      negative:
+        - Extra maintenance burden (schemas must evolve with YAML)
+
+  - id: ADR-002
+    title: Unified Documentation Index
+    date: "2026-03-07"
+    status: accepted
+    context: Documentation scattered across multiple directories
+    decision: Create docs/README.md as central index, add navigation to README.md
+    consequences:
+      positive:
+        - Single entry point for all documentation
+        - Easier onboarding for new users
+      negative:
+        - Requires maintenance when adding new docs
+
+# Quick Reference - commonly needed information
+quick_reference:
+  commands:
+    - name: validate
+      command: "make validate"
+      description: "Validate all YAML files and run checks"
+    - name: test
+      command: "rake test"
+      description: "Run full test suite"
+    - name: build
+      command: "bin/vibe build claude-code"
+      description: "Build Claude Code configuration"
+
+  file_locations:
+    core_policies: core/policies/behaviors.yaml
+    skill_registry: core/skills/registry.yaml
+    platform_configs: config/platforms.yaml

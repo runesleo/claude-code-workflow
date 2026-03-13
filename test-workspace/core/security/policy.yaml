@@ -1,0 +1,126 @@
+schema_version: 1
+status: phase-6-buildable
+
+severity_levels:
+  P0:
+    label: block
+    meaning: Clear malicious intent or unacceptable unsafe execution chain.
+    runtime_action: deny_and_stop
+    examples:
+      - Secrets or project contents prepared for exfiltration
+      - Destructive or irreversible operations without explicit authorization
+      - Instructions to bypass approvals, safety controls, or audit
+
+  P1:
+    label: high_risk_review
+    meaning: Potentially legitimate action that requires context review or explicit approval.
+    runtime_action: require_context_review_or_user_confirmation
+    examples:
+      - Network calls that might send code or data outward
+      - Auth, credential, permission, or signing flows
+      - Dynamic execution or remote script execution
+
+  P2:
+    label: warning
+    meaning: Suspicious or incomplete signal that should be surfaced but not blocked by default.
+    runtime_action: warn_log_continue
+    examples:
+      - Compliance-style persuasion language
+      - Vague backup, sync, or export instructions
+      - Ambiguous archive or upload steps without sensitive context
+
+signal_categories:
+  - id: network_egress
+    base_severity: P1
+    indicators:
+      - http_url
+      - curl
+      - requests.post
+      - fetch(
+      - axios
+    upgrade_to_p0_when:
+      - paired_with_sensitive_paths
+      - paired_with_archive_or_upload
+
+  - id: archive_then_send
+    base_severity: P1
+    indicators:
+      - zip
+      - tar
+      - backup_to
+      - upload
+    upgrade_to_p0_when:
+      - archive_scope_is_project_or_home
+      - destination_is_external
+
+  - id: destructive_operation
+    base_severity: P0
+    indicators:
+      - rm -rf
+      - delete
+      - shred
+      - encrypt
+
+  - id: obfuscation_or_dynamic_exec
+    base_severity: P1
+    indicators:
+      - base64
+      - eval
+      - exec
+      - hidden_shell
+    upgrade_to_p0_when:
+      - paired_with_network_or_secrets
+
+adjudication_factors:
+  - asset_sensitivity
+  - execution_capability
+  - scope_of_change
+  - reversibility
+  - source_trust
+  - obfuscation_or_evasion
+
+ownership:
+  shared_signal_pack: platform_security_or_repo_owner
+  domain_asset_glossary: domain_owner
+  allowlists_and_exceptions: project_maintainer
+
+actions_by_target:
+  claude-code:
+    P0: Prefer hooks or permissions deny; otherwise stop with an explicit block message.
+    P1: Prefer hook-mediated confirmation or manual approval.
+    P2: Warn in output and continue with traceable reasoning.
+
+  codex-cli:
+    P0: Prefer sandbox or approval deny rules, otherwise block in the wrapper layer.
+    P1: Ask for approval or escalate to manual review.
+    P2: Warn in AGENTS guidance or review output.
+
+  cursor:
+    P0: Surface as a blocking project rule or external wrapper policy.
+    P1: Require manual review before execution.
+    P2: Warn via rules and review output.
+
+  opencode:
+    P0: Prefer native permission rules or wrapper deny.
+    P1: Ask through configured permission flow.
+    P2: Warn and continue.
+
+  warp:
+    P0: Surface as a blocking Warp rule plus explicit stop guidance in the generated docs.
+    P1: Require manual review or user confirmation before execution.
+    P2: Warn in WARP.md or supporting guidance and continue with traceable reasoning.
+
+  antigravity:
+    P0: Surface as a blocking project rule or execution deny logic.
+    P1: Ask through manual notification tool or review approval.
+    P2: Warn and continue.
+
+  vscode:
+    P0: Surface as a strict system block in workspace settings or Copilot rules.
+    P1: Require manual review or user confirmation in Copilot Chat.
+    P2: Warn in Copilot Chat and continue.
+
+  kimi-code:
+    P0: Surface as a blocking rule in KIMI.md and skill tool restrictions.
+    P1: Require manual review or user confirmation before execution.
+    P2: Warn in skill output and continue with traceable reasoning.

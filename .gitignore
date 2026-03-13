@@ -1,0 +1,42 @@
+/generated/
+/.vibe-generated/
+/.vibe-target.json
+.alma-snapshots
+/AGENTS.md
+/WARP.md
+
+# Review files (temporary)
+/review-*.md
+/review/
+
+# Applied Kimi Code config (temporary for review)
+/KIMI.md
+/.kimi/
+/.vibe/kimi-code/
+
+# Applied OpenCode config (temporary for review)
+/opencode.json
+
+# Bundler
+/vendor/bundle/
+/.bundle/
+settings.json
+
+# Dynamic target state (runtime only)
+/.vibe/manifest.json
+/.vibe/target-summary.md
+
+# Git worktrees
+.worktrees/
+
+# Test coverage
+/coverage/
+
+# Refactor temporary files
+/.vibe/refactor/temp/
+/.vibe/refactor/*.tmp
+/config/platforms.yaml.backup
+/lib/vibe/*.rb.backup
+
+# Migration logs
+/.vibe/migration-*.log

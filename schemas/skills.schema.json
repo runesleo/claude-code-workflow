@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://claude-code-workflow/schemas/skills.schema.json",
+  "title": "Skills Registry",
+  "description": "Schema for core/skills/registry.yaml",
+  "type": "object",
+  "required": ["schema_version", "skills"],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "skills": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/skill"
+      }
+    }
+  },
+  "definitions": {
+    "skill": {
+      "type": "object",
+      "required": ["id", "namespace", "intent", "trigger_mode"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "intent": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "trigger_mode": {
+          "type": "string",
+          "enum": ["mandatory", "suggest", "manual", "never"]
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["P0", "P1", "P2"]
+        },
+        "how_to_invoke": {
+          "type": "string"
+        },
+        "allowed_tools": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

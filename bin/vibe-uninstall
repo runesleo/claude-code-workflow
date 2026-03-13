@@ -1,0 +1,288 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "fileutils"
+require "json"
+
+# Vibe uninstallation script
+# Removes vibe command from system PATH and optionally cleans up configurations
+
+class VibeUninstaller
+  INSTALL_DIR = "/usr/local/bin"
+  CONFIG_DIR = File.expand_path("~/.vibe")
+  CONFIG_FILE = File.join(CONFIG_DIR, "config.json")
+  VIBE_BIN = File.join(INSTALL_DIR, "vibe")
+
+  PLATFORM_DIRS = {
+    "claude-code" => "~/.claude",
+    "opencode" => "~/.opencode",
+    "kimi-code" => "~/.config/agents",
+    "cursor" => "~/.cursor",
+    "codex-cli" => "~/.codex",
+    "vscode" => "~/.vscode",
+    "warp" => "~/.warp",
+    "antigravity" => "~/.antigravity"
+  }.freeze
+
+  def initialize(options = {})
+    @remove_configs = options[:remove_configs]
+    @remove_all = options[:remove_all]
+    @dry_run = options[:dry_run]
+    @force = options[:force]
+  end
+
+  def run
+    puts "Vibe Uninstallation"
+    puts "=" * 50
+    puts
+
+    check_installation
+
+    if @dry_run
+      puts "DRY RUN MODE - No changes will be made"
+      puts
+    end
+
+    show_plan
+    confirm_uninstall unless @force
+
+    uninstall!
+
+    puts
+    puts "✅ Uninstallation complete!"
+    puts
+  end
+
+  private
+
+  def check_installation
+    @vibe_installed = File.exist?(VIBE_BIN) || File.symlink?(VIBE_BIN)
+    @config_exists = File.exist?(CONFIG_FILE)
+    @wrapper_path = find_wrapper_path
+
+    unless @vibe_installed || @config_exists
+      puts "⚠️  Vibe does not appear to be installed."
+      puts
+      exit 0
+    end
+  end
+
+  def find_wrapper_path
+    return nil unless @config_exists
+
+    config = JSON.parse(File.read(CONFIG_FILE))
+    repo_root = config["repo_root"]
+    File.join(repo_root, "bin", "vibe-wrapper") if repo_root
+  rescue
+    nil
+  end
+
+  def show_plan
+    puts "The following will be removed:"
+    puts
+
+    if @vibe_installed
+      puts "✓ System command: #{VIBE_BIN}"
+    end
+
+    if @wrapper_path && File.exist?(@wrapper_path)
+      puts "✓ Wrapper script: #{@wrapper_path}"
+    end
+
+    if @config_exists
+      puts "✓ Configuration: #{CONFIG_FILE}"
+    end
+
+    if @remove_configs || @remove_all
+      puts
+      puts "Platform configurations:"
+      installed_platforms.each do |platform, dir|
+        expanded = File.expand_path(dir)
+        if Dir.exist?(expanded)
+          puts "✓ #{platform}: #{expanded}"
+        end
+      end
+    end
+
+    if @remove_all
+      puts
+      puts "⚠️  WARNING: This will remove ALL vibe-related files including:"
+      puts "   - All platform configurations"
+      puts "   - Configuration directory: #{CONFIG_DIR}"
+    end
+
+    puts
+  end
+
+  def installed_platforms
+    PLATFORM_DIRS.select do |_platform, dir|
+      expanded = File.expand_path(dir)
+      Dir.exist?(expanded) && has_vibe_marker?(expanded)
+    end
+  end
+
+  def has_vibe_marker?(dir)
+    File.exist?(File.join(dir, ".vibe-target.json"))
+  end
+
+  def confirm_uninstall
+    print "Continue with uninstallation? [y/N] "
+    response = $stdin.gets
+    if response.nil? || !["y", "yes"].include?(response.chomp.downcase)
+      puts "\nUninstallation cancelled."
+      exit 0
+    end
+    puts
+  end
+
+  def uninstall!
+    # Remove system command
+    if @vibe_installed
+      remove_system_command
+    end
+
+    # Remove wrapper script
+    if @wrapper_path && File.exist?(@wrapper_path)
+      remove_file(@wrapper_path, "wrapper script")
+    end
+
+    # Remove platform configurations
+    if @remove_configs || @remove_all
+      remove_platform_configs
+    end
+
+    # Remove config directory
+    if @remove_all && Dir.exist?(CONFIG_DIR)
+      remove_directory(CONFIG_DIR, "configuration directory")
+    elsif @config_exists
+      remove_file(CONFIG_FILE, "configuration file")
+    end
+  end
+
+  def remove_system_command
+    if @dry_run
+      puts "[DRY RUN] Would remove: #{VIBE_BIN}"
+      return
+    end
+
+    if File.writable?(INSTALL_DIR)
+      FileUtils.rm_f(VIBE_BIN)
+      puts "✓ Removed system command: #{VIBE_BIN}"
+    else
+      puts "Removing system command (requires sudo)..."
+      if system("sudo", "rm", "-f", VIBE_BIN)
+        puts "✓ Removed system command: #{VIBE_BIN}"
+      else
+        warn "⚠️  Failed to remove #{VIBE_BIN}. You may need to remove it manually."
+      end
+    end
+  end
+
+  def remove_file(path, description)
+    if @dry_run
+      puts "[DRY RUN] Would remove: #{path}"
+      return
+    end
+
+    FileUtils.rm_f(path)
+    puts "✓ Removed #{description}: #{path}"
+  end
+
+  def remove_directory(path, description)
+    if @dry_run
+      puts "[DRY RUN] Would remove directory: #{path}"
+      return
+    end
+
+    FileUtils.rm_rf(path)
+    puts "✓ Removed #{description}: #{path}"
+  end
+
+  def remove_platform_configs
+    installed_platforms.each do |platform, dir|
+      expanded = File.expand_path(dir)
+      next unless Dir.exist?(expanded)
+
+      if @dry_run
+        puts "[DRY RUN] Would remove: #{expanded}"
+        next
+      end
+
+      print "Remove #{platform} configuration at #{expanded}? [y/N] "
+      response = $stdin.gets
+      if response && ["y", "yes"].include?(response.chomp.downcase)
+        FileUtils.rm_rf(expanded)
+        puts "✓ Removed #{platform} configuration: #{expanded}"
+      else
+        puts "  Skipped #{platform}"
+      end
+    end
+  end
+end
+
+def show_help
+  puts <<~HELP
+    Usage: bin/vibe-uninstall [options]
+
+    Uninstall vibe from your system.
+
+    Options:
+      --remove-configs    Also remove platform configurations (e.g., ~/.claude, ~/.opencode)
+      --remove-all        Remove everything including config directory
+      --dry-run           Show what would be removed without actually removing
+      --force             Skip confirmation prompts
+      -h, --help          Show this help message
+
+    Examples:
+      bin/vibe-uninstall                    # Remove vibe command only
+      bin/vibe-uninstall --remove-configs   # Remove vibe + platform configs
+      bin/vibe-uninstall --remove-all       # Remove everything
+      bin/vibe-uninstall --dry-run          # Preview what would be removed
+
+    What gets removed:
+      Default:
+        - /usr/local/bin/vibe (system command)
+        - bin/vibe-wrapper (wrapper script)
+        - ~/.vibe/config.json (configuration file)
+
+      With --remove-configs:
+        - All of the above
+        - Platform configurations (e.g., ~/.claude, ~/.opencode, ~/.config/agents)
+
+      With --remove-all:
+        - All of the above
+        - ~/.vibe directory (entire configuration directory)
+  HELP
+end
+
+if __FILE__ == $PROGRAM_NAME
+  options = {
+    remove_configs: false,
+    remove_all: false,
+    dry_run: false,
+    force: false
+  }
+
+  ARGV.each do |arg|
+    case arg
+    when "--remove-configs"
+      options[:remove_configs] = true
+    when "--remove-all"
+      options[:remove_all] = true
+      options[:remove_configs] = true
+    when "--dry-run"
+      options[:dry_run] = true
+    when "--force"
+      options[:force] = true
+    when "-h", "--help"
+      show_help
+      exit 0
+    else
+      warn "Unknown option: #{arg}"
+      warn "Run 'bin/vibe-uninstall --help' for usage."
+      exit 1
+    end
+  end
+
+  VibeUninstaller.new(options).run
+end

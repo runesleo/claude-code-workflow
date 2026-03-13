@@ -1,0 +1,74 @@
+schema_version: 1
+status: phase-6-buildable
+
+policies:
+  - id: ssot-first
+    category: state_management
+    enforcement: mandatory
+    target_render_group: always_on
+    summary: Keep repository files as the single source of truth; tool-managed memory is cache.
+    source_refs:
+      - rules/behaviors.md
+      - README.md
+
+  - id: verify-before-claim
+    category: quality
+    enforcement: mandatory
+    target_render_group: always_on
+    summary: Never claim completion without fresh verification evidence.
+    source_refs:
+      - skills/verification-before-completion/SKILL.md
+      - CLAUDE.md
+
+  - id: capability-tier-routing
+    category: routing
+    enforcement: mandatory
+    target_render_group: routing
+    summary: Route by capability tier first, then resolve through the active provider profile.
+    source_refs:
+      - rules/behaviors.md
+      - docs/task-routing.md
+
+  - id: reversible-small-batches
+    category: change_management
+    enforcement: recommended
+    target_render_group: always_on
+    summary: Prefer small, reversible, single-purpose changes over large mixed batches.
+    source_refs:
+      - CLAUDE.md
+      - rules/behaviors.md
+
+  - id: root-cause-debugging
+    category: debugging
+    enforcement: mandatory
+    target_render_group: always_on
+    summary: Investigate root cause before attempting fixes and reassess after repeated failures.
+    source_refs:
+      - skills/systematic-debugging/SKILL.md
+      - rules/behaviors.md
+
+  - id: security-escalation
+    category: safety
+    enforcement: mandatory
+    target_render_group: safety
+    summary: Treat destructive commands, network egress, secret access, and obfuscation as security-sensitive actions.
+    source_refs:
+      - core/security/policy.yaml
+      - docs/content-safety.md
+
+  - id: record-reusable-learning
+    category: memory
+    enforcement: recommended
+    target_render_group: always_on
+    summary: Record user corrections, repeated failures, and counter-intuitive discoveries for reuse.
+    source_refs:
+      - rules/behaviors.md
+      - skills/experience-evolution/SKILL.md
+
+  - id: sunday-rule
+    category: workflow
+    enforcement: recommended
+    target_render_group: optional
+    summary: Batch workflow or system optimization separately from delivery work unless it blocks production.
+    source_refs:
+      - rules/behaviors.md

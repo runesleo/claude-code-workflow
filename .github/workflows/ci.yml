@@ -1,0 +1,162 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    name: Validate Configuration
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.2'
+        bundler-cache: true
+    
+    - name: Validate YAML syntax
+      run: |
+        ruby -ryaml -e "
+          Dir.glob('core/**/*.yaml').each do |f|
+            begin
+              YAML.load_file(f)
+              puts \"✓ #{f}\"
+            rescue => e
+              puts \"✗ #{f}: #{e.message}\"
+              exit 1
+            end
+          end
+        "
+    
+    - name: Run vibe inspect
+      run: |
+        chmod +x bin/vibe
+        bin/vibe inspect --json > /dev/null
+
+    - name: Generate all targets
+      run: |
+        make generate
+
+    - name: Verify snapshots
+      run: |
+        make verify-snapshot
+
+    - name: Check generated files exist
+      run: |
+        for target in claude-code codex-cli cursor kimi-code opencode vscode warp antigravity; do
+          if [ ! -d "generated/$target" ]; then
+            echo "Missing generated/$target"
+            exit 1
+          fi
+          echo "✓ generated/$target"
+        done
+
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.2'
+        bundler-cache: true
+    
+    - name: Run tests with coverage
+      run: |
+        bundle exec ruby test/test_vibe_cli.rb
+        bundle exec ruby test/test_vibe_utils.rb
+        bundle exec ruby test/test_vibe_overlay.rb
+        bundle exec ruby test/test_vibe_init.rb
+        bundle exec ruby test/test_vibe_external_tools.rb
+        bundle exec ruby test/test_path_overlap_calculation.rb
+        bundle exec ruby test/test_cli_path_safety_guards.rb
+        bundle exec ruby test/test_yaml_safety.rb
+        bundle exec ruby test/test_recommendations.rb
+        bundle exec ruby test/test_vibe_utils_validation.rb
+        bundle exec ruby test/test_superpowers_installer.rb
+    
+    - name: Run smoke test
+      run: |
+        chmod +x bin/vibe
+        bin/vibe --version || true
+        bin/vibe inspect --json > /dev/null
+    
+    - name: Check coverage threshold
+      run: |
+        # Threshold set to 50% (current baseline: 54%)
+        # Raise incrementally as coverage improves
+        chmod +x test/benchmark/check_coverage.rb
+        COVERAGE_THRESHOLD=50 ruby test/benchmark/check_coverage.rb
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.2'
+        bundler-cache: true
+    
+    - name: Run RuboCop
+      run: |
+        if command -v rubocop &> /dev/null; then
+          rubocop lib/ bin/vibe || true
+        else
+          echo "RuboCop not installed, skipping"
+        fi
+    
+    - name: Check file permissions
+      run: |
+        if [ ! -x "bin/vibe" ]; then
+          echo "bin/vibe is not executable"
+          exit 1
+        fi
+        echo "✓ bin/vibe is executable"
+
+  docs:
+    name: Documentation Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Check documentation links
+      run: |
+        # Check that docs/README.md exists
+        if [ ! -f "docs/README.md" ]; then
+          echo "Missing docs/README.md"
+          exit 1
+        fi
+        echo "✓ docs/README.md exists"
+        
+        # Check that all referenced docs exist
+        for doc in README.md README.zh-CN.md docs/README.md core/README.md targets/README.md; do
+          if [ ! -f "$doc" ]; then
+            echo "Missing $doc"
+            exit 1
+          fi
+          echo "✓ $doc exists"
+        done
+    
+    - name: Check target adapters
+      run: |
+        for target in claude-code codex-cli cursor kimi-code opencode vscode warp antigravity; do
+          if [ ! -f "targets/${target}.md" ]; then
+            echo "Missing targets/${target}.md"
+            exit 1
+          fi
+          echo "✓ targets/${target}.md exists"
+        done

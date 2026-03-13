@@ -1,0 +1,146 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Validate YAML files against JSON Schema
+# Usage: bin/validate-schemas
+
+require "json"
+require "yaml"
+
+SCHEMA_DIR = File.join(__dir__, "..", "schemas")
+CORE_DIR = File.join(__dir__, "..", "core")
+
+# Simple JSON Schema validator (basic implementation)
+class SimpleSchemaValidator
+  def initialize(schema)
+    @schema = schema
+  end
+
+  def validate(data, path = "root")
+    errors = []
+
+    case @schema["type"]
+    when "object"
+      errors.concat(validate_object(data, path))
+    when "array"
+      errors.concat(validate_array(data, path))
+    when "string"
+      errors << "#{path} should be a string" unless data.is_a?(String)
+    when "integer"
+      errors << "#{path} should be an integer" unless data.is_a?(Integer)
+    end
+
+    # Check required fields
+    if @schema["required"] && data.is_a?(Hash)
+      @schema["required"].each do |field|
+        errors << "#{path} missing required field: #{field}" unless data.key?(field)
+      end
+    end
+
+    # Check enum
+    if @schema["enum"] && !@schema["enum"].include?(data)
+      errors << "#{path} should be one of: #{@schema["enum"].join(", ")}"
+    end
+
+    errors
+  end
+
+  private
+
+  def validate_object(data, path)
+    errors = []
+    return ["#{path} should be an object"] unless data.is_a?(Hash)
+
+    if @schema["properties"]
+      @schema["properties"].each do |key, subschema|
+        if data.key?(key)
+          validator = SimpleSchemaValidator.new(subschema)
+          errors.concat(validator.validate(data[key], "#{path}.#{key}"))
+        end
+      end
+    end
+
+    if @schema["patternProperties"]
+      @schema["patternProperties"].each do |pattern, subschema|
+        data.each do |key, value|
+          if key.match?(Regexp.new(pattern))
+            validator = SimpleSchemaValidator.new(subschema)
+            errors.concat(validator.validate(value, "#{path}.#{key}"))
+          end
+        end
+      end
+    end
+
+    errors
+  end
+
+  def validate_array(data, path)
+    errors = []
+    return ["#{path} should be an array"] unless data.is_a?(Array)
+
+    if @schema["items"]
+      data.each_with_index do |item, idx|
+        validator = SimpleSchemaValidator.new(@schema["items"])
+        errors.concat(validator.validate(item, "#{path}[#{idx}]"))
+      end
+    end
+
+    errors
+  end
+end
+
+def load_schema(name)
+  path = File.join(SCHEMA_DIR, name)
+  JSON.parse(File.read(path))
+rescue => e
+  puts "Error loading schema #{name}: #{e.message}"
+  nil
+end
+
+def validate_file(yaml_path, schema)
+  data = YAML.safe_load(File.read(yaml_path), aliases: true)
+  validator = SimpleSchemaValidator.new(schema)
+  errors = validator.validate(data)
+
+  if errors.empty?
+    puts "✓ #{yaml_path}"
+    true
+  else
+    puts "✗ #{yaml_path}"
+    errors.each { |e| puts "  - #{e}" }
+    false
+  end
+rescue => e
+  puts "✗ #{yaml_path}: #{e.message}"
+  false
+end
+
+# Main validation
+puts "🔍 Validating YAML files against schemas..."
+puts
+
+all_valid = true
+
+# Validate providers.yaml
+if schema = load_schema("providers.schema.json")
+  all_valid &= validate_file(File.join(CORE_DIR, "models", "providers.yaml"), schema)
+end
+
+# Validate skills registry
+if schema = load_schema("skills.schema.json")
+  all_valid &= validate_file(File.join(CORE_DIR, "skills", "registry.yaml"), schema)
+end
+
+# Validate security policy
+if schema = load_schema("security.schema.json")
+  all_valid &= validate_file(File.join(CORE_DIR, "security", "policy.yaml"), schema)
+end
+
+puts
+if all_valid
+  puts "✅ All schema validations passed."
+  exit 0
+else
+  puts "❌ Some schema validations failed."
+  exit 1
+end

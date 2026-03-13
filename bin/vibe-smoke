@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TMP_DIR="$(mktemp -d)"
+trap 'rm -rf "${TMP_DIR}"' EXIT
+
+# --- Unit tests ---
+bundle exec ruby -I"${REPO_ROOT}/lib:${REPO_ROOT}/test" -e "Dir.glob('${REPO_ROOT}/test/test_*.rb').each { |f| require File.expand_path(f) }" || { echo "FAIL: unit tests"; exit 1; }
+
+# --- Init command tests ---
+"${REPO_ROOT}/bin/vibe" init --help >/dev/null || { echo "FAIL: init --help"; exit 1; }
+"${REPO_ROOT}/bin/vibe" init --verify >/dev/null || { echo "FAIL: init --verify"; exit 1; }
+
+TARGETS=(antigravity claude-code codex-cli cursor kimi-code opencode vscode warp)
+
+"${REPO_ROOT}/bin/vibe" help >/dev/null
+TARGET_OUTPUT="$("${REPO_ROOT}/bin/vibe" targets)"
+for target in "${TARGETS[@]}"; do
+  grep -q "^${target}" <<< "${TARGET_OUTPUT}" || { echo "FAIL: missing target ${target} from bin/vibe targets"; exit 1; }
+done
+
+for target in "${TARGETS[@]}"; do
+  "${REPO_ROOT}/bin/vibe" build "${target}" --output "${TMP_DIR}/generated/${target}" >/dev/null
+  test -f "${TMP_DIR}/generated/${target}/.vibe/manifest.json"
+done
+
+"${REPO_ROOT}/bin/vibe" build claude-code --overlay "${REPO_ROOT}/examples/project-overlay.yaml" --output "${TMP_DIR}/generated/claude-overlay" >/dev/null
+"${REPO_ROOT}/bin/vibe" build codex-cli --overlay "${REPO_ROOT}/examples/python-uv-overlay.yaml" --output "${TMP_DIR}/generated/codex-overlay" >/dev/null
+"${REPO_ROOT}/bin/vibe" build cursor --overlay "${REPO_ROOT}/examples/node-nvm-overlay.yaml" --output "${TMP_DIR}/generated/cursor-overlay" >/dev/null
+
+ruby -rjson -e '
+manifest = JSON.parse(File.read(ARGV.fetch(0)))
+missing = manifest.fetch("skills").select { |skill| skill["target_support"].nil? || skill["target_support"].to_s.strip.empty? }
+unless missing.empty?
+  abort("warp target has missing skill support mappings: #{missing.map { |skill| skill["id"] }.join(", ")}")
+end
+' "${TMP_DIR}/generated/warp/.vibe/manifest.json"
+
+# --- Content verification ---
+
+# claude-code must include memory/
+test -d "${TMP_DIR}/generated/claude-code/memory" || { echo "FAIL: claude-code missing memory/"; exit 1; }
+
+# All non-claude targets must have behavior-policies.md
+for target in antigravity codex-cli cursor opencode vscode warp; do
+  target_slug="${target}"
+  test -f "${TMP_DIR}/generated/${target}/.vibe/${target_slug}/behavior-policies.md" || { echo "FAIL: ${target} missing behavior-policies.md"; exit 1; }
+done
+
+# VS Code must generate .vscode/settings.json
+test -f "${TMP_DIR}/generated/vscode/.vscode/settings.json" || { echo "FAIL: vscode missing .vscode/settings.json"; exit 1; }
+
+# Manifest should use relative source_repo
+ruby -rjson -e '
+manifest = JSON.parse(File.read(ARGV.fetch(0)))
+abort("manifest source_repo should be relative, got: #{manifest["source_repo"]}") unless manifest["source_repo"] == "."
+' "${TMP_DIR}/generated/warp/.vibe/manifest.json"
+
+# inspect --json schema_version must be 5
+inspect_json="$("${REPO_ROOT}/bin/vibe" inspect --json)"
+echo "${inspect_json}" | ruby -rjson -e '
+payload = JSON.parse(STDIN.read)
+abort("inspect schema_version should be 5, got: #{payload["schema_version"]}") unless payload["schema_version"] == 5
+'
+
+# Overlay build must record overlay in manifest
+ruby -rjson -e '
+manifest = JSON.parse(File.read(ARGV.fetch(0)))
+abort("overlay build should have overlay in manifest") if manifest["overlay"].nil?
+' "${TMP_DIR}/generated/claude-overlay/.vibe/manifest.json"
+
+# rm_rf safety: must refuse repo root as output
+if "${REPO_ROOT}/bin/vibe" build warp --output "${REPO_ROOT}" 2>/dev/null; then
+  echo "FAIL: rm_rf safety check did not block repo root as output"
+  exit 1
+fi
+
+echo "vibe smoke passed: ${TARGETS[*]} + overlay builds + warp skill support + content verification + init commands"

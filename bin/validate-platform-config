@@ -1,0 +1,148 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Simple Platform Configuration Validator
+# Validates config/platforms.yaml structure without external dependencies
+
+require 'yaml'
+require 'json'
+
+def validate_platform_config
+  schema_path = File.join(__dir__, '..', 'config', 'schemas', 'platform_config.schema.json')
+  config_path = File.join(__dir__, '..', 'config', 'platforms.yaml')
+
+  puts "🔍 Validating platform configuration..."
+  puts "   Schema: #{schema_path}"
+  puts "   Config: #{config_path}"
+  puts
+
+  # Load schema
+  schema = JSON.parse(File.read(schema_path))
+  puts "✅ Schema loaded successfully"
+  puts "   Schema version: #{schema['properties']['schema_version']['examples'].first}"
+  puts
+
+  # Load config
+  config = YAML.safe_load(File.read(config_path), aliases: true)
+  puts "✅ Configuration loaded successfully"
+  puts "   Platforms defined: #{config['platforms'].keys.size}"
+  puts
+
+  # Validation rules
+  errors = []
+
+  # Validate schema_version
+  unless config.key?('schema_version')
+    errors << "Missing required field: schema_version"
+  else
+    puts "✅ schema_version: #{config['schema_version']}"
+  end
+
+  # Validate platforms
+  unless config.key?('platforms')
+    errors << "Missing required field: platforms"
+  else
+    config['platforms'].each do |platform_id, platform_config|
+      puts "\n📋 Validating platform: #{platform_id}"
+
+      # Required fields
+      %w[target_id display_name output_paths doc_types].each do |field|
+        unless platform_config.key?(field)
+          errors << "Platform '#{platform_id}': missing required field '#{field}'"
+        end
+      end
+
+      # Validate target_id format
+      if platform_config['target_id'] && !platform_config['target_id'].match(/^[a-z0-9-]+$/)
+        errors << "Platform '#{platform_id}': target_id must match pattern ^[a-z0-9-]+$"
+      end
+
+      # Validate output_paths
+      if platform_config['output_paths']
+        %w[global project].each do |mode|
+          unless platform_config['output_paths'][mode]
+            errors << "Platform '#{platform_id}': missing output_paths.#{mode}"
+          else
+            %w[vibe_subdir entrypoint_name].each do |field|
+              unless platform_config['output_paths'][mode][field]
+                errors << "Platform '#{platform_id}': missing output_paths.#{mode}.#{field}"
+              end
+            end
+
+            # Validate vibe_subdir format
+            subdir = platform_config['output_paths'][mode]['vibe_subdir']
+            if subdir && !subdir.match(/^\.vibe\/[a-z0-9-]+$/)
+              errors << "Platform '#{platform_id}': vibe_subdir must match pattern ^\\.vibe/[a-z0-9-]+$"
+            end
+          end
+        end
+      end
+
+      # Validate doc_types
+      if platform_config['doc_types']
+        %w[global project].each do |mode|
+          unless platform_config['doc_types'][mode]
+            errors << "Platform '#{platform_id}': missing doc_types.#{mode}"
+          else
+            valid_types = %w[behavior general routing skills safety execution_policy execution task_routing test_standards workflow_notes]
+            platform_config['doc_types'][mode].each do |doc_type|
+              unless valid_types.include?(doc_type.to_s)
+                errors << "Platform '#{platform_id}': invalid doc_type '#{doc_type}' in #{mode} mode"
+              end
+            end
+          end
+        end
+      end
+
+      # Validate runtime_dirs
+      if platform_config['runtime_dirs']
+        valid_dirs = %w[rules docs skills agents commands memory]
+        platform_config['runtime_dirs'].each do |dir|
+          unless valid_dirs.include?(dir)
+            errors << "Platform '#{platform_id}': invalid runtime_dir '#{dir}'"
+          end
+        end
+      end
+
+      # Validate copy_mode
+      if platform_config['copy_mode'] && !%w[full minimal none].include?(platform_config['copy_mode'])
+        errors << "Platform '#{platform_id}': invalid copy_mode '#{platform_config['copy_mode']}'"
+      end
+
+      puts "   ✅ #{platform_id} structure valid"
+    end
+  end
+
+  # Validate aliases
+  if config['aliases']
+    puts "\n🔗 Validating aliases..."
+    config['aliases'].each do |alias_name, target|
+      unless config['platforms'].key?(target)
+        errors << "Alias '#{alias_name}' points to non-existent platform '#{target}'"
+      end
+      puts "   ✅ #{alias_name} → #{target}"
+    end
+  end
+
+  # Summary
+  puts "\n" + "=" * 60
+  if errors.empty?
+    puts "✅ Validation passed successfully!"
+    puts "\nSummary:"
+    puts "  Platforms: #{config['platforms'].keys.size}"
+    puts "  Aliases: #{config['aliases']&.keys.size || 0}"
+    puts "  Errors: 0"
+    return true
+  else
+    puts "❌ Validation failed!"
+    puts "\nErrors found (#{errors.size}):"
+    errors.each_with_index do |error, i|
+      puts "  #{i + 1}. #{error}"
+    end
+    return false
+  end
+end
+
+# Run validation
+success = validate_platform_config
+exit(success ? 0 : 1)

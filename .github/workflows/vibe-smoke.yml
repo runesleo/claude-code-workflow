@@ -1,0 +1,63 @@
+name: vibe-smoke
+
+on:
+  pull_request:
+    paths:
+      - "CLAUDE.md"
+      - "bin/vibe"
+      - "bin/vibe-smoke"
+      - "lib/**"
+      - "test/**"
+      - "core/**"
+      - "rules/**"
+      - "docs/**"
+      - "skills/**"
+      - "agents/**"
+      - "commands/**"
+      - "memory/**"
+      - "patterns.md"
+      - "examples/**"
+      - "README.md"
+      - ".github/workflows/vibe-smoke.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "CLAUDE.md"
+      - "bin/vibe"
+      - "bin/vibe-smoke"
+      - "lib/**"
+      - "test/**"
+      - "core/**"
+      - "rules/**"
+      - "docs/**"
+      - "skills/**"
+      - "agents/**"
+      - "commands/**"
+      - "memory/**"
+      - "patterns.md"
+      - "examples/**"
+      - "README.md"
+      - ".github/workflows/vibe-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+
+      - name: Validate generator syntax
+        run: ruby -c bin/vibe
+
+      - name: Run vibe smoke
+        run: ./bin/vibe-smoke

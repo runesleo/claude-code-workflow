@@ -1,0 +1,85 @@
+schema_version: 1
+name: test-coverage-standards
+description: Define minimum test requirements by task complexity and code type
+
+coverage_by_complexity:
+  trivial:
+    unit_coverage: 0
+    integration_coverage: 0
+    manual_verification: required
+    description: "No automated tests required for trivial changes"
+
+  standard:
+    unit_coverage: 80
+    integration_coverage: 0
+    manual_verification: required
+    description: "80% unit test coverage for standard tasks"
+
+  critical:
+    unit_coverage: 90
+    integration_coverage: 50
+    manual_verification: required
+    description: "90% unit + 50% integration coverage for critical tasks"
+
+critical_paths:
+  - path_pattern: "core/security/**"
+    coverage: 100
+    reason: "Security-sensitive code"
+
+  - path_pattern: "**/path_safety.rb"
+    coverage: 100
+    reason: "File system safety"
+
+  - function_pattern: ".*(delete|remove|destroy).*"
+    coverage: 100
+    reason: "Destructive operations"
+
+  - function_pattern: ".*(auth|credential|secret).*"
+    coverage: 100
+    reason: "Authentication/authorization"
+
+test_types:
+  unit:
+    description: "Test individual functions/methods in isolation"
+    required_for: ["standard", "critical"]
+    examples:
+      - "Test sanitize_directory_name with special characters"
+      - "Test paths_overlap with symlinks"
+
+  integration:
+    description: "Test multiple components working together"
+    required_for: ["critical"]
+    examples:
+      - "Test full CLI command flow"
+      - "Test file generation + validation"
+
+  edge_cases:
+    description: "Test boundary conditions and error cases"
+    required_for: ["standard", "critical"]
+    must_cover:
+      - "Empty input"
+      - "Invalid input"
+      - "Permission denied"
+      - "Resource not found"
+      - "Null/nil values"
+
+  manual:
+    description: "Manual verification steps"
+    required_for: ["trivial", "standard", "critical"]
+    examples:
+      - "Run command and verify output"
+      - "Check generated files"
+      - "Verify error messages"
+
+exemptions:
+  - type: "documentation_only"
+    coverage: 0
+    reason: "No code changes"
+
+  - type: "test_code_itself"
+    coverage: "optional"
+    reason: "Tests don't need tests"
+
+  - type: "generated_code"
+    coverage: "optional"
+    reason: "Auto-generated code"

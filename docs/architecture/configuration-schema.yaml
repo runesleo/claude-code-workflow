@@ -1,0 +1,298 @@
+# Target Renderer Configuration Schema
+# Defines the declarative configuration format for platform renderers
+
+schema_version: 1
+
+# -----------------------------------------------------------------------------
+# Root Configuration Object
+# -----------------------------------------------------------------------------
+target_config:
+  type: object
+  required: [target_id, display_name, output_paths]
+  properties:
+    schema_version:
+      type: integer
+      minimum: 1
+      maximum: 1
+      description: Schema version for this configuration
+
+    target_id:
+      type: string
+      pattern: "^[a-z][a-z0-9-]*$"
+      description: Unique identifier for this target (e.g., "claude-code")
+
+    display_name:
+      type: string
+      description: Human-readable name (e.g., "Claude Code")
+
+    description:
+      type: string
+      description: Brief description of this target's purpose
+
+    # -------------------------------------------------------------------------
+    # Output Path Configuration
+    # -------------------------------------------------------------------------
+    output_paths:
+      type: object
+      required: [global]
+      properties:
+        global:
+          $ref: "#/definitions/output_path_config"
+          description: Paths for global (user-level) installation
+        project:
+          $ref: "#/definitions/output_path_config"
+          description: Paths for project-level installation
+
+    # -------------------------------------------------------------------------
+    # Documentation Type Configuration
+    # -------------------------------------------------------------------------
+    doc_types:
+      type: object
+      properties:
+        global:
+          type: array
+          items:
+            type: string
+            enum: &doc_types
+              - behavior
+              - routing
+              - safety
+              - skills
+              - task_routing
+              - test_standards
+              - execution_policy
+              - execution
+              - general
+              - workflow_notes
+          description: Doc types to generate in global mode
+        project:
+          type: array
+          items:
+            type: string
+            enum: *doc_types
+          description: Doc types to generate in project mode
+
+    # -------------------------------------------------------------------------
+    # Entrypoint Configuration
+    # -------------------------------------------------------------------------
+    entrypoint:
+      type: object
+      properties:
+        global:
+          $ref: "#/definitions/entrypoint_config"
+        project:
+          $ref: "#/definitions/entrypoint_config"
+
+    # -------------------------------------------------------------------------
+    # Native Configuration
+    # -------------------------------------------------------------------------
+    native_config:
+      type: object
+      required: [type, template]
+      properties:
+        type:
+          type: string
+          enum: [json, yaml, toml]
+          description: Configuration file format
+        template:
+          type: string
+          description: Path to template file (relative to templates/)
+        schema:
+          type: string
+          description: Optional JSON schema for validation
+        project_template:
+          type: string
+          description: Template for project mode (if different from global)
+        project_only:
+          type: boolean
+          default: false
+          description: Whether this config is only generated in project mode
+        global_only:
+          type: boolean
+          default: false
+          description: Whether this config is only generated in global mode
+
+    # -------------------------------------------------------------------------
+    # File Operations
+    # -------------------------------------------------------------------------
+    file_operations:
+      type: object
+      properties:
+        global:
+          type: array
+          items:
+            $ref: "#/definitions/file_operation"
+        project:
+          type: array
+          items:
+            $ref: "#/definitions/file_operation"
+
+    # -------------------------------------------------------------------------
+    # Integration Configuration
+    # -------------------------------------------------------------------------
+    integrations:
+      type: object
+      additionalProperties:
+        $ref: "#/definitions/integration_config"
+      description: Per-integration rendering configuration
+
+    # -------------------------------------------------------------------------
+    # Template Variables
+    # -------------------------------------------------------------------------
+    template_variables:
+      type: object
+      additionalProperties: true
+      description: Static variables available to all templates for this target
+
+# -----------------------------------------------------------------------------
+# Definitions
+# -----------------------------------------------------------------------------
+definitions:
+  output_path_config:
+    type: object
+    required: [base]
+    properties:
+      base:
+        type: string
+        description: Base output directory (relative to output_root)
+      support_dir:
+        type: string
+        description: Directory for supporting documentation (.vibe/{target})
+      native_config:
+        type: string
+        description: Path for native config file (settings.json, etc.)
+      rules_dir:
+        type: string
+        description: Directory for rule files (.cursor/rules)
+      skills_dir:
+        type: string
+        description: Directory for skill files (.agents/skills)
+
+  entrypoint_config:
+    type: object
+    required: [filename, template]
+    properties:
+      filename:
+        type: string
+        description: Output filename (CLAUDE.md, AGENTS.md, etc.)
+      template:
+        type: string
+        description: Path to template file
+      intent_template:
+        type: string
+        description: Brief description of this file's purpose
+
+  file_operation:
+    type: object
+    required: [type]
+    properties:
+      type:
+        type: string
+        enum: [copy_tree, copy_file, conditional_copy, write_file, mkdir]
+      source:
+        oneOf:
+          - type: string
+          - type: array
+            items: { type: string }
+        description: Source path(s) relative to repo_root
+      destination:
+        type: string
+        description: Destination path relative to output_root
+      condition:
+        type: string
+        enum:
+          - superpowers_installed
+          - rtk_installed
+          - always
+        description: Condition for executing this operation
+      transform:
+        type: string
+        description: Optional transform to apply (e.g., append_superpowers_section)
+
+  integration_config:
+    type: object
+    properties:
+      header_style:
+        type: string
+        enum: [standalone, nested, none]
+        default: nested
+        description: How to format the integration header
+      show_benefits:
+        type: boolean
+        default: false
+        description: Whether to show benefits section
+      show_full_details:
+        type: boolean
+        default: false
+        description: Whether to show full integration details
+      show_version:
+        type: boolean
+        default: true
+        description: Whether to show installed version
+      custom_template:
+        type: string
+        description: Override default integration template
+      enabled:
+        type: boolean
+        default: true
+        description: Whether this integration is enabled for this target
+
+# -----------------------------------------------------------------------------
+# Example Configuration (Claude Code)
+# -----------------------------------------------------------------------------
+example:
+  schema_version: 1
+  target_id: claude-code
+  display_name: Claude Code
+  description: Anthropic's official CLI for Claude
+
+  output_paths:
+    global:
+      base: "."
+      support_dir: ".vibe/claude-code"
+      native_config: "settings.json"
+    project:
+      base: "."
+      support_dir: ".vibe/claude-code"
+
+  doc_types:
+    global: [behavior, safety, task_routing, test_standards]
+    project: [behavior, safety, task_routing, test_standards]
+
+  entrypoint:
+    global:
+      filename: "CLAUDE.md"
+      template: "targets/claude-code/global.md.erb"
+      intent_template: "Keep repository files as the SSOT..."
+    project:
+      filename: "CLAUDE.md"
+      template: "targets/claude-code/project.md.erb"
+
+  native_config:
+    type: json
+    template: "targets/claude-code/settings.json.erb"
+    schema: "schemas/claude-code-settings.schema.json"
+
+  file_operations:
+    global:
+      - type: copy_tree
+        source: [rules, docs, skills, agents, commands, memory]
+        destination: "."
+      - type: conditional_copy
+        condition: superpowers_installed
+        source: "rules/skill-triggers.md"
+        destination: "rules/skill-triggers.md"
+        transform: append_superpowers_section
+
+  integrations:
+    superpowers:
+      header_style: nested
+      show_full_details: false
+    rtk:
+      header_style: nested
+      show_version: true
+
+  template_variables:
+    config_dir: "~/.claude"
+    supports_hooks: true
+    supports_skills: true

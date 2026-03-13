@@ -1,0 +1,20 @@
+schema_version: 1
+name: python-uv-preferred
+description: Example overlay for Python projects that prefer uv-managed environments and commands.
+
+profile:
+  note_append:
+    - For Python work, prefer uv-managed project environments and uv-based commands over ad hoc global interpreters.
+
+policies:
+  append:
+    - id: python-uv-environment-ssot
+      category: toolchain
+      enforcement: recommended
+      target_render_group: always_on
+      summary: For Python projects, treat `pyproject.toml`, `uv.lock`, and the project `.venv` workflow as the environment SSOT.
+    - id: python-uv-command-preference
+      category: toolchain
+      enforcement: recommended
+      target_render_group: always_on
+      summary: Prefer `uv run`, `uv sync`, and `uv add` for project commands and dependency changes unless repository docs explicitly require another workflow.

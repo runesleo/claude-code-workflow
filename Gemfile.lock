@@ -1,0 +1,24 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    docile (1.4.1)
+    minitest (5.25.4)
+    simplecov (0.22.0)
+      docile (~> 1.1)
+      simplecov-html (~> 0.11)
+      simplecov_json_formatter (~> 0.1)
+    simplecov-html (0.13.2)
+    simplecov_json_formatter (0.1.4)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  minitest (~> 5.20)
+  simplecov (~> 0.22)
+
+RUBY VERSION
+   ruby 2.6.10p210
+
+BUNDLED WITH
+   1.17.2

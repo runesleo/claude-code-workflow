@@ -1,0 +1,220 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://claude-code-workflow.example.com/schemas/platform_config.schema.json",
+  "title": "Platform Configuration Schema",
+  "description": "Schema for validating platform configuration in claude-code-workflow",
+  "type": "object",
+  "required": ["schema_version", "platforms"],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "description": "Schema version number",
+      "minimum": 1,
+      "examples": [1]
+    },
+    "platforms": {
+      "type": "object",
+      "description": "Platform configurations",
+      "additionalProperties": {
+        "$ref": "#/definitions/platform"
+      },
+      "minProperties": 1
+    },
+    "aliases": {
+      "type": "object",
+      "description": "Platform aliases for user convenience",
+      "additionalProperties": {
+        "type": "string",
+        "description": "Maps alias to platform ID"
+      }
+    }
+  },
+  "definitions": {
+    "platform": {
+      "type": "object",
+      "required": ["target_id", "display_name", "output_paths", "doc_types"],
+      "properties": {
+        "target_id": {
+          "type": "string",
+          "description": "Unique platform identifier",
+          "pattern": "^[a-z0-9-]+$",
+          "examples": ["claude-code", "opencode", "cursor"]
+        },
+        "display_name": {
+          "type": "string",
+          "description": "Human-readable platform name",
+          "minLength": 1,
+          "examples": ["Claude Code", "OpenCode", "Cursor IDE"]
+        },
+        "description": {
+          "type": "string",
+          "description": "Platform description",
+          "minLength": 1,
+          "examples": ["Full-featured Claude Code workflow configuration"]
+        },
+        "output_paths": {
+          "type": "object",
+          "description": "Output path configuration for different modes",
+          "required": ["global", "project"],
+          "properties": {
+            "global": {
+              "$ref": "#/definitions/output_path_config"
+            },
+            "project": {
+              "$ref": "#/definitions/output_path_config"
+            }
+          },
+          "additionalProperties": false
+        },
+        "doc_types": {
+          "type": "object",
+          "description": "Document types to generate for different modes",
+          "required": ["global", "project"],
+          "properties": {
+            "global": {
+              "type": "array",
+              "description": "Document types for global mode",
+              "items": {
+                "$ref": "#/definitions/doc_type"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "project": {
+              "type": "array",
+              "description": "Document types for project mode",
+              "items": {
+                "$ref": "#/definitions/doc_type"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          },
+          "additionalProperties": false
+        },
+        "native_config": {
+          "type": "object",
+          "description": "Native configuration generation for different modes",
+          "properties": {
+            "global": {
+              "$ref": "#/definitions/native_config_item"
+            },
+            "project": {
+              "$ref": "#/definitions/native_config_item"
+            }
+          },
+          "additionalProperties": false
+        },
+        "runtime_dirs": {
+          "type": "array",
+          "description": "Runtime directories to copy",
+          "items": {
+            "type": "string",
+            "enum": ["rules", "docs", "skills", "agents", "commands", "memory"]
+          },
+          "uniqueItems": true,
+          "default": []
+        },
+        "copy_mode": {
+          "type": "string",
+          "description": "How to copy runtime directories",
+          "enum": ["full", "minimal", "none"],
+          "default": "minimal"
+        },
+        "special_handling": {
+          "type": "object",
+          "description": "Special handling flags for complex platforms",
+          "properties": {
+            "cursor_rules": {
+              "type": "boolean",
+              "description": "Generate .cursor/rules/ directory",
+              "default": false
+            },
+            "skill_generation": {
+              "type": "boolean",
+              "description": "Generate .agents/skills/ directory with SKILL.md files",
+              "default": false
+            },
+            "vscode_settings": {
+              "type": "boolean",
+              "description": "Generate VS Code settings.json",
+              "default": false
+            },
+            "workflow_notes": {
+              "type": "boolean",
+              "description": "Generate workflow notes documentation",
+              "default": false
+            },
+            "multi_agent": {
+              "type": "boolean",
+              "description": "Multi-agent platform configuration",
+              "default": false
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "output_path_config": {
+      "type": "object",
+      "required": ["vibe_subdir", "entrypoint_name"],
+      "properties": {
+        "vibe_subdir": {
+          "type": "string",
+          "description": "Subdirectory under .vibe/ for generated files",
+          "pattern": "^\\.vibe/[a-z0-9-]+$",
+          "examples": [".vibe/claude-code", ".vibe/opencode"]
+        },
+        "entrypoint_name": {
+          "type": "string",
+          "description": "Name of the entrypoint file",
+          "enum": ["CLAUDE.md", "AGENTS.md", "KIMI.md", "WARP.md"],
+          "examples": ["CLAUDE.md", "AGENTS.md"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "doc_type": {
+      "type": "string",
+      "description": "Type of documentation to generate",
+      "enum": [
+        "behavior",
+        "general",
+        "routing",
+        "skills",
+        "safety",
+        "execution_policy",
+        "execution",
+        "task_routing",
+        "test_standards",
+        "workflow_notes"
+      ]
+    },
+    "native_config_item": {
+      "type": "object",
+      "description": "Native configuration item",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Configuration file type",
+          "enum": ["json", "yaml", "toml"],
+          "default": "json"
+        },
+        "filename": {
+          "type": "string",
+          "description": "Configuration filename",
+          "pattern": "^[a-zA-Z0-9_./-]+$",
+          "examples": ["settings.json", "opencode.json", ".cursor/cli.json"]
+        },
+        "template": {
+          "type": "string",
+          "description": "ERB template path (relative to templates/)",
+          "pattern": "^[a-z0-9-/]+\\.erb$",
+          "examples": ["claude-code/settings.json.erb", "opencode/opencode.json.erb"]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(**)",
+      "Write(**)",
+      "Shell(ls)",
+      "Shell(cat)",
+      "Shell(grep)",
+      "Shell(rg)",
+      "Shell(find)",
+      "Shell(pwd)"
+    ],
+    "deny": [
+      "Shell(rm)",
+      "Shell(shred)",
+      "Read(.env*)",
+      "Read(secrets/**)",
+      "Read(**/*.key)",
+      "Write(**/.env*)",
+      "Write(**/*.key)"
+    ]
+  }
+}

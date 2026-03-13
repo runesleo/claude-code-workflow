@@ -1,0 +1,80 @@
+schema_version: 1
+status: phase-6-buildable
+
+legacy_labels:
+  Opus: critical_reasoner
+  Sonnet: workhorse_coder
+  Haiku: fast_router
+  Codex: independent_verifier
+  Local: cheap_local
+
+tiers:
+  critical_reasoner:
+    description: Highest-assurance reasoning for critical logic, security-sensitive changes, secrets, and architecture decisions.
+    route_when:
+      - Critical business logic or financial logic
+      - Credential, auth, secret, or key-management flows
+      - Data model, API contract, or architecture decisions
+      - Security reviews and risk assessment
+    avoid_when:
+      - Docs-only edits
+      - Repetitive mechanical cleanup
+    default_role: maker_or_final_decider
+
+  workhorse_coder:
+    description: Default daily coding tier for most implementation, analysis, and refactoring work.
+    route_when:
+      - Standard feature work
+      - Routine debugging after task framing is clear
+      - Non-critical config, docs, UI, and glue code
+      - Most cross-file implementation tasks
+    avoid_when:
+      - Highest-risk business logic or secrets
+      - Trivial lookups that only need fast routing
+    default_role: primary_executor
+
+  fast_router:
+    description: Cheap and fast tier for exploration, triage, and low-stakes subprocess work.
+    route_when:
+      - Codebase exploration
+      - Quick questions and lookups
+      - Lightweight classification or filtering
+      - Subtasks with low downside if wrong
+    avoid_when:
+      - Final decisions
+      - Cross-file edits with broad blast radius
+    default_role: scout_or_triage
+
+  independent_verifier:
+    description: Second-model verification tier used to challenge important conclusions from a different reasoning path or model family.
+    route_when:
+      - Critical reviews
+      - Complex bug diagnosis cross-checks
+      - Architecture review
+      - Important content or decision verification
+    avoid_when:
+      - Single-source trivial changes
+      - Work that does not justify multi-model cost
+    default_role: checker
+
+  cheap_local:
+    description: Local or near-zero-cost tier for offline, high-volume, and low-risk tasks.
+    route_when:
+      - Commit message generation
+      - Simple formatting, translation, or classification
+      - Offline fallback
+      - Bulk non-critical tasks
+    avoid_when:
+      - Long-context reasoning
+      - Security-sensitive or high-assurance tasks
+    default_role: low_cost_executor
+
+routing_defaults:
+  direct_handle_max_changed_lines: 50
+  outsource_refactor_min_changed_lines: 100
+  planning_file_threshold: 5
+  cross_verify_default_for:
+    - critical_business_analysis
+    - architecture_design
+    - risk_assessment
+    - complex_bug_diagnosis

@@ -1,0 +1,76 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://claude-code-workflow/schemas/providers.schema.json",
+  "title": "Providers Configuration",
+  "description": "Schema for core/models/providers.yaml",
+  "type": "object",
+  "required": ["schema_version", "profiles"],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "status": {
+      "type": "string"
+    },
+    "profiles": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-z0-9-]*$": {
+          "$ref": "#/definitions/profile"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "definitions": {
+    "profile": {
+      "type": "object",
+      "required": ["target", "maturity", "mapping"],
+      "properties": {
+        "target": {
+          "type": "string"
+        },
+        "maturity": {
+          "type": "string",
+          "enum": ["active", "planned", "experimental", "exploratory"]
+        },
+        "current_role": {
+          "type": "string"
+        },
+        "mapping": {
+          "$ref": "#/definitions/mapping"
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "mapping": {
+      "type": "object",
+      "required": ["critical_reasoner", "workhorse_coder", "fast_router", "independent_verifier", "cheap_local"],
+      "properties": {
+        "critical_reasoner": {
+          "type": "string"
+        },
+        "workhorse_coder": {
+          "type": "string"
+        },
+        "fast_router": {
+          "type": "string"
+        },
+        "independent_verifier": {
+          "type": "string"
+        },
+        "cheap_local": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

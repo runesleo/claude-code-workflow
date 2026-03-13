@@ -1,0 +1,82 @@
+# Recommended external integrations for Claude Code Workflow
+# This file defines which integrations to suggest during `bin/vibe init --suggest`
+#
+# Schema:
+#   categories: Map of category name to integration list
+#   Each integration:
+#     - name: Integration identifier (must match filename in core/integrations/)
+#     - priority: P1 (essential) | P2 (recommended) | P3 (optional)
+#     - reason: Short explanation of why this is recommended
+#     - min_version: (optional) Minimum version requirement
+#     - platforms: (optional) List of platforms where this applies (default: all)
+
+schema_version: 1
+
+categories:
+  # External skill packs that extend built-in workflows
+  skill_packs:
+    - name: superpowers
+      priority: P1
+      reason: Advanced workflow skills (TDD, brainstorming, code review, etc.)
+      platforms: [claude-code, cursor, codex-cli, opencode]
+      benefits_summary: 7 additional skills for design, testing, and review workflows
+
+  # System-level tools that optimize the development experience
+  system_tools:
+    - name: rtk
+      priority: P2
+      reason: Token usage optimization and cost reduction
+      platforms: [claude-code]
+      benefits_summary: Reduces token consumption by 30-50% through intelligent caching
+
+  # Future categories (examples for extensibility)
+  # linters:
+  #   - name: rubocop
+  #     priority: P3
+  #     reason: Ruby code style enforcement
+  #     min_version: "1.50.0"
+  #
+  # formatters:
+  #   - name: prettier
+  #     priority: P3
+  #     reason: Consistent code formatting
+  #
+  # ai_models:
+  #   - name: local-llm
+  #     priority: P3
+  #     reason: Privacy-focused local model support
+
+# Display order for categories (top to bottom)
+category_order:
+  - skill_packs
+  - system_tools
+  # - linters
+  # - formatters
+  # - ai_models
+
+# Category metadata for display
+category_metadata:
+  skill_packs:
+    label: "Skill Packs"
+    description: "External skill collections that extend built-in workflows"
+    icon: "📦"
+
+  system_tools:
+    label: "System Tools"
+    description: "Command-line tools that optimize the development experience"
+    icon: "🔧"
+
+  # linters:
+  #   label: "Linters"
+  #   description: "Code quality and style enforcement tools"
+  #   icon: "✨"
+  #
+  # formatters:
+  #   label: "Formatters"
+  #   description: "Automatic code formatting tools"
+  #   icon: "🎨"
+  #
+  # ai_models:
+  #   label: "AI Models"
+  #   description: "Alternative or supplementary AI model integrations"
+  #   icon: "🤖"

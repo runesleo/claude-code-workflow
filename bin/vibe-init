@@ -1,0 +1,72 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "fileutils"
+require "json"
+require "optparse"
+require "yaml"
+require_relative "../lib/vibe/utils"
+require_relative "../lib/vibe/external_tools"
+require_relative "../lib/vibe/init_support"
+
+class VibeInitCLI
+  include Vibe::Utils
+  include Vibe::ExternalTools
+  include Vibe::InitSupport
+
+  def initialize(repo_root)
+    @repo_root = repo_root
+  end
+
+  def run(argv)
+    options = parse_options(argv)
+
+    if options[:verify]
+      run_init(verify_only: true)
+    else
+      run_init(verify_only: false)
+    end
+  end
+
+  private
+
+  def parse_options(argv)
+    options = { verify: false }
+
+    parser = OptionParser.new do |opts|
+      opts.banner = "Usage: bin/vibe-init [--verify]"
+      opts.separator ""
+      opts.separator "Initialize external tool integrations (superpowers, rtk)"
+      opts.separator ""
+      opts.separator "Options:"
+
+      opts.on("--verify", "Verify existing integrations without installing") do
+        options[:verify] = true
+      end
+
+      opts.on("-h", "--help", "Show this help message") do
+        puts opts
+        exit 0
+      end
+    end
+
+    parser.parse!(argv)
+    options
+  rescue OptionParser::InvalidOption => e
+    abort "Error: #{e.message}\n\n#{parser}"
+  end
+end
+
+if __FILE__ == $PROGRAM_NAME
+  begin
+    repo_root = File.expand_path("..", __dir__)
+    cli = VibeInitCLI.new(repo_root)
+    cli.run(ARGV)
+  rescue Vibe::ValidationError, Vibe::ConfigurationError, Vibe::ExternalToolError => e
+    warn "Error: #{e.message}"
+    exit 1
+  rescue Vibe::Error => e
+    warn "Vibe error: #{e.message}"
+    exit 1
+  end
+end

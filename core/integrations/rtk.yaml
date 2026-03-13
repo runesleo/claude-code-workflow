@@ -1,0 +1,136 @@
+schema_version: 1
+name: rtk
+type: cli_tool
+source: https://github.com/rtk-ai/rtk
+description: CLI proxy tool that reduces LLM token consumption by 60-90% on common development commands
+
+installation_methods:
+  homebrew:
+    command: brew install rtk
+    platforms:
+      - macos
+      - linux
+    notes: Recommended for macOS and Linux users with Homebrew
+
+  cargo:
+    command: cargo install --git https://github.com/rtk-ai/rtk
+    platforms:
+      - macos
+      - linux
+      - windows
+    notes: Build from source using Rust toolchain
+
+  manual:
+    url: https://github.com/rtk-ai/rtk/releases
+    notes: Download pre-built binaries from GitHub releases, place `rtk` on your PATH, then run `rtk init --global`
+
+detection:
+  binary: rtk
+  version_command: rtk --version
+
+  hook_check:
+    file: ~/.claude/settings.json
+    path: hooks.bashCommandPrepare
+    contains: rtk
+    notes: Verifies that rtk hook is configured in Claude Code settings
+
+initialization:
+  command: rtk init --global
+  effect: Modifies ~/.claude/settings.json to add bashCommandPrepare hook
+
+  hook_content:
+    type: bashCommandPrepare
+    purpose: Transparently rewrite commands (e.g., git status → rtk git status)
+
+  verification:
+    - Check ~/.claude/settings.json for hooks.bashCommandPrepare
+    - Run a test command and verify rtk intercepts it
+
+integration:
+  auto_enable: ask_user
+  priority: P1
+
+  targets:
+    claude-code:
+      method: hook
+      config_file: ~/.claude/settings.json
+      auto_init: true
+
+    codex-cli:
+      method: manual_wrapper
+      notes: Manually prefix commands with rtk
+
+    cursor:
+      method: not_supported
+      notes: Cursor does not support command hooks
+
+    opencode:
+      method: manual_wrapper
+      notes: Manually prefix commands with rtk
+
+    warp:
+      method: manual_wrapper
+      notes: Manually prefix commands with rtk
+
+features:
+  - name: Smart filtering
+    description: Removes noise from command outputs
+
+  - name: Grouping
+    description: Groups similar output lines
+
+  - name: Truncation
+    description: Intelligently truncates verbose outputs
+
+  - name: Deduplication
+    description: Removes duplicate information
+
+benefits:
+  - 60-90% token reduction on command outputs
+  - Less than 10ms overhead per command
+  - Transparent integration via hooks (Claude Code)
+  - Zero dependencies, single binary
+  - Works with git, npm, cargo, pytest, and more
+
+examples:
+  - command: git push
+    before_tokens: ~200
+    after_tokens: ~10
+    output: "ok main"
+
+  - command: npm test
+    before_tokens: ~500
+    after_tokens: ~50
+    output: Shows only failures and summary
+
+  - command: git status
+    before_tokens: ~150
+    after_tokens: ~30
+    output: Compact status with essential info
+
+compatibility:
+  min_rtk_version: "0.1.0"
+  tested_versions:
+    - "0.x.x"
+
+  supported_commands:
+    - git
+    - npm
+    - yarn
+    - pnpm
+    - cargo
+    - pytest
+    - jest
+    - vitest
+    - rspec
+    - go test
+
+troubleshooting:
+  - issue: Hook not working
+    solution: Run 'rtk init --global' again and restart Claude Code
+
+  - issue: Commands not being intercepted
+    solution: Check ~/.claude/settings.json for hooks.bashCommandPrepare entry
+
+  - issue: rtk binary not found
+    solution: Ensure rtk is in PATH, run 'which rtk' to verify

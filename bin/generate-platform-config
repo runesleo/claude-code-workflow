@@ -1,0 +1,132 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Platform Configuration Generator
+# Generates platform configuration from template
+
+require 'erb'
+require 'yaml'
+require 'optparse'
+
+def generate_platform_config(options)
+  template_path = File.join(__dir__, '..', 'templates', 'platform_config.yml.erb')
+  template = ERB.new(File.read(template_path), trim_mode: '-')
+  
+  # Prepare variables
+  platform_id = options[:platform_id]
+  platform_name = options[:platform_name] || platform_id.split('-').map(&:capitalize).join(' ')
+  description = options[:description] || "#{platform_name} workflow configuration"
+  entrypoint_name = options[:entrypoint_name] || "AGENTS.md"
+  
+  doc_types = options[:doc_types] || %w[behavior safety task_routing test_standards]
+  runtime_dirs = options[:runtime_dirs] || []
+  copy_mode = options[:copy_mode] || "minimal"
+  has_native_config = options[:has_native_config] || false
+  native_config_filename = options[:native_config_filename]
+  special_handling = options[:special_handling] || {}
+  
+  # Render template
+  config = template.result_with_hash(
+    platform_id: platform_id,
+    platform_name: platform_name,
+    description: description,
+    entrypoint_name: entrypoint_name,
+    doc_types: doc_types,
+    runtime_dirs: runtime_dirs,
+    copy_mode: copy_mode,
+    has_native_config: has_native_config,
+    native_config_filename: native_config_filename,
+    special_handling: special_handling
+  )
+  
+  config
+end
+
+def parse_options
+  options = {
+    doc_types: %w[behavior safety task_routing test_standards],
+    runtime_dirs: [],
+    copy_mode: "minimal",
+    special_handling: {}
+  }
+  
+  parser = OptionParser.new do |opts|
+    opts.banner = "Usage: #{$0} [options] PLATFORM_ID"
+    opts.separator ""
+    opts.separator "Generate platform configuration for config/platforms.yaml"
+    opts.separator ""
+    opts.separator "Required:"
+    opts.separator "  PLATFORM_ID              Platform identifier (e.g., cursor, vscode)"
+    opts.separator ""
+    opts.separator "Options:"
+    
+    opts.on("-n", "--name NAME", "Platform display name") do |name|
+      options[:platform_name] = name
+    end
+    
+    opts.on("-d", "--description DESC", "Platform description") do |desc|
+      options[:description] = desc
+    end
+    
+    opts.on("-e", "--entrypoint FILE", "Entrypoint filename (default: AGENTS.md)") do |file|
+      options[:entrypoint_name] = file
+    end
+    
+    opts.on("--doc-types TYPES", Array, "Document types (comma-separated)") do |types|
+      options[:doc_types] = types
+    end
+    
+    opts.on("--runtime-dirs DIRS", Array, "Runtime directories (comma-separated)") do |dirs|
+      options[:runtime_dirs] = dirs
+    end
+    
+    opts.on("--copy-mode MODE", %w[full minimal none], "Copy mode (full/minimal/none)") do |mode|
+      options[:copy_mode] = mode
+    end
+    
+    opts.on("--native-config FILE", "Generate native config with filename") do |file|
+      options[:has_native_config] = true
+      options[:native_config_filename] = file
+    end
+    
+    opts.on("--special HANDLING", "Special handling flags (JSON format)") do |json|
+      options[:special_handling] = JSON.parse(json)
+    end
+    
+    opts.on("-o", "--output FILE", "Output file (default: stdout)") do |file|
+      options[:output] = file
+    end
+    
+    opts.on_tail("-h", "--help", "Show this message") do
+      puts opts
+      exit
+    end
+    
+    opts.on_tail("-v", "--version", "Show version") do
+      puts "Platform Config Generator v1.0.0"
+      exit
+    end
+  end
+  
+  parser.parse!
+  
+  if ARGV.empty?
+    puts "Error: PLATFORM_ID is required"
+    puts parser
+    exit 1
+  end
+  
+  options[:platform_id] = ARGV.first
+  options
+end
+
+# Main
+options = parse_options
+config = generate_platform_config(options)
+
+if options[:output]
+  File.write(options[:output], config)
+  puts "✅ Configuration written to #{options[:output]}"
+else
+  puts config
+end
