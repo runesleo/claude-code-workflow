@@ -224,6 +224,12 @@ This template draws from:
 
 MIT — Use it, fork it, make it yours.
 
----
+## About the author
 
-Built by [@runes_leo](https://x.com/runes_leo) — more AI tools at [leolabs.me](https://leolabs.me) — [Telegram Community](https://t.me/runesgang)
+*Leo ([@runes_leo](https://x.com/runes_leo)) — AI × Crypto independent builder. Trading on [Polymarket](https://polymarket.com/?r=githuball&via=runes-leo&utm_source=github&utm_content=claude-code-workflow), building data and trading systems with Claude Code and Codex.*
+
+[leolabs.me](https://leolabs.me) — writing · community · open-source tools · indie projects · all platforms.
+
+[X Subscription](https://x.com/runes_leo/creator-subscriptions/subscribe) — paid content weekly, or just buy me a coffee 😁
+
+*Learn in public, Build in public.*
