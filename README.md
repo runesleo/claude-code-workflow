@@ -1,8 +1,10 @@
 # Claude Code Workflow
 
-A battle-tested workflow template for Claude Code — memory management, context engineering, and task routing from 3 months of daily usage across multiple projects.
+A battle-tested workflow template for Claude Code — memory management, context engineering, and task routing distilled from daily usage across multiple projects.
 
 **Not a tutorial. Not a toy config. A production workflow that actually ships.**
+
+> **What's new in v2**: ~50 days of real-world iteration since v1. Key additions: a PreToolUse Hook layer (rules enforced at tool-call time, not just at session start), Plan Gating for complex tasks, a mandatory Subagent dispatch checklist (backed by 30 days of routing data), and 10 P0 rules rewritten as event-driven hard rules instead of abstract principles. Full notes → [CHANGELOG.md](./CHANGELOG.md).
 
 ## Why This Exists
 
