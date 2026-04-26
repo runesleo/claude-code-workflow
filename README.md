@@ -1,237 +1,196 @@
-# Claude Code Workflow
+# Claude Code 工作流
 
-A battle-tested workflow template for Claude Code — memory management, context engineering, and task routing distilled from daily usage across multiple projects.
+[English](README.en.md) | **中文**
 
-**Not a tutorial. Not a toy config. A production workflow that actually ships.**
+从多项目日常使用中提炼的 Claude Code 工作流模板——涵盖记忆管理、上下文工程与任务路由。
 
-> **What's new in v2**: ~50 days of real-world iteration since v1. Key additions: a PreToolUse Hook layer (rules enforced at tool-call time, not just at session start), Plan Gating for complex tasks, a mandatory Subagent dispatch checklist (backed by 30 days of routing data), and 10 P0 rules rewritten as event-driven hard rules instead of abstract principles. Full notes → [CHANGELOG.md](./CHANGELOG.md).
+**不是教程、不是玩具配置。这是一套能真正上线交付的产线工作流。**
 
-## Why This Exists
+> **v2 新特性**：相对 v1 已迭代约 50 天。新增：PreToolUse Hook 层（在工具调用时强制执行规则，而不仅是会话开头）、复杂任务的计划门禁、强制子 Agent 分派检查清单（基于 30 天路由数据），以及将 10 条 P0 规则改写为事件驱动硬规则。完整说明见 [CHANGELOG.md](./CHANGELOG.md)。
 
-Claude Code is powerful out of the box, but without structure it becomes a smart assistant that forgets everything between sessions. This template turns it into a **persistent, self-improving development partner** that:
+## 为什么需要它
 
-- Remembers past mistakes and applies lessons automatically
-- Manages context across long sessions without drifting
-- Routes tasks to the right model tier (Opus/Sonnet/Haiku/Codex/Local)
-- Forces verification before claiming completion (no more "should work now")
-- Auto-saves progress so closing the window doesn't lose work
+Claude Code 本身很强，但没有结构时，很容易变成「会话一断就忘光」的聪明助手。本模板把它变成**可持续、会自我改进的开发搭档**，能：
 
-## Architecture: Three Layers
+- 记住过去的错误并自动应用教训
+- 在长会话中管理上下文、减少漂移
+- 将任务路由到合适档位（Opus / Sonnet / Haiku / Codex / Local）
+- 在宣称完成前强制验证（告别「应该好了吧」）
+- 自动保存进度，关窗也不丢活
+
+## 架构：三层
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  Layer 0: Auto-loaded Rules (always in context)         │
+│  Layer 0: 自动加载规则（始终驻留上下文）                  │
 │  ┌─────────────┐ ┌────────────┐ ┌───────────────┐     │
 │  │ behaviors.md │ │skill-      │ │memory-flush.md│     │
 │  │              │ │triggers.md │ │               │     │
 │  └─────────────┘ └────────────┘ └───────────────┘     │
 ├─────────────────────────────────────────────────────────┤
-│  Layer 1: On-demand Docs (loaded when needed)           │
+│  Layer 1: 按需文档（需要时加载）                         │
 │  agents.md · content-safety.md · task-routing.md        │
-│  behaviors-extended.md · scaffolding-checkpoint.md ...   │
+│  behaviors-extended.md · scaffolding-checkpoint.md ...  │
 ├─────────────────────────────────────────────────────────┤
-│  Layer 2: Hot Data (your working memory)                │
-│  today.md · projects.md · goals.md · active-tasks.json  │
+│  Layer 2: 热数据（你的工作记忆）                        │
+│  today.md · projects.md · goals.md · active-tasks.json   │
 └─────────────────────────────────────────────────────────┘
 ```
 
-**Why three layers?** Context window is expensive. Loading everything wastes tokens and degrades quality. This system loads rules always (~2K tokens), docs only when relevant (~1-3K each), and keeps your daily state hot for instant recall.
+**为什么分三层？** 上下文成本很高。全量塞入会浪费 token、拉低质量。本设计：始终加载规则（约 2K token）、仅按需读文档（各约 1–3K）、日常状态常热、随取随用。
 
-## What's Inside
+## 内容结构
 
 ```
 claude-code-workflow/
-├── CLAUDE.md                     # Entry point — Claude reads this first
-├── README.md                     # You are here
+├── CLAUDE.md                     # 入口，Claude 先读
+├── README.md                     # 你在这里
 │
-├── rules/                        # Layer 0: Always loaded
-│   ├── behaviors.md              # Core behavior rules (debugging, commits, routing)
-│   ├── skill-triggers.md         # When to auto-invoke which skill
-│   └── memory-flush.md           # Auto-save triggers (never lose progress)
+├── rules/                        # Layer 0：常载
+│   ├── behaviors.md              # 行为规则（排错、提交、路由）
+│   ├── skill-triggers.md         # 自动触发 skill 条件
+│   └── memory-flush.md           # 自动保存（避免丢进度）
 │
-├── docs/                         # Layer 1: On-demand reference
-│   ├── agents.md                 # Multi-model collaboration framework
-│   ├── behaviors-extended.md     # Extended rules (knowledge base, associations)
-│   ├── behaviors-reference.md    # Detailed operation guides
-│   ├── content-safety.md         # AI hallucination prevention system
-│   ├── scaffolding-checkpoint.md # "Do you really need to self-host?" checklist
-│   └── task-routing.md           # Model tier routing + cost comparison
+├── docs/                         # Layer 1：按需
+│   ├── agents.md                 # 多模型协作框架
+│   ├── behaviors-extended.md     # 拓展规则
+│   ├── behaviors-reference.md    # 操作细则
+│   ├── content-safety.md         # 防幻觉
+│   ├── scaffolding-checkpoint.md # 自建前检清单
+│   └── task-routing.md           # 模型档位与成本
 │
-├── memory/                       # Layer 2: Your working state (templates)
-│   ├── today.md                  # Daily session log
-│   ├── projects.md               # Cross-project status overview
-│   ├── goals.md                  # Week/month/quarter goals
-│   └── active-tasks.json         # Cross-session task registry
+├── memory/                       # Layer 2：工作态模板
+│   ├── today.md
+│   ├── projects.md
+│   ├── goals.md
+│   └── active-tasks.json
 │
-├── skills/                       # Reusable skill definitions
-│   ├── session-end/SKILL.md              # Auto wrap-up: save progress + commit + record
-│   ├── verification-before-completion/SKILL.md  # "Run the test. Read the output. THEN claim."
-│   ├── systematic-debugging/SKILL.md     # 5-phase debugging (recall → root cause → fix)
-│   ├── planning-with-files/SKILL.md      # File-based planning for complex tasks
-│   └── experience-evolution/SKILL.md     # Auto-accumulate project knowledge
+├── skills/
+│   ├── session-end/SKILL.md
+│   ├── verification-before-completion/SKILL.md
+│   ├── systematic-debugging/SKILL.md
+│   ├── planning-with-files/SKILL.md
+│   └── experience-evolution/SKILL.md
 │
-├── agents/                       # Custom agent definitions
-│   ├── pr-reviewer.md            # Code review agent
-│   ├── security-reviewer.md      # OWASP security scanning agent
-│   └── performance-analyzer.md   # Performance bottleneck analysis agent
+├── agents/
+│   ├── pr-reviewer.md
+│   ├── security-reviewer.md
+│   └── performance-analyzer.md
 │
-└── commands/                     # Custom slash commands
-    ├── debug.md                  # /debug — Start systematic debugging
-    ├── deploy.md                 # /deploy — Pre-deployment checklist
-    ├── exploration.md            # /exploration — CTO challenge before coding
-    └── review.md                 # /review — Prepare code review
+└── commands/
+    ├── debug.md
+    ├── deploy.md
+    ├── exploration.md
+    └── review.md
 ```
 
-## Quick Start
+## 快速开始
 
-### 1. Copy to your Claude Code config
+### 1. 复制到 Claude Code 配置
 
 ```bash
-# Clone the template
 git clone https://github.com/runesleo/claude-code-workflow.git
-
-# Copy to your Claude Code config directory
 cp -r claude-code-workflow/* ~/.claude/
 
-# Or symlink if you want to keep it as a git repo
+# 或符号链接
 ln -sf ~/claude-code-workflow/rules ~/.claude/rules
 ln -sf ~/claude-code-workflow/docs ~/.claude/docs
-# ... etc
+# …
 ```
 
-### 2. Customize CLAUDE.md
+### 2. 自定义 CLAUDE.md
 
-Open `~/.claude/CLAUDE.md` and fill in:
+打开 `~/.claude/CLAUDE.md`，补全：
 
-- **User Info**: Your name, project directory, social handles
-- **Sub-project Memory Routes**: Map your projects to memory paths
-- **SSOT Ownership Table**: Define where each type of info lives
-- **On-demand Loading Index**: Adjust doc paths if needed
+- **用户信息**、主项目目录、社交
+- **子项目记忆路由**
+- **SSOT 归属表**、各类型信息存放位置
+- **按需加载索引**（可调整 doc 路径）
 
-### 3. Start a session
+### 3. 启动会话
 
 ```bash
 claude
 ```
 
-Claude will automatically load your rules and start following the workflow. Try:
+Claude 会加载规则并按工作流执行。可尝试：写代码时观察**任务路由**、遇到 bug 时看**系统化排错**、说收工看 **session-end** 自动保存、次日从 `today.md` 接上下文。
 
-- Start coding and notice the **task routing** ("🔀 Route: bug fix → Sonnet")
-- Hit a bug and watch **systematic debugging** kick in
-- Say "that's all for now" and see **session-end** auto-save everything
-- Come back tomorrow and find your context preserved in `today.md`
+## 关键概念
 
-## Key Concepts
+### SSOT（单一事实源）
 
-### SSOT (Single Source of Truth)
-
-Every piece of information has ONE canonical location. The SSOT table in CLAUDE.md maps info types to files. Claude is trained to check SSOT before writing, preventing the "same info in 5 places, all outdated" problem.
+每条信息有且仅有一个规范位置。`CLAUDE.md` 中的 SSOT 表将信息类型映射到文件，先查再写，避免五处各写一版、全部过期。
 
 ### Memory Flush
 
-Claude auto-saves progress on every task completion, every commit, and every exit signal. You can close the window mid-sentence and nothing is lost. No more "I forgot to save my context."
+任务完成、每次提交、退出信号时都会自动落盘。半句话关窗也不丢。告别「我忘了保存上下文」。
 
-### Verification Before Completion
+### 完成前验证
 
-The most impactful rule: Claude cannot claim work is done without running the verification command and reading the output. Eliminates the #1 AI coding failure mode — "should work now" without actually checking.
+核心规则：未运行验证命令并读输出，就不得声称完成。消灭头号失败模式：没检查就说「应该可以了」。
 
-### Three-Tier Task Routing
+### 三档（多档）任务路由
 
-Not every task needs Opus. The routing system automatically matches task complexity to model tier:
-- **Opus**: Critical logic, security-sensitive, complex reasoning
-- **Sonnet**: Daily development, analysis, most coding tasks
-- **Haiku**: Simple queries, subagent tasks, quick lookups
-- **Codex**: Cross-verification, code review, second opinions
-- **Local**: Commit messages, formatting, offline work
+不是每件事都需要 Opus。系统按任务复杂度自动匹配模型档位：Opus（关键逻辑/安全/复杂推理）、Sonnet（日常开发）、Haiku（轻量/子任务）、Codex（交叉验证/二阅）、Local（提交信息/格式化/离线）。
 
-### Sunday Rule
+### 周日原则
 
-System optimization happens on Sundays. On other days, if you try to tweak your workflow instead of shipping, Claude will intercept and remind you to focus on output. Configurable to any cadence you prefer.
+系统优化放在周日。若平日想调工作流而不交付，Claude 会提醒优先产出。周期可改。
 
-## Customization Guide
+## 定制指南
 
-### Adding a new project
+### 新项目
 
-1. Add to `memory/projects.md`
-2. Add memory route in CLAUDE.md's "Sub-project Memory Routes"
-3. Create `PROJECT_CONTEXT.md` in the project root
+1. 在 `memory/projects.md` 登记  
+2. 在 `CLAUDE.md` 的「子项目记忆路由」里加路由  
+3. 在仓库根建 `PROJECT_CONTEXT.md`
 
-### Adding a new skill
+### 新 skill
 
-Create `skills/your-skill/SKILL.md` with:
+在 `skills/your-skill/SKILL.md` 中写 frontmatter 与说明（同英文模板）。
 
-```yaml
----
-name: your-skill
-description: What it does
-allowed-tools:
-  - Read
-  - Write
-  - Bash
----
+### 新 agent
 
-# Your Skill
+在 `agents/your-agent.md` 中定义（同英文模板）。
 
-[Instructions for Claude when this skill is invoked]
-```
+### 调整模型路由
 
-### Adding a new agent
+编辑 `rules/behaviors.md` 的「任务路由」与 `docs/task-routing.md` 的档位说明。
 
-Create `agents/your-agent.md` with:
+## 设计哲学
 
-```yaml
----
-name: your-agent
-description: What it does
-tools: Read, Grep, Glob, Bash
----
+1. **结构 > 单条神 Prompt**：可维护的目录胜过一次性的聪明话术。  
+2. **记忆 > 智商**：会记错的模型比每轮重开的天才更有用。  
+3. **验证 > 感觉**：跑一遍 `npm test` 比上线坏构建便宜。  
+4. **分层加载 > 平铺配置**：常载规则、按需读文档、热数据当需。  
+5. **自动保存 > 靠人记得**：人总会忘，自动化才可靠。
 
-# Your Agent
+## 环境要求
 
-[Agent personality, review dimensions, output format]
-```
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI（Claude Max 或 API 订阅）  
+- 可选：Codex CLI 做交叉验证  
+- 可选：Ollama 作本地回退
 
-### Adjusting model routing
+## 致谢与来源
 
-Edit `rules/behaviors.md` → "Task Routing" section, and `docs/task-routing.md` for detailed tier definitions.
-
-## Philosophy
-
-This template encodes several principles learned from daily AI-assisted development:
-
-1. **Structure > Prompting**: A well-organized config file beats clever one-off prompts every time.
-2. **Memory > Intelligence**: An AI that remembers your past mistakes is more valuable than a smarter AI that starts fresh each session.
-3. **Verification > Confidence**: The cost of running `npm test` is always less than the cost of shipping a broken build.
-4. **Layered Loading > Flat Config**: Don't dump everything into context. Load rules always, docs on demand, data when needed.
-5. **Auto-save > Manual Save**: If it requires the user to remember, it will be forgotten. Make it automatic.
-
-## Requirements
-
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI (Claude Max or API subscription)
-- Optional: Codex CLI for cross-verification
-- Optional: Ollama for local model fallback
-
-## Prior Art & Credits
-
-This template draws from:
-- [Manus](https://manus.im/) file-based planning approach
-- OWASP Top 10 for security review patterns
-- Real-world experience from building [x-reader](https://github.com/runesleo/x-reader) (650+ stars) and other open-source projects
+- [Manus](https://manus.im/) 的文件化规划思路  
+- OWASP Top 10 安全审查模式  
+- [x-reader](https://github.com/runesleo/x-reader) 等开源项目实战经验
 
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=runesleo/claude-code-workflow&type=Date)](https://star-history.com/#runesleo/claude-code-workflow&Date)
 
-## License
+## 许可
 
-MIT — Use it, fork it, make it yours.
+MIT — 随便用、随便改。
 
-## About the author
+## 关于作者
 
-*Leo ([@runes_leo](https://x.com/runes_leo)) — AI × Crypto independent builder. Trading on [Polymarket](https://polymarket.com/?r=githuball&via=runes-leo&utm_source=github&utm_content=claude-code-workflow), building data and trading systems with Claude Code and Codex.*
+*Leo ([@runes_leo](https://x.com/runes_leo)) — AI × Crypto 独立构建者。在 [Polymarket](https://polymarket.com/?r=githuball&via=runes-leo&utm_source=github&utm_content=claude-code-workflow) 交易，用 Claude Code 与 Codex 做数据与交易系统。*
 
-[leolabs.me](https://leolabs.me) — writing · community · open-source tools · indie projects · all platforms.
+[leolabs.me](https://leolabs.me) — 写作 · 社区 · 开源小工具 · 独立产品 · 全平台。
 
-[X Subscription](https://x.com/runes_leo/creator-subscriptions/subscribe) — paid content weekly, or just buy me a coffee 😁
+[X 会员](https://x.com/runes_leo/creator-subscriptions/subscribe) — 每周付费内容，或请杯咖啡
 
-*Learn in public, Build in public.*
+*公开学、公开做（Learn in public, Build in public）。*
