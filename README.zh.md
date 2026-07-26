@@ -56,6 +56,7 @@ QuietHarness 首先服务独立开发者、AI 编程重度用户和小团队，�
 - **安全安装器**：默认只预览；明确 `--apply` 才写入；覆盖前自动备份。
 - **可逆迁移**：旧 Skill、Hook、Command 先移到 disabled，不直接删除。
 - **日报与工作解耦**：保留已有 scheduler 的独立性，单独核验产物；阅读方式由你选择，不再成为每日开工仪式。
+- **可选连续性参考层**：用有边界的 readout、writeback 和 freshness 协议连接个人、工作区与任务状态，但不增大默认安装的 Core。
 
 名字就是架构：模型外围的 **Harness** 仍然存在，但没有相关任务时保持 **Quiet**。
 
@@ -77,6 +78,24 @@ QuietHarness 首先服务独立开发者、AI 编程重度用户和小团队，�
 
 它不再替你规定必须用哪个任务系统、笔记软件、模型档位或每日仪表盘。你已有的系统可以继续存在，但不应常驻在每个请求的上下文里。
 
+## 系统可以变复杂，热路径不用
+
+默认安装没有变重。对于真实工作已经横跨多个项目和会话的人，QuietHarness 现在补上第二条架构轴：
+
+| 状态范围 | 应该放什么 | 什么时候读取 |
+|---|---|---|
+| Personal | 稳定偏好与私人系统指针 | 从一份极短、未跟踪的私人 overlay 读取 |
+| Workspace | 当前仓库或业务工作区事实 | 进入该工作区后读取 |
+| Task | 状态、下一步、证据与新鲜度 | 明确点名该任务时读取 |
+
+连接它们的是协议，不是仓库捆绑的任务系统：
+
+- **readout**：只读取当前请求需要的有限状态；
+- **writeback**：持久变化发生时立即写回；
+- **freshness**：缺失或过期状态不能冒充当前事实。
+
+完整说明见[双轴架构](docs/ARCHITECTURE.md)、[私人 overlay 边界](docs/PRIVATE-OVERLAY.md)和[任务连续性协议](docs/TASK-CONTINUITY.md)。脱敏的 [solo-builder 示例](examples/solo-builder/)提供一次最小读取与写回闭环，不需要安装数据库、scheduler 或 Agent 编排器。
+
 ## 目录
 
 ```text
@@ -85,7 +104,12 @@ templates/
 ├── claude/CLAUDE.md              # Claude Code 薄入口
 └── cursor/quiet-harness.mdc      # Cursor 项目规则
 docs/
+├── ARCHITECTURE.md               # 运行层 × 状态范围
+├── PRIVATE-OVERLAY.md            # 未跟踪的私人指针
+├── TASK-CONTINUITY.md            # readout/writeback/freshness
 └── DAILY-REPORTS.md              # 日报生成与阅读解耦
+examples/
+└── solo-builder/                 # 脱敏的可选连续性示例
 scripts/
 ├── inventory.sh                  # 只读盘点三端配置
 ├── install.sh                    # 预览、安装、备份
@@ -156,6 +180,8 @@ Cursor 全局 User Rules 由应用设置管理；脚本不会冒险修改它，�
 
 详细说明见 [日报可以继续，但不必成为仪式](docs/DAILY-REPORTS.md)。
 
+如果你已经有个人文件夹、业务工作区或任务系统，可以从 [solo-builder 连续性示例](examples/solo-builder/)开始接入。该目录不会被安装器写入，也不会自动加载。
+
 ## 已验证
 
 `./scripts/verify.sh` 会检查：
@@ -166,6 +192,7 @@ Cursor 全局 User Rules 由应用设置管理；脚本不会冒险修改它，�
 - 普通文件和符号链接的备份与回滚；
 - 自定义 `CODEX_HOME`；
 - 中英文 README 与三端模板是否齐全；
+- 架构文档与脱敏连续性示例是否齐全；
 - 公开模板是否混入私人路径；
 - 常驻模板是否超过体积上限；
 - 活跃模板是否重新出现 v2 强制触发词；
@@ -184,6 +211,7 @@ Cursor 全局 User Rules 由应用设置管理；脚本不会冒险修改它，�
 - Cursor 全局规则需要你在设置里管理；脚本只装项目规则。
 - 暂无 Windows PowerShell 安装器。
 - 本仓库只定义“日报边界”，不内置新闻抓取或日报生成器。
+- 连续性示例只定义协议和中性记录，不提供 `task-read`、`task-writeback`、任务数据库或跨会话派发器。
 - 已打开的旧会话可能缓存旧配置，需要重启或开新会话。
 
 ## 路线图
@@ -192,6 +220,12 @@ Cursor 全局 User Rules 由应用设置管理；脚本不会冒险修改它，�
 
 - [ ] 识别重复指令、冲突规则、符号链接发现路径和三端漂移。
 - [ ] 自动把配置分成常驻核心、按需能力和后台系统。
+
+**连续性**
+
+- [x] 说明可选的 Personal → Workspace → Task 参考架构。
+- [x] 提供不改变默认安装的脱敏 readout、writeback 与 freshness 示例。
+- [ ] 只有真实外部使用证明协议有价值后，再增加厂商无关的 validator。
 
 **迁移与兼容**
 

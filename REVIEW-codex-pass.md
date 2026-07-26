@@ -8,7 +8,7 @@ Base: `origin/main` at `c014a5aeaba60b18525b8c8d58790b91a7433677`
 
 ## Decision
 
-An independent read-only reviewer completed the final brand and release recheck: **PASS, zero blockers**. Public push, tag, GitHub Release, repository rename, and X publication remain separate maintainer gates.
+Independent read-only reviewers completed the final brand, optional-continuity, visual, and release rechecks: **PASS, zero blockers and zero warnings**. Public push, tag, GitHub Release, repository rename, and X publication remain separate maintainer gates.
 
 This is intentionally one coherent breaking-release slice. Most of the large diff is deletion of the v2 rule, memory, skill, agent, and command bundles. v2 remains recoverable from Git history, and `MIGRATION-v3.md` documents a disable-first migration.
 
@@ -26,7 +26,7 @@ The cross-client v3 product name is **QuietHarness**, with the positioning line 
 
 The primary user is an independent developer, AI coding power user, or small team already maintaining enough global rules, hooks, skills, memory, routing, and closeout flows that configuration debt has become part of the work.
 
-The release ships a small shared core, thin Claude/Codex/Cursor adapters, read-only inventory, a transactional installer, verification, and a migration guide. It does **not** ship optional capability packs, automatically rewrite or disable every historical Skill/Hook/Command, or include background report jobs. Existing capabilities and background jobs can be kept outside the interactive hot path by the user.
+The release ships a small shared core, thin Claude/Codex/Cursor adapters, read-only inventory, a transactional installer, verification, a migration guide, and an optional Personal → Workspace → Task reference architecture. The reference layer consists of contracts, documentation, and sanitized examples; it does **not** install a task database, adapter CLI, scheduler, cross-chat dispatcher, optional capability pack, or private state. Existing systems remain replaceable and outside the interactive hot path.
 
 Initial exact-name and package screening found no direct AI product named QuietHarness. This is collision screening, not trademark clearance; `Harness` remains a common agent-engineering term.
 
@@ -34,9 +34,19 @@ Initial exact-name and package screening found no direct AI product named QuietH
 
 1. The previous review still described the release as “Claude Code Workflow v3” and retained a stale byte count. This review now reflects QuietHarness and the measured 2,292-byte three-template total.
 2. The first X draft implied that the repository preserved or shipped all professional capabilities. It now states that users can keep their existing capabilities on demand and explicitly names the smaller set this release actually ships.
-3. A sentence repeated the maintainer's recent “AI starts with a meeting” wording. It and the matching visual caption were replaced; the launch story now adds the three-layer architecture and rule-placement test instead of repeating the recent configuration-size posts.
+3. The first launch draft repeated the maintainer's recent configuration-slimming argument. It was replaced with a continuation story: how bounded readout, freshness, change-time writeback, and receipts preserve continuity after slimming.
 4. The official preflight scanner found a random task-ID-shaped byte sequence inside one compressed PNG. The image was re-encoded, the visible content and dimensions were rechecked, and the same scanner then returned exit 0 on a filesystem snapshot.
-5. Visuals now label reports, sync, and monitoring as **existing** background systems, avoiding any implication that this repository installs those jobs.
+5. The four visuals now cover the continuity problem, optional Personal → Workspace → Task scopes, protocol flow and owner/worker boundary, and the exact public/private delivery boundary.
+
+## Optional continuity follow-up
+
+The new reference layer was independently reviewed from scratch. Final result: **PASS, zero blockers and zero warnings**.
+
+- `AGENTS.md`, `CLAUDE.md`, all installed templates, `scripts/install.sh`, `scripts/inventory.sh`, and installer tests are byte-for-byte unchanged from the accepted QuietHarness brand commit.
+- The public examples contain neutral scopes and relative placeholders only. They do not contain maintainer paths, task IDs, identity, account data, business names, or live priorities.
+- Conceptual `task-read`, `task-writeback`, and `task-sync` interfaces are explicitly labeled as examples that QuietHarness does not install.
+- The initial unmeasured “ten-minute” wording was removed. The final copy promises only a minimal first-success walkthrough.
+- The revised X draft's completion claims match the files in the release tree, and its continuity angle is materially different from the maintainer's recent slimming posts.
 
 ## Verification evidence
 
@@ -45,11 +55,12 @@ Initial exact-name and package screening found no direct AI product named QuietH
 - Bash 3.2 syntax and execution → pass
 - `git diff --check` → pass
 - `xmllint --noout media/launch-v3/*.svg` → pass
+- Both sanitized JSON examples parse successfully
 - Four rendered PNGs → 1600×900; visual inspection found no overlap, clipping, private path, or misleading performance claim
 - Open-source preflight on a filesystem snapshot excluding the worktree's private `.git` pointer → exit 0; no private paths or task IDs
 - Strong-pattern Git history secret scan in the worktree → pass
 - v2 Claude byte baseline → 16,379 bytes; QuietHarness Claude path → 1,772 bytes; all three public templates → 2,292 bytes
-- First-party X timeline comparison → recent 48-hour posts reviewed; launch draft adds target user, three-layer architecture, rule-placement questions, and migration boundary instead of repeating the earlier slimming metrics
+- First-party X timeline comparison → recent 48-hour posts reviewed; launch draft now focuses on post-slimming continuity, three state scopes, three protocols, and the delivery boundary instead of repeating the earlier metrics
 
 The direct preflight command cannot be used on a linked Git worktree without a false positive because its `.git` pointer is a file containing the local absolute path; the public filesystem snapshot is the release-tree check. The Git history secret scan was therefore run separately in the real worktree.
 
@@ -57,5 +68,5 @@ The direct preflight command cannot be used on a linked Git worktree without a f
 
 - Naming research is an initial collision screen, not legal trademark advice.
 - The installer backs up files it overwrites; disabling older Skills, Hooks, Commands, and duplicate discovery paths is still a guided migration rather than a one-click cleanup.
-- Four visuals are available, but the recommended X layout is one or two images in the main post and the denser architecture cards in replies.
+- Four 16:9 visuals are available in a tested publication order; their SVG sources remain editable.
 - No public mutation is covered by this review. Push, tag, GitHub Release, repository rename, and X publication require explicit maintainer approval.

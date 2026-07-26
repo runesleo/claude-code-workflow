@@ -19,6 +19,13 @@ templates/shared/AGENTS.md
 templates/claude/CLAUDE.md
 templates/cursor/quiet-harness.mdc
 docs/DAILY-REPORTS.md
+docs/ARCHITECTURE.md
+docs/PRIVATE-OVERLAY.md
+docs/TASK-CONTINUITY.md
+examples/solo-builder/README.md
+examples/solo-builder/AGENTS.private.example.md
+examples/solo-builder/workspaces.example.json
+examples/solo-builder/tasks/task-001.example.json
 media/launch-v3/README.md
 media/launch-v3/X-DRAFT.zh.md
 media/launch-v3/01-positioning.zh.svg
@@ -79,12 +86,19 @@ bash -n tests/install-smoke.sh
 ./tests/install-smoke.sh
 
 private_hits="$(grep -REn '(/(Users|home)/[^/]+|leo[-]vault|_[i]nventory|active[-]tasks|T[0-9]{3,})' \
-  AGENTS.md CLAUDE.md templates 2>/dev/null || true)"
+  AGENTS.md CLAUDE.md templates docs examples 2>/dev/null || true)"
 if [ -n "$private_hits" ]; then
   echo "VERIFY_FAIL private or maintainer-only pattern in shipped instructions" >&2
   echo "$private_hits" >&2
   exit 1
 fi
+
+for marker in '"scope_id"' '"owner_scope"' '"next_action"' '"updated_at"'; do
+  if ! grep -Rq "$marker" examples/solo-builder; then
+    echo "VERIFY_FAIL continuity example omits contract marker: $marker" >&2
+    exit 1
+  fi
+done
 
 stale_hits="$(grep -REni '(mandatory subagent|PreToolUse Hook|memory-flush|today\.md|session-end)' \
   AGENTS.md CLAUDE.md templates 2>/dev/null || true)"

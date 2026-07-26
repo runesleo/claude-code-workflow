@@ -1,0 +1,18 @@
+{
+  "workspaces": [
+    {
+      "scope_id": "product",
+      "display_name": "Product",
+      "workspace_path": "./projects/product",
+      "continuity_path": "./state/product.md",
+      "task_store": "./state/tasks"
+    },
+    {
+      "scope_id": "research",
+      "display_name": "Research",
+      "workspace_path": "./projects/research",
+      "continuity_path": "./state/research.md",
+      "task_store": "./state/tasks"
+    }
+  ]
+}

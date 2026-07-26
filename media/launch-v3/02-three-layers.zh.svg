@@ -1,52 +1,49 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
-  <defs>
-    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M48 0H0V48" fill="none" stroke="#1A2530"/></pattern>
-    <marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#B8F34A"/></marker>
-    <marker id="b" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#FFC56E"/></marker>
-  </defs>
-  <rect width="1600" height="900" fill="#0B0F14"/><rect width="1600" height="900" fill="url(#grid)" opacity=".48"/>
-  <g font-family="Hiragino Sans GB">
-    <text x="72" y="72" fill="#B8F34A" font-size="28" font-weight="700" letter-spacing="2">QUIETHARNESS</text>
-    <text x="1525" y="72" fill="#687887" font-size="24" text-anchor="end">02 / 04</text>
-    <text x="72" y="164" fill="#F4F7F8" font-size="72" font-weight="760">三层，不是三套系统</text>
-    <text x="76" y="216" fill="#9EABB8" font-size="27">交互工作走一条短路径；定时任务走自己的后台路径。</text>
+  <rect width="1600" height="900" fill="#080B0E"/>
+  <g font-family="Hiragino Sans GB, PingFang SC, Noto Sans CJK SC, sans-serif">
+    <text x="72" y="70" fill="#B8F34A" font-size="24">Q U I E T H A R N E S S</text>
+    <text x="1528" y="70" fill="#71808E" font-size="25" text-anchor="end">02 / 04</text>
 
-    <rect x="72" y="274" width="1456" height="150" rx="28" fill="#172219" stroke="#5E8233"/>
-    <text x="108" y="322" fill="#B8F34A" font-size="25" font-weight="700">01 · 常驻核心</text>
-    <text x="108" y="365" fill="#F4F7F8" font-size="31" font-weight="650">最新请求优先</text>
-    <text x="422" y="365" fill="#F4F7F8" font-size="31" font-weight="650">真实证据</text>
-    <text x="666" y="365" fill="#F4F7F8" font-size="31" font-weight="650">按风险验证</text>
-    <text x="970" y="365" fill="#F4F7F8" font-size="31" font-weight="650">不可逆动作确认</text>
-    <text x="1468" y="365" fill="#9EABB8" font-size="21" text-anchor="end">几乎每次都会用</text>
+    <text x="72" y="166" fill="#F4F7F8" font-size="57" font-weight="700">可选架构：Personal → Workspace → Task</text>
+    <text x="76" y="220" fill="#9EABB8" font-size="27">三种状态范围，不是三套常驻系统。</text>
 
-    <rect x="72" y="448" width="1456" height="150" rx="28" fill="#12242D" stroke="#2E7898"/>
-    <text x="108" y="496" fill="#63D7FF" font-size="25" font-weight="700">02 · 按需能力</text>
-    <text x="108" y="539" fill="#F4F7F8" font-size="31" font-weight="650">项目事实与测试</text>
-    <text x="454" y="539" fill="#F4F7F8" font-size="31" font-weight="650">Debug</text>
-    <text x="630" y="539" fill="#F4F7F8" font-size="31" font-weight="650">Review</text>
-    <text x="818" y="539" fill="#F4F7F8" font-size="31" font-weight="650">研究</text>
-    <text x="970" y="539" fill="#F4F7F8" font-size="31" font-weight="650">发布</text>
-    <text x="1468" y="539" fill="#9EABB8" font-size="21" text-anchor="end">明确触发才加载</text>
+    <rect x="72" y="270" width="1456" height="112" rx="28" fill="#172714" stroke="#426634"/>
+    <text x="108" y="315" fill="#B8F34A" font-size="23" font-weight="700">PUBLIC CORE · 每次请求</text>
+    <text x="108" y="357" fill="#F4F7F8" font-size="28">直接执行</text>
+    <text x="370" y="357" fill="#F4F7F8" font-size="28">真实证据</text>
+    <text x="632" y="357" fill="#F4F7F8" font-size="28">按风险验证</text>
+    <text x="920" y="357" fill="#F4F7F8" font-size="28">不可逆动作确认</text>
+    <text x="1488" y="348" fill="#9EABB8" font-size="22" text-anchor="end">安装行为不变</text>
 
-    <rect x="72" y="622" width="1456" height="150" rx="28" fill="#2A2319" stroke="#886438"/>
-    <text x="108" y="670" fill="#FFC56E" font-size="25" font-weight="700">03 · 已有后台系统</text>
-    <text x="108" y="713" fill="#F4F7F8" font-size="31" font-weight="650">日报</text>
-    <text x="272" y="713" fill="#F4F7F8" font-size="31" font-weight="650">同步</text>
-    <text x="436" y="713" fill="#F4F7F8" font-size="31" font-weight="650">监控</text>
-    <path d="M610 704H800" stroke="#FFC56E" stroke-width="4" marker-end="url(#b)"/>
-    <text x="846" y="713" fill="#F4F7F8" font-size="31" font-weight="650">按日期 Artifact</text>
-    <text x="1150" y="713" fill="#F4F7F8" font-size="31" font-weight="650">异常通知</text>
-    <text x="1468" y="713" fill="#9EABB8" font-size="21" text-anchor="end">不阻塞开工</text>
+    <text x="72" y="435" fill="#61D6FF" font-size="22" font-weight="700">PRIVATE · OPTIONAL</text>
 
-    <text x="72" y="832" fill="#9EABB8" font-size="22">交互路径</text>
-    <rect x="190" y="800" width="168" height="54" rx="27" fill="#20301B"/><text x="274" y="835" fill="#F4F7F8" font-size="22" text-anchor="middle">当前请求</text>
-    <path d="M374 827H460" stroke="#B8F34A" stroke-width="4" marker-end="url(#a)"/>
-    <rect x="478" y="800" width="168" height="54" rx="27" fill="#20301B"/><text x="562" y="835" fill="#F4F7F8" font-size="22" text-anchor="middle">小型核心</text>
-    <path d="M662 827H748" stroke="#B8F34A" stroke-width="4" marker-end="url(#a)"/>
-    <rect x="766" y="800" width="210" height="54" rx="27" fill="#142A35"/><text x="871" y="835" fill="#F4F7F8" font-size="22" text-anchor="middle">相关上下文</text>
-    <path d="M992 827H1078" stroke="#B8F34A" stroke-width="4" marker-end="url(#a)"/>
-    <rect x="1096" y="800" width="206" height="54" rx="27" fill="#20301B"/><text x="1199" y="835" fill="#F4F7F8" font-size="22" text-anchor="middle">执行与验证</text>
-    <path d="M1318 827H1380" stroke="#B8F34A" stroke-width="4" marker-end="url(#a)"/>
-    <text x="1456" y="835" fill="#B8F34A" font-size="25" font-weight="700" text-anchor="middle">停</text>
+    <rect x="72" y="466" width="445" height="250" rx="30" fill="#141E27" stroke="#31536A"/>
+    <text x="108" y="520" fill="#61D6FF" font-size="25" font-weight="700">01 · Personal</text>
+    <text x="108" y="571" fill="#F4F7F8" font-size="31" font-weight="650">稳定偏好</text>
+    <text x="108" y="611" fill="#D5DCE2" font-size="25">私人系统指针</text>
+    <line x1="108" y1="642" x2="481" y2="642" stroke="#31536A"/>
+    <text x="108" y="681" fill="#9EABB8" font-size="22">极短 overlay · 不放实时任务</text>
+
+    <rect x="578" y="466" width="445" height="250" rx="30" fill="#18241B" stroke="#3C6542"/>
+    <text x="614" y="520" fill="#7DE58A" font-size="25" font-weight="700">02 · Workspace</text>
+    <text x="614" y="571" fill="#F4F7F8" font-size="31" font-weight="650">项目与业务事实</text>
+    <text x="614" y="611" fill="#D5DCE2" font-size="25">入口 · 测试 · 事实源</text>
+    <line x1="614" y1="642" x2="987" y2="642" stroke="#3C6542"/>
+    <text x="614" y="681" fill="#9EABB8" font-size="22">进入该范围后再读</text>
+
+    <rect x="1084" y="466" width="444" height="250" rx="30" fill="#292217" stroke="#785C31"/>
+    <text x="1120" y="520" fill="#FFC56E" font-size="25" font-weight="700">03 · Task</text>
+    <text x="1120" y="571" fill="#F4F7F8" font-size="31" font-weight="650">状态与下一步</text>
+    <text x="1120" y="611" fill="#D5DCE2" font-size="25">证据 · 更新时间</text>
+    <line x1="1120" y1="642" x2="1492" y2="642" stroke="#785C31"/>
+    <text x="1120" y="681" fill="#9EABB8" font-size="22">明确点名任务时读取</text>
+
+    <path d="M517 590 H568" stroke="#71808E" stroke-width="2"/>
+    <path d="M554 578 L568 590 L554 602" fill="none" stroke="#71808E" stroke-width="2"/>
+    <path d="M1023 590 H1074" stroke="#71808E" stroke-width="2"/>
+    <path d="M1060 578 L1074 590 L1060 602" fill="none" stroke="#71808E" stroke-width="2"/>
+
+    <rect x="72" y="758" width="1456" height="74" rx="24" fill="#10161D"/>
+    <text x="800" y="806" fill="#F4F7F8" font-size="28" font-weight="650" text-anchor="middle">复杂度可以增长，热路径不必增长。</text>
   </g>
 </svg>

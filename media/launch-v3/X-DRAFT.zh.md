@@ -2,50 +2,69 @@
 
 ## Main post
 
-AI 工作流最常见的技术债，不是 Prompt 写得差，而是所有能力都住进了 hot path。
+之前我开源 Claude Code Workflow 后，其实没有频繁维护。很多人 fork 之后，按自己的需要继续改。
 
-我把之前开源的 Claude Code Workflow 重做了，也给它起了一个能长期演进的名字：**QuietHarness**。
+这次重新动它，不是为了再造一套大而全的 AI OS。
 
-它面向的不是第一次打开 Claude Code 的人，而是已经用 Claude Code / Codex / Cursor 做了几个月真实项目，规则、Hook、Skill、Memory 和收尾流程越积越多，最后开始替工作流打工的人。
+最近我把 Claude Code、Codex、Cursor 三端配置彻底重构，并放回真实项目里继续使用。最大的感受不是“Prompt 变短了”，而是小任务可以直接开始，复杂任务也没有因此失去连续性。
 
-我以前的问题也不是配置不够强，而是把不同生命周期的东西全塞进每次对话：Morning、Today、Router、Review、日报、同步、收尾……真正的请求还没得到处理，注意力已经消耗在路由和仪式上。
+所以我把这版整理成了 QuietHarness。
 
-QuietHarness 把工作流拆回三层：
+默认 Core 仍然很小，只负责直接执行、真实证据、按风险验证，以及不可逆动作前确认。
 
-1. **常驻核心**：只留大多数任务都会用到的行为，以及忘了会造成不可逆后果的边界。
-2. **按需能力**：把你原来已有的项目事实、Debug、Review、研究和发布能力移到按需层，用到才加载。
-3. **后台系统**：你原来已有的日报、同步和监控继续独立运行，产出 Artifact 或异常通知，不再挡在开工前。
+但瘦身以后，真正难的问题才出现：
 
-当前仓库交付的是小型共享核心、三端薄适配、盘点脚本、安装器和迁移指南，不捆绑一套新的能力大礼包。
+如果不再把 Morning、Today、Memory 和任务状态塞进每次对话，跨项目、跨会话、跨客户端的连续性怎么保留？
 
-它的好处不是一个模糊的“更快”，而是这些可观察的变化：
+这次新增的不是任务库，而是一套可选参考架构：
 
-- 小任务可以直接开始；
-- Claude Code、Codex、Cursor 共享同一套底层原则；
-- 你已有的专业能力可以保留在 Skill 或项目文档里，按需加载；
-- 测试、权限和脚本能保证的事，不再反复写进 Prompt；
-- 迁移先盘点、再 dry-run、自动备份，失败可回滚。
+Personal → Workspace → Task
 
-现在我判断一条规则该住哪，只问三件事：
+- Personal：稳定偏好与私人系统指针；
+- Workspace：当前项目或业务范围的入口、测试和事实源；
+- Task：状态、下一步、证据与更新时间。
 
-1. 大多数任务都会用到吗？
-2. 忘了它，后果是否不可逆或代价很高？
-3. 能否用测试、权限或脚本机械保证？
+三层都不会全量塞进每次对话。真正连接它们的是三个协议：
 
-真正好的 AI 工作流，不是规则越多越稳，也不是删得越狠越高级，而是让每种能力待在正确的运行层。
+1. readout：只读取当前请求需要的那一小段事实；
+2. writeback：状态发生变化时立即写回事实源，不等 Session End 再统一回忆；
+3. freshness：缺失或过期状态必须回源核验，不能让旧状态冒充当前事实。
 
-这就是 QuietHarness 接下来会持续演进的方向。四张图把架构、前后体验和判断方法都画清楚了。
+仓库现在交付三端 Core、安全迁移工具、连续性协议和脱敏示例；不交付我的任务库、身份、账号、私有路径、scheduler 或个人工作台。
 
-## Optional reply 1 — who it is not for
+这层架构完全可选，因此本次新增没有让默认热路径增加一个字节。
 
-QuietHarness 不是 Skill 大礼包，也不是新的多 Agent 编排框架。
+我暂时不把它想得太远。先让它继续在我自己的真实工作里接受检验；后面每次发现确实有用、也能被别人复用的更新，再持续写回公共版本。
 
-如果你要的是开箱即用的任务库、模型路由、自动 Morning/Today/Session End，旧 v2 反而更完整。
+真正想分享的不是我的文件夹，而是这件事：
 
-v3 服务的是另一类人：系统已经很强，但配置债开始反过来拖累真实工作。
+一个很小的 Core，可以接入复杂系统，但不必让复杂系统重新占领热路径。
 
-## Optional reply 2 — repository boundary
+轻量和连续性，不需要二选一。
 
-当前版本会盘点 Claude / Codex / Cursor 的配置面，安装一份小型共享核心，并提供 dry-run、备份和回滚。
+## Optional reply 1 — what is actually included
 
-它不会一键理解并重写你所有历史 Skill、Hook 和 Command；这些仍然先按迁移指南逐项停用。公开指标只描述配置字节，不冒充速度或质量 benchmark。
+当前版本包含：
+
+- Claude Code / Codex / Cursor 三端薄入口；
+- inventory、dry-run、backup、rollback；
+- Personal / Workspace / Task 双轴架构说明；
+- readout / writeback / freshness 协议；
+- 不含私人数据的 solo-builder 示例。
+
+没有内置任务数据库，也不会自动修改 scheduler、发布内容或跨会话派工。
+
+## Optional reply 2 — release boundary
+
+这次最刻意的一点，是把“参考架构”和“默认运行时”分开。
+
+你可以只安装 2,292 字节的三端模板，完全不用任务连续性示例；也可以把示例接到自己已有的文件、Issue Tracker 或数据库。
+
+协议是公共的，存储和执行机制由使用者自己决定。
+
+## Image order
+
+1. `01-positioning.zh.png` — 瘦身以后，连续性怎么办？
+2. `02-three-layers.zh.png` — Personal → Workspace → Task
+3. `03-before-after.zh.png` — readout / freshness / writeback / receipt
+4. `04-rule-placement.zh.png` — 仓库交付与私人边界

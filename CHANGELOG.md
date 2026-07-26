@@ -22,6 +22,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Isolated installer smoke test and repository verification script.
 - v2-to-v3 migration and rollback guide.
 - Daily-report delivery guide covering pull, exception notification, and opt-in push.
+- Optional Personal → Workspace → Task reference architecture that leaves the installed core unchanged.
+- Sanitized solo-builder examples for private overlays, workspace scopes, per-task records, bounded readout, change-time writeback, and freshness checks.
 - MIT license file.
 
 ### Removed
@@ -35,6 +37,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 - The installer performs no network, account, credential, scheduler, or production operations.
 - Private paths and live personal state are explicitly excluded from shipped templates.
+- Continuity examples contain neutral placeholders only and are never installed or loaded automatically.
 
 ## [2.0.0] - 2026-04-05
 

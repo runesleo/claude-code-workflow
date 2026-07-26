@@ -56,6 +56,7 @@ This direction also matches current platform guidance: Anthropic recommends scop
 - **Safe installer** — dry-run by default, explicit apply, backups before overwrite, no network calls.
 - **Reversible migration** — disable old skills, hooks, and commands without deleting them.
 - **Quiet daily reports** — leave an existing scheduler untouched, verify its output separately, and avoid forcing every chat through a morning or closeout pipeline.
+- **Optional continuity reference** — connect private personal, workspace, and task state through bounded readout, writeback, and freshness contracts without enlarging the installed core.
 
 The name is the architecture: the **harness** around the model remains available, but it stays **quiet** until the current task actually needs it.
 
@@ -77,6 +78,24 @@ dated artifact → read on demand / optional notification
 
 The workflow deliberately does not prescribe a task database, note app, model router, or daily dashboard. If you already have one, keep it behind an explicit read/write boundary instead of loading it into every prompt.
 
+## Grow without growing the hot path
+
+The default installation is unchanged. QuietHarness adds a second architectural axis for people whose real work spans multiple projects or sessions:
+
+| State scope | What belongs there | When to read it |
+|---|---|---|
+| Personal | stable preferences and pointers | from a short, untracked private overlay |
+| Workspace | repository or business-area facts | after entering that workspace |
+| Task | status, next action, evidence, freshness | when the exact task is named |
+
+The connection is a protocol, not a bundled task system:
+
+- **readout** loads only the bounded state needed by the request;
+- **writeback** persists a durable change when it happens;
+- **freshness** prevents missing or stale state from being presented as current fact.
+
+Read the [two-axis architecture](docs/ARCHITECTURE.md), [private-overlay boundary](docs/PRIVATE-OVERLAY.md), and [task-continuity contract](docs/TASK-CONTINUITY.md). The sanitized [solo-builder example](examples/solo-builder/) provides a minimal first-success walkthrough without installing a database, scheduler, or agent orchestrator.
+
 ## Repository layout
 
 ```text
@@ -85,7 +104,12 @@ templates/
 ├── claude/CLAUDE.md              # imports the shared core
 └── cursor/quiet-harness.mdc      # compact project rule
 docs/
+├── ARCHITECTURE.md               # runtime placement × state scope
+├── PRIVATE-OVERLAY.md            # untracked personal pointers
+├── TASK-CONTINUITY.md            # readout/writeback/freshness contract
 └── DAILY-REPORTS.md              # reports without daily rituals
+examples/
+└── solo-builder/                 # sanitized optional continuity example
 scripts/
 ├── inventory.sh                  # read-only config inventory
 ├── install.sh                    # dry-run/apply + backups
@@ -160,6 +184,8 @@ Read inbox/daily/2026-07-26.md and give me the three items worth acting on.
 
 See [Daily reports without daily rituals](docs/DAILY-REPORTS.md).
 
+To connect an existing personal or task system without changing the core, start with the [solo-builder continuity example](examples/solo-builder/). Nothing in that directory is installed or loaded automatically.
+
 ## Verified
 
 `./scripts/verify.sh` checks:
@@ -170,6 +196,7 @@ See [Daily reports without daily rituals](docs/DAILY-REPORTS.md).
 - regular-file and symlink backup/rollback behavior;
 - custom `CODEX_HOME` support;
 - required bilingual files and templates;
+- required architecture docs and sanitized continuity examples;
 - absence of private-path patterns in shipped templates;
 - a hard size ceiling for always-loaded templates;
 - stale v2 trigger language in active templates;
@@ -188,6 +215,7 @@ See [Daily reports without daily rituals](docs/DAILY-REPORTS.md).
 - Cursor global User Rules are managed in Cursor settings; the installer only writes a project rule.
 - Windows PowerShell installation is not included yet.
 - This repository explains the report boundary but does not ship a news or daily-report generator.
+- The continuity example defines contracts and neutral records; it does not ship `task-read`, `task-writeback`, a task database, or cross-chat dispatch.
 - Already-open client sessions may cache old instructions until restarted.
 
 ## Roadmap
@@ -196,6 +224,12 @@ See [Daily reports without daily rituals](docs/DAILY-REPORTS.md).
 
 - [ ] Detect duplicate instructions, conflicting rules, symlinked discovery paths, and cross-client drift.
 - [ ] Classify configuration into always-loaded core, on-demand capability, and background system.
+
+**Continuity**
+
+- [x] Document the optional Personal → Workspace → Task reference architecture.
+- [x] Provide sanitized readout, writeback, and freshness examples without changing the default install.
+- [ ] Add a vendor-neutral validator only after real external usage proves the contract is useful.
 
 **Migration**
 
