@@ -1,0 +1,12 @@
+---
+description: Minimal project baseline for direct, evidence-backed work
+globs:
+alwaysApply: true
+---
+
+- Follow the user's current request; a correction resets the direction.
+- Handle simple work directly. Use plans, agents, and reusable workflows only when they help.
+- Read only relevant project context and preserve unrelated edits.
+- Verify changes with the smallest meaningful project check.
+- Do not claim unseen evidence.
+- Ask before credentials, public release, production, destructive, or paid actions.

@@ -1,196 +1,202 @@
-# Claude Code 工作流
+# Lean AI Workflow
 
-[English](README.en.md) | **中文**
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-从多项目日常使用中提炼的 Claude Code 工作流模板——涵盖记忆管理、上下文工程与任务路由。
+**English** · [中文](README.zh.md)
 
-**不是教程、不是玩具配置。这是一套能真正上线交付的产线工作流。**
+A small, evidence-driven instruction layer for Claude Code, Codex, and Cursor.
 
-> **v2 新特性**：相对 v1 已迭代约 50 天。新增：PreToolUse Hook 层（在工具调用时强制执行规则，而不仅是会话开头）、复杂任务的计划门禁、强制子 Agent 分派检查清单（基于 30 天路由数据），以及将 10 条 P0 规则改写为事件驱动硬规则。完整说明见 [CHANGELOG.md](./CHANGELOG.md)。
+No mandatory morning ritual. No automatic session closeout. No forced subagent choreography. Start with the request, load context when it is needed, and write durable state when it actually changes.
 
-## 为什么需要它
+> **v3 release candidate:** the old v2 workflow is being replaced, not extended. See [MIGRATION-v3.md](MIGRATION-v3.md).
 
-Claude Code 本身很强，但没有结构时，很容易变成「会话一断就忘光」的聪明助手。本模板把它变成**可持续、会自我改进的开发搭档**，能：
+## Why v3
 
-- 记住过去的错误并自动应用教训
-- 在长会话中管理上下文、减少漂移
-- 将任务路由到合适档位（Opus / Sonnet / Haiku / Codex / Local）
-- 在宣称完成前强制验证（告别「应该好了吧」）
-- 自动保存进度，关窗也不丢活
+The first two versions optimized for control: more rules, more hooks, more routing, and more automatic memory. In real daily use, that eventually created a second job—maintaining the workflow itself.
 
-## 架构：三层
+The useful lesson was not “remove all safeguards.” It was to separate three things:
 
-```
-┌─────────────────────────────────────────────────────────┐
-│  Layer 0: 自动加载规则（始终驻留上下文）                  │
-│  ┌─────────────┐ ┌────────────┐ ┌───────────────┐     │
-│  │ behaviors.md │ │skill-      │ │memory-flush.md│     │
-│  │              │ │triggers.md │ │               │     │
-│  └─────────────┘ └────────────┘ └───────────────┘     │
-├─────────────────────────────────────────────────────────┤
-│  Layer 1: 按需文档（需要时加载）                         │
-│  agents.md · content-safety.md · task-routing.md        │
-│  behaviors-extended.md · scaffolding-checkpoint.md ...  │
-├─────────────────────────────────────────────────────────┤
-│  Layer 2: 热数据（你的工作记忆）                        │
-│  today.md · projects.md · goals.md · active-tasks.json   │
-└─────────────────────────────────────────────────────────┘
-```
+1. a tiny always-loaded core;
+2. project facts and tests, read only when relevant;
+3. background products such as daily reports, generated independently and read on demand.
 
-**为什么分三层？** 上下文成本很高。全量塞入会浪费 token、拉低质量。本设计：始终加载规则（约 2K token）、仅按需读文档（各约 1–3K）、日常状态常热、随取随用。
+The v2 example loaded 16,379 bytes from `CLAUDE.md` and three rule files before project context. The three v3 templates total 2,292 bytes, and each client loads only its own subset. These are byte counts, not token claims; actual context behavior varies by client and version.
 
-## 内容结构
+This direction also matches current platform guidance: Anthropic recommends scoped `CLAUDE.md` memory, OpenAI describes a short `AGENTS.md` as a map instead of a manual, and Cursor supports small project rules with explicit attachment modes.
 
-```
-claude-code-workflow/
-├── CLAUDE.md                     # 入口，Claude 先读
-├── README.md                     # 你在这里
-│
-├── rules/                        # Layer 0：常载
-│   ├── behaviors.md              # 行为规则（排错、提交、路由）
-│   ├── skill-triggers.md         # 自动触发 skill 条件
-│   └── memory-flush.md           # 自动保存（避免丢进度）
-│
-├── docs/                         # Layer 1：按需
-│   ├── agents.md                 # 多模型协作框架
-│   ├── behaviors-extended.md     # 拓展规则
-│   ├── behaviors-reference.md    # 操作细则
-│   ├── content-safety.md         # 防幻觉
-│   ├── scaffolding-checkpoint.md # 自建前检清单
-│   └── task-routing.md           # 模型档位与成本
-│
-├── memory/                       # Layer 2：工作态模板
-│   ├── today.md
-│   ├── projects.md
-│   ├── goals.md
-│   └── active-tasks.json
-│
-├── skills/
-│   ├── session-end/SKILL.md
-│   ├── verification-before-completion/SKILL.md
-│   ├── systematic-debugging/SKILL.md
-│   ├── planning-with-files/SKILL.md
-│   └── experience-evolution/SKILL.md
-│
-├── agents/
-│   ├── pr-reviewer.md
-│   ├── security-reviewer.md
-│   └── performance-analyzer.md
-│
-└── commands/
-    ├── debug.md
-    ├── deploy.md
-    ├── exploration.md
-    └── review.md
+## What you get
+
+- **One lean core** — direct execution, truthful evidence, proportional verification, and a short list of real confirmation boundaries.
+- **Thin client adapters** — Claude Code import, Codex `AGENTS.md`, and a compact Cursor project rule.
+- **Safe installer** — dry-run by default, explicit apply, backups before overwrite, no network calls.
+- **Reversible migration** — disable old skills, hooks, and commands without deleting them.
+- **Quiet daily reports** — leave an existing scheduler untouched, verify its output separately, and avoid forcing every chat through a morning or closeout pipeline.
+
+## How it works
+
+```text
+current request
+    ↓
+small client core
+    ↓
+relevant project files + existing tests (only when needed)
+    ↓
+work → verify → write durable state at the point of change → stop
+
+scheduled report
+    ↓
+dated artifact → read on demand / optional notification
 ```
 
-## 快速开始
+The workflow deliberately does not prescribe a task database, note app, model router, or daily dashboard. If you already have one, keep it behind an explicit read/write boundary instead of loading it into every prompt.
 
-### 1. 复制到 Claude Code 配置
+## Repository layout
+
+```text
+templates/
+├── shared/AGENTS.md              # portable core
+├── claude/CLAUDE.md              # imports the shared core
+└── cursor/lean-baseline.mdc      # compact project rule
+docs/
+└── DAILY-REPORTS.md              # reports without daily rituals
+scripts/
+├── inventory.sh                  # read-only config inventory
+├── install.sh                    # dry-run/apply + backups
+└── verify.sh                     # repository checks
+tests/
+├── inventory-smoke.sh            # file + directory-symlink fixtures
+└── install-smoke.sh              # isolated-HOME installer test
+MIGRATION-v3.md                   # v2 → v3, including rollback
+```
+
+## Setup
 
 ```bash
 git clone https://github.com/runesleo/claude-code-workflow.git
-cp -r claude-code-workflow/* ~/.claude/
+cd claude-code-workflow
 
-# 或符号链接
-ln -sf ~/claude-code-workflow/rules ~/.claude/rules
-ln -sf ~/claude-code-workflow/docs ~/.claude/docs
-# …
+# Existing v2 users: inspect every active file and symlink first.
+./scripts/inventory.sh
+
+# Preview only. Writes nothing.
+./scripts/install.sh --dry-run --claude --codex
+
+# Apply after reviewing the plan.
+./scripts/install.sh --apply --claude --codex
 ```
 
-### 2. 自定义 CLAUDE.md
-
-打开 `~/.claude/CLAUDE.md`，补全：
-
-- **用户信息**、主项目目录、社交
-- **子项目记忆路由**
-- **SSOT 归属表**、各类型信息存放位置
-- **按需加载索引**（可调整 doc 路径）
-
-### 3. 启动会话
+For a Cursor project:
 
 ```bash
-claude
+./scripts/install.sh --dry-run --cursor-project /path/to/project
+./scripts/install.sh --apply --cursor-project /path/to/project
 ```
 
-Claude 会加载规则并按工作流执行。可尝试：写代码时观察**任务路由**、遇到 bug 时看**系统化排错**、说收工看 **session-end** 自动保存、次日从 `today.md` 接上下文。
+The Cursor installer creates `.cursor/rules/lean-workflow.mdc` inside the selected project. For a global Cursor preference, paste the small baseline into **Cursor Settings → Rules** instead of copying project-specific state globally.
 
-## 关键概念
+`--codex` respects `CODEX_HOME` and otherwise uses `~/.codex`. All selected targets pass preflight and staging before any file is replaced. An existing target symlink to a file is backed up as a symlink and replaced locally; the file it pointed to is not modified. A file target that resolves to a directory is rejected.
 
-### SSOT（单一事实源）
+## Requirements
 
-每条信息有且仅有一个规范位置。`CLAUDE.md` 中的 SSOT 表将信息类型映射到文件，先查再写，避免五处各写一版、全部过期。
+- macOS or Linux
+- Bash 3.2+
+- At least one supported client:
+  - [Claude Code memory](https://code.claude.com/docs/en/memory)
+  - [Codex and `AGENTS.md`](https://developers.openai.com/codex/guides/agents-md)
+  - [Cursor Rules](https://docs.cursor.com/context/rules)
 
-### Memory Flush
+No API key is required. The installer does not log in, call a network service, install a package, or modify a scheduler.
 
-任务完成、每次提交、退出信号时都会自动落盘。半句话关窗也不丢。告别「我忘了保存上下文」。
+**Privacy:** personal identity, account details, private paths, live priorities, and business runbooks do not belong in this repository. Keep them in an untracked private file and load them only when relevant.
 
-### 完成前验证
+## Quick start
 
-核心规则：未运行验证命令并读输出，就不得声称完成。消灭头号失败模式：没检查就说「应该可以了」。
+After installation, restart the client or open a new session.
 
-### 三档（多档）任务路由
+Then work normally:
 
-不是每件事都需要 Opus。系统按任务复杂度自动匹配模型档位：Opus（关键逻辑/安全/复杂推理）、Sonnet（日常开发）、Haiku（轻量/子任务）、Codex（交叉验证/二阅）、Local（提交信息/格式化/离线）。
+```text
+Fix the failing test in this repository and verify the result.
+```
 
-### 周日原则
+There is no required startup command. To persist something, ask for the specific writeback:
 
-系统优化放在周日。若平日想调工作流而不交付，Claude 会提醒优先产出。周期可改。
+```text
+Record this decision in the project's status file.
+```
 
-## 定制指南
+If you already generate a daily report, keep the generator independent and ask the agent to read today's artifact:
 
-### 新项目
+```text
+Read inbox/daily/2026-07-26.md and give me the three items worth acting on.
+```
 
-1. 在 `memory/projects.md` 登记  
-2. 在 `CLAUDE.md` 的「子项目记忆路由」里加路由  
-3. 在仓库根建 `PROJECT_CONTEXT.md`
+See [Daily reports without daily rituals](docs/DAILY-REPORTS.md).
 
-### 新 skill
+## Verified
 
-在 `skills/your-skill/SKILL.md` 中写 frontmatter 与说明（同英文模板）。
+`./scripts/verify.sh` checks:
 
-### 新 agent
+- shell syntax;
+- read-only inventory coverage for file and whole-directory symlinks;
+- installer dry-run, multi-target preflight, and isolated apply behavior;
+- regular-file and symlink backup/rollback behavior;
+- custom `CODEX_HOME` support;
+- required bilingual files and templates;
+- absence of private-path patterns in shipped templates;
+- a hard size ceiling for always-loaded templates;
+- stale v2 trigger language in active templates;
+- `git diff --check`.
 
-在 `agents/your-agent.md` 中定义（同英文模板）。
+| Case | Environment | Result |
+|------|-------------|--------|
+| Installer dry-run + transaction + symlink rollback | macOS, Bash 3.2 | Automated smoke test |
+| Claude/Codex/Cursor template size | Any | 2,292 bytes combined |
+| Network/account access | Any | None |
 
-### 调整模型路由
+## Known limitations (v3 release candidate)
 
-编辑 `rules/behaviors.md` 的「任务路由」与 `docs/task-routing.md` 的档位说明。
+- The installer does not interpret or rewrite arbitrary existing hooks, skills, or custom commands. Follow the migration guide first.
+- Cursor global User Rules are managed in Cursor settings; the installer only writes a project rule.
+- Windows PowerShell installation is not included yet.
+- This repository explains the report boundary but does not ship a news or daily-report generator.
+- Already-open client sessions may cache old instructions until restarted.
 
-## 设计哲学
+## Roadmap
 
-1. **结构 > 单条神 Prompt**：可维护的目录胜过一次性的聪明话术。  
-2. **记忆 > 智商**：会记错的模型比每轮重开的天才更有用。  
-3. **验证 > 感觉**：跑一遍 `npm test` 比上线坏构建便宜。  
-4. **分层加载 > 平铺配置**：常载规则、按需读文档、热数据当需。  
-5. **自动保存 > 靠人记得**：人总会忘，自动化才可靠。
+**Migration**
 
-## 环境要求
+- [ ] Add a PowerShell installer.
 
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI（Claude Max 或 API 订阅）  
-- 可选：Codex CLI 做交叉验证  
-- 可选：Ollama 作本地回退
+**Compatibility**
 
-## 致谢与来源
+- [ ] Track instruction-loading changes in Claude Code, Codex, and Cursor.
+- [ ] Add more client adapters only when they remain thin.
 
-- [Manus](https://manus.im/) 的文件化规划思路  
-- OWASP Top 10 安全审查模式  
-- [x-reader](https://github.com/runesleo/x-reader) 等开源项目实战经验
+**Evidence**
 
-## Star History
+- [ ] Collect before/after reports from real repositories without importing private workflow state.
 
-[![Star History Chart](https://api.star-history.com/svg?repos=runesleo/claude-code-workflow&type=Date)](https://star-history.com/#runesleo/claude-code-workflow&Date)
+## Design principles
 
-## 许可
+1. **Direct work beats ritual.** A workflow should reduce work, not become work.
+2. **State at change time beats end-of-session cleanup.** Save the fact when it changes.
+3. **Reports are products, not startup gates.** Generate quietly; read or push intentionally.
+4. **Tests beat prompt rules.** Put mechanical guarantees in code where possible.
+5. **Reversible beats destructive.** Disable first; delete only after real use proves it safe.
 
-MIT — 随便用、随便改。
+For the broader context-management rationale, see OpenAI's [Harness engineering](https://openai.com/index/harness-engineering/).
 
-## 关于作者
+## About the author
 
-*Leo ([@runes_leo](https://x.com/runes_leo)) — AI × Crypto 独立构建者。在 [Polymarket](https://polymarket.com/?r=githuball&via=runes-leo&utm_source=github&utm_content=claude-code-workflow) 交易，用 Claude Code 与 Codex 做数据与交易系统。*
+*Leo ([@runes_leo](https://x.com/runes_leo)) — AI × Crypto independent builder. Trading on [Polymarket](https://polymarket.com/?via=runes-leo&r=runesleo&utm_source=github&utm_content=claude-code-workflow), building data and content pipelines with Claude Code and Codex.*
 
-[leolabs.me](https://leolabs.me) — 写作 · 社区 · 开源小工具 · 独立产品 · 全平台。
+*[leolabs.me](https://leolabs.me) — writing · community · open-source tools · indie projects · all platforms.*
 
-[X 会员](https://x.com/runes_leo/creator-subscriptions/subscribe) — 每周付费内容，或请杯咖啡
+*[X Subscription](https://x.com/runes_leo/creator-subscriptions/subscribe) — paid content weekly, or just buy me a coffee 😁*
 
-*公开学、公开做（Learn in public, Build in public）。*
+*Learn in public, Build in public.*
+
+## License
+
+MIT — see [LICENSE](LICENSE).
