@@ -58,4 +58,4 @@ v3 不再继续堆规则，而是公开我目前实际使用的结构。
 ./scripts/verify.sh
 ```
 
-在独立审查清除 blocker 之前，不创建 tag 或 GitHub Release。Push、Release、仓库改名和 X 发布仍是分别确认的公开动作。
+独立审查已清除全部 blocker。本版本对应 `v3.0.0`；仓库名称和 URL 继续保留 `claude-code-workflow`。
