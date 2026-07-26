@@ -1,4 +1,4 @@
-# Lean Agent Core
+# Agent Core
 
 ## Default behavior
 

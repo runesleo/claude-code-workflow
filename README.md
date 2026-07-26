@@ -1,10 +1,12 @@
-# Lean AI Workflow
+# Claude Code Workflow v3
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 **English** · [中文](README.zh.md)
 
-A small, evidence-driven instruction layer for Claude Code, Codex, and Cursor.
+A lighter default workflow for Claude Code, with shared adapters for Codex and Cursor.
+
+This is the third major version of the original `claude-code-workflow` project, not a renamed product. v3 changes what loads by default; it does not change the repository's identity.
 
 No mandatory morning ritual. No automatic session closeout. No forced subagent choreography. Start with the request, load context when it is needed, and write durable state when it actually changes.
 
@@ -20,13 +22,13 @@ The useful lesson was not “remove all safeguards.” It was to separate three 
 2. project facts and tests, read only when relevant;
 3. background products such as daily reports, generated independently and read on demand.
 
-The v2 example loaded 16,379 bytes from `CLAUDE.md` and three rule files before project context. The three v3 templates total 2,292 bytes, and each client loads only its own subset. These are byte counts, not token claims; actual context behavior varies by client and version.
+The v2 example loaded 16,379 bytes from `CLAUDE.md` and three rule files before project context. The three v3 templates total 2,287 bytes, and each client loads only its own subset. These are byte counts, not token claims; actual context behavior varies by client and version.
 
 This direction also matches current platform guidance: Anthropic recommends scoped `CLAUDE.md` memory, OpenAI describes a short `AGENTS.md` as a map instead of a manual, and Cursor supports small project rules with explicit attachment modes.
 
 ## What you get
 
-- **One lean core** — direct execution, truthful evidence, proportional verification, and a short list of real confirmation boundaries.
+- **One small core** — direct execution, truthful evidence, proportional verification, and a short list of real confirmation boundaries.
 - **Thin client adapters** — Claude Code import, Codex `AGENTS.md`, and a compact Cursor project rule.
 - **Safe installer** — dry-run by default, explicit apply, backups before overwrite, no network calls.
 - **Reversible migration** — disable old skills, hooks, and commands without deleting them.
@@ -151,12 +153,13 @@ See [Daily reports without daily rituals](docs/DAILY-REPORTS.md).
 | Case | Environment | Result |
 |------|-------------|--------|
 | Installer dry-run + transaction + symlink rollback | macOS, Bash 3.2 | Automated smoke test |
-| Claude/Codex/Cursor template size | Any | 2,292 bytes combined |
+| Claude/Codex/Cursor template size | Any | 2,287 bytes combined |
 | Network/account access | Any | None |
 
 ## Known limitations (v3 release candidate)
 
 - The installer does not interpret or rewrite arbitrary existing hooks, skills, or custom commands. Follow the migration guide first.
+- The v2 skill, agent, command, and memory examples remain available in Git history but are not installed by the v3 default.
 - Cursor global User Rules are managed in Cursor settings; the installer only writes a project rule.
 - Windows PowerShell installation is not included yet.
 - This repository explains the report boundary but does not ship a news or daily-report generator.
@@ -186,6 +189,10 @@ See [Daily reports without daily rituals](docs/DAILY-REPORTS.md).
 5. **Reversible beats destructive.** Disable first; delete only after real use proves it safe.
 
 For the broader context-management rationale, see OpenAI's [Harness engineering](https://openai.com/index/harness-engineering/).
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=runesleo/claude-code-workflow&type=Date)](https://star-history.com/#runesleo/claude-code-workflow&Date)
 
 ## About the author
 

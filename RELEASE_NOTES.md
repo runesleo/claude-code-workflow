@@ -1,6 +1,8 @@
-# v3.0.0 — Lean AI Workflow
+# v3.0.0 — Claude Code Workflow v3
 
 v3 reverses the direction of v2.
+
+The project keeps its original `Claude Code Workflow` identity. Codex and Cursor support are thin adapters, not a product rename.
 
 Instead of adding more always-loaded rules, hooks, routing, and closeout steps, it ships a 1.6 KB shared core with thin adapters for Claude Code, Codex, and Cursor.
 

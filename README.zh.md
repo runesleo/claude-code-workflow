@@ -1,10 +1,12 @@
-# Lean AI Workflow｜AI 工作流减负版
+# Claude Code 工作流 v3
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 [English](README.md) · **中文**
 
-一套给 Claude Code、Codex 和 Cursor 共用的极简工作流：保留真正有用的边界，拿掉每天必须启动、必须收尾、必须规划、必须分派 Agent 的流程负担。
+从真实多项目使用中重构出的轻量默认工作流：以 Claude Code 为主，同时给 Codex 和 Cursor 提供薄适配层。
+
+这仍然是原来的 `claude-code-workflow`，不是换了一个新产品名。v3 改的是默认加载方式，不是项目身份。
 
 > **v3 候选版：**这不是在 v2 上继续叠规则，而是一次方向修正。迁移与回滚见 [MIGRATION-v3.md](MIGRATION-v3.md)。
 
@@ -20,7 +22,7 @@
 2. **项目事实**：需要时再读仓库文档、状态和测试；
 3. **后台信息产品**：迁移不主动停掉已有日报任务；是否仍正常生成单独核验，不再强迫每个对话先跑 Morning/Today。
 
-旧 v2 示例在项目上下文之前就会加载 16,379 字节；v3 三个公开模板合计 2,292 字节，而且每个客户端只加载自己的部分。这里比较的是文件字节，不冒充精确 token 节省量。
+旧 v2 示例在项目上下文之前就会加载 16,379 字节；v3 三个公开模板合计 2,287 字节，而且每个客户端只加载自己的部分。这里比较的是文件字节，不冒充精确 token 节省量。
 
 ## 你能得到什么
 
@@ -145,12 +147,13 @@ Cursor 全局 User Rules 由应用设置管理；脚本不会冒险修改它，�
 | 场景 | 环境 | 结果 |
 |------|------|------|
 | dry-run、事务安装、符号链接回滚 | macOS · Bash 3.2 | 自动冒烟测试 |
-| 三端模板体积 | 任意 | 合计 2,292 字节 |
+| 三端模板体积 | 任意 | 合计 2,287 字节 |
 | 网络与账号操作 | 任意 | 无 |
 
 ## 当前限制
 
 - 不会自动理解并改写你所有历史 Hook、Skill 和 Command；先按迁移指南做可逆停用。
+- v2 的 Skill、Agent、Command 与 Memory 示例仍在 Git 历史里，但 v3 默认不再安装。
 - Cursor 全局规则需要你在设置里管理；脚本只装项目规则。
 - 暂无 Windows PowerShell 安装器。
 - 本仓库只定义“日报边界”，不内置新闻抓取或日报生成器。
@@ -169,6 +172,10 @@ Cursor 全局 User Rules 由应用设置管理；脚本不会冒险修改它，�
 3. **日报是信息产品，不是开工门禁。**
 4. **机械正确性放进测试，不要堆在提示词里。**
 5. **先停用再删除，永远保留回滚。**
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=runesleo/claude-code-workflow&type=Date)](https://star-history.com/#runesleo/claude-code-workflow&Date)
 
 ## 关于作者
 

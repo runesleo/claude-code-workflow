@@ -20,14 +20,20 @@ This is intentionally one coherent breaking-release slice. The large file count 
 4. A macOS-specific `mv` behavior could move a staged file into a symlinked directory. File targets resolving to directories are now rejected, with a fixture proving the external directory stays untouched.
 5. The final non-blocking warning about nested `rules/team/*.md` and `commands/team/*.md` was fixed and independently rechecked: `PASS`.
 
+## Product identity correction
+
+After maintainer feedback, the release title was restored to **Claude Code Workflow v3**. This is a major version of the existing `claude-code-workflow` project, not a new product named “Lean AI Workflow.” The lighter default runtime remains the substantive v3 change; the repository identity and history remain continuous.
+
+An independent follow-up review checked the corrected titles, continuity statement, links, file layout, and measured template size. Result: **PASS, zero blockers and zero warnings**.
+
 ## Verification evidence
 
-- `./scripts/verify.sh` → `INVENTORY_SMOKE_OK`, `INSTALL_SMOKE_OK`, `VERIFY_OK template_bytes=2292`
+- `./scripts/verify.sh` → `INVENTORY_SMOKE_OK`, `INSTALL_SMOKE_OK`, `VERIFY_OK template_bytes=2287`
 - ShellCheck → pass for all scripts and smoke tests
 - Bash 3.2 syntax and execution → pass
 - `git diff --check` → pass
 - Open-source preflight snapshot → no private paths, task IDs, or missing public baseline files
 - Strong-pattern Git history secret scan → pass
-- v2 byte baseline → 16,379 bytes; v3 public templates → 2,292 bytes
+- v2 byte baseline → 16,379 bytes; v3 public templates → 2,287 bytes
 
 Push, tag, GitHub Release, and public posting remain outside this review and require the maintainer's explicit approval.

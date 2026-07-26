@@ -12,7 +12,7 @@ CHANGELOG.md
 LICENSE
 MIGRATION-v3.md
 RELEASE_NOTES.md
-docs/REVIEW-codex-pass.md
+REVIEW-codex-pass.md
 AGENTS.md
 CLAUDE.md
 templates/shared/AGENTS.md
