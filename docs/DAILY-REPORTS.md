@@ -1,50 +1,44 @@
-# Daily reports without daily rituals
+# 日报可以继续，但不必成为仪式
 
-A scheduled daily report can remain useful after Morning, Today, and session-end workflows are removed.
+[English](DAILY-REPORTS.en.md) · **中文**
 
-The key is to separate **generation** from **consumption**.
+这次减负并没有停掉我已有的日报、同步或监控。真正删除的是“每个交互对话开始前都必须先跑 Morning/Today，结束时再统一 Session End”的绑定。
 
-## Recommended boundary
+核心是把**生成**和**阅读**分开。
+
+## 当前边界
 
 ```text
-scheduler or cron
-    ↓
-collect sources → transform → write dated artifact
-    ↓
+scheduler / monitor
+        ↓
+采集 → 转换 → 写入带日期的 artifact
+        ↓
 inbox/daily/YYYY-MM-DD.md
-    ↓
-read on demand / notify on exception / optional short push
+        ↓
+按需读取 / 异常提醒 / 明确选择后短推送
 ```
 
-The interactive agent does not need to regenerate the report, scan every backlog, or build a daily dashboard before answering an unrelated request.
+交互 Agent 不需要为了回答一个无关问题，先重跑日报、扫描全部 backlog 或重建 Dashboard。
 
-## Delivery modes
+## 三种阅读方式
 
-### 1. Quiet pull — default
+### 1. 安静拉取：默认
 
-The job writes a dated file and stays silent on success.
-
-Use this when the report is useful but not urgent. Open it directly or ask:
+任务每天生成文件，成功时不制造通知。
 
 ```text
-Read today's daily report and return the three items that deserve action.
+读取今天的日报，只告诉我值得行动的三件事。
 ```
 
-### 2. Exception notification
+### 2. 异常提醒
 
-Stay quiet when generation succeeds. Send a local or external notification only when the report is missing, stale, or degraded.
+正常生成时保持安静。只有文件缺失、过期或降级时，才触发通知。
 
-This is a good default for high-volume feeds because success does not create another notification to clear.
+### 3. 主动推送
 
-### 3. Opt-in push
+在明确选择的时间，只推送短摘要或 artifact 链接。是否修改 scheduler、访问账号或发送外部消息仍然分别确认。
 
-At a chosen time, push a short summary or a link to the artifact. Avoid sending the full report unless the destination is designed for long reading.
-
-Public messages, account access, credentials, and scheduler changes should remain explicit operator decisions.
-
-## A practical read contract
-
-Keep the report schema small enough that any agent can inspect it:
+## 报告也需要状态
 
 ```yaml
 date: 2026-07-26
@@ -53,21 +47,10 @@ status: ok | degraded | failed
 source_count: 62
 ```
 
-Then keep the body human-readable:
+文件存在不代表所有处理步骤成功。模型增强失败时，可以保留原始或抽取结果，并把状态标为 `degraded`。
 
-```markdown
-# Daily report
+## Daily Rhythm 的角色
 
-## Worth acting on
-## Worth watching
-## Source-only
-## Generation notes
-```
+我的 Daily Rhythm 业务线负责输入登记、路由、注意力排序和完成审计，但不取代每条业务线的 Owner，也不会因为某条线暂时空闲就自动补任务。
 
-If a model-dependent transformation fails, retain the raw or extractive artifact and mark it `degraded`. A file existing is not proof that every enrichment step succeeded.
-
-## What v3 does not do
-
-This repository does not ship a report generator or scheduler. It defines the boundary so an existing report can continue without becoming a mandatory startup workflow.
-
-中文一句话：**日报可以每天自动生成，但不需要每天先跑一套 AI 仪式才能读。默认静默落盘，需要时读；失败再提醒；是否推送单独决定。**
+日报是信息产品，不是开工门禁。

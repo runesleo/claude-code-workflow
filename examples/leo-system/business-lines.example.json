@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "description": "Sanitized public map of Leo's current long-lived business lines.",
+  "business_lines": [
+    {
+      "command": "⌘0",
+      "slug": "personal_ops",
+      "name": "Personal Ops",
+      "responsibility": "System / Agents / Gates",
+      "workspace": "./workspaces/personal-ops"
+    },
+    {
+      "command": "⌘1",
+      "slug": "pm_strategy",
+      "name": "Strategy Lab",
+      "responsibility": "Edge / Validate / Scale",
+      "workspace": "./workspaces/strategy-lab"
+    },
+    {
+      "command": "⌘2",
+      "slug": "pm_intel",
+      "name": "Data Platform",
+      "responsibility": "Pipelines / Indexers / Profiles",
+      "workspace": "./workspaces/data-platform"
+    },
+    {
+      "command": "⌘3",
+      "slug": "portfolio",
+      "name": "Portfolio",
+      "responsibility": "Allocation / Risk / Execution",
+      "workspace": "./workspaces/portfolio"
+    },
+    {
+      "command": "⌘4",
+      "slug": "content_writing",
+      "name": "Content Studio",
+      "responsibility": "X / Articles / SEO",
+      "workspace": "./workspaces/content-studio"
+    },
+    {
+      "command": "⌘5",
+      "slug": "product_distribution",
+      "name": "Products & Growth",
+      "responsibility": "Build / Monetize / Distribute",
+      "workspace": "./workspaces/products-growth"
+    },
+    {
+      "command": "⌘6",
+      "slug": "health_ops",
+      "name": "Health Ops",
+      "responsibility": "Records / Cadence / Research",
+      "workspace": "./workspaces/health-ops"
+    },
+    {
+      "command": "⌘8",
+      "slug": "daily_rhythm",
+      "name": "Daily Rhythm",
+      "responsibility": "Intake / Route / Audit",
+      "workspace": "./workspaces/daily-rhythm"
+    },
+    {
+      "command": "⌘9",
+      "slug": "research_dd",
+      "name": "Research Desk",
+      "responsibility": "DD / Opportunities / Knowledge",
+      "workspace": "./workspaces/research-desk"
+    }
+  ]
+}

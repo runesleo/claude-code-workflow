@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "example_only": true,
+  "id": "example-source-freshness-audit",
+  "title": "Verify freshness before summarizing a scheduled research brief",
+  "status": "waiting",
+  "priority": "P2",
+  "category": "research",
+  "owner": "research_dd",
+  "owner_thread": "research_dd",
+  "primary_worker": "cursor",
+  "boundary": "artifact_bound",
+  "context": "Synthetic public scenario: a dated brief may exist even when its enrichment step is stale or degraded.",
+  "execution_map": {
+    "terminal_state": "The next brief is accepted only when its source time and processing status are explicit.",
+    "phase_path": [
+      "inspect the dated artifact",
+      "compare source and generation times",
+      "retain raw output when enrichment is degraded",
+      "write a verification receipt"
+    ],
+    "current_batch": "Wait for the next scheduled artifact."
+  },
+  "evaluator": {
+    "acceptance": [
+      "The artifact reports source time and generation time.",
+      "Missing or stale enrichment is marked degraded rather than hidden.",
+      "The owner receives a verification receipt."
+    ],
+    "verify_method": [
+      "inspect artifact metadata",
+      "compare timestamps",
+      "read the generated status"
+    ],
+    "try_cap": 2
+  },
+  "claimed_by": null,
+  "claimed_at": null,
+  "next_action": "Wait for the next scheduled artifact, then verify freshness before summarizing it.",
+  "artifacts": [
+    "./artifacts/example-research-brief.md"
+  ],
+  "decision_gate": {
+    "current_gate": "next_scheduled_artifact_arrives"
+  },
+  "hard_gates_pending": [],
+  "updated_at": "2025-01-15T09:00:00Z",
+  "trigger": {
+    "type": "artifact_update",
+    "promote": "A new dated brief is written."
+  }
+}

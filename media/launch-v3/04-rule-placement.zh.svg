@@ -4,28 +4,28 @@
     <text x="72" y="70" fill="#B8F34A" font-size="24">Q U I E T H A R N E S S</text>
     <text x="1528" y="70" fill="#71808E" font-size="25" text-anchor="end">04 / 04</text>
 
-    <text x="72" y="166" fill="#F4F7F8" font-size="62" font-weight="700">仓库交付什么，不交付什么</text>
-    <text x="76" y="220" fill="#9EABB8" font-size="27">抽象真实经验，但不公开复制一个人的操作系统。</text>
+    <text x="72" y="166" fill="#F4F7F8" font-size="62" font-weight="700">公开真实系统，保护私人运行态</text>
+    <text x="76" y="220" fill="#9EABB8" font-size="27">保留我的架构与取舍，只拿掉实时数据和生产控制面。</text>
 
     <rect x="72" y="278" width="688" height="420" rx="32" fill="#152115" stroke="#426634"/>
-    <text x="110" y="334" fill="#B8F34A" font-size="26" font-weight="700">SHIPS · 公共、可复制</text>
+    <text x="110" y="334" fill="#B8F34A" font-size="26" font-weight="700">SHIPS · 我的公共系统地图</text>
     <circle cx="124" cy="395" r="8" fill="#B8F34A"/><text x="154" y="405" fill="#F4F7F8" font-size="29">三端共享 Core</text>
     <text x="154" y="438" fill="#9EABB8" font-size="21">直接执行 · 证据 · 验证 · hard gates</text>
     <circle cx="124" cy="491" r="8" fill="#B8F34A"/><text x="154" y="501" fill="#F4F7F8" font-size="29">安全迁移工具</text>
     <text x="154" y="534" fill="#9EABB8" font-size="21">inventory · dry-run · backup · rollback</text>
-    <circle cx="124" cy="587" r="8" fill="#B8F34A"/><text x="154" y="597" fill="#F4F7F8" font-size="29">连续性协议</text>
-    <text x="154" y="630" fill="#9EABB8" font-size="21">readout · writeback · freshness</text>
-    <circle cx="124" cy="665" r="8" fill="#B8F34A"/><text x="154" y="675" fill="#F4F7F8" font-size="29">脱敏示例与文档</text>
+    <circle cx="124" cy="587" r="8" fill="#B8F34A"/><text x="154" y="597" fill="#F4F7F8" font-size="29">九条业务线与任务系统</text>
+    <text x="154" y="630" fill="#9EABB8" font-size="21">Owner · Worker · readout · writeback · lock</text>
+    <circle cx="124" cy="665" r="8" fill="#B8F34A"/><text x="154" y="675" fill="#F4F7F8" font-size="29">已有开源分支的完整地图</text>
 
     <rect x="840" y="278" width="688" height="420" rx="32" fill="#21171D" stroke="#61303E"/>
-    <text x="878" y="334" fill="#FF8EA0" font-size="26" font-weight="700">DOES NOT SHIP · 私人、可替换</text>
-    <circle cx="892" cy="395" r="8" fill="#FF8EA0"/><text x="922" y="405" fill="#F4F7F8" font-size="29">个人任务库与实时状态</text>
-    <circle cx="892" cy="475" r="8" fill="#FF8EA0"/><text x="922" y="485" fill="#F4F7F8" font-size="29">身份、账号与私人路径</text>
-    <circle cx="892" cy="555" r="8" fill="#FF8EA0"/><text x="922" y="565" fill="#F4F7F8" font-size="29">scheduler 与跨会话派发器</text>
-    <circle cx="892" cy="635" r="8" fill="#FF8EA0"/><text x="922" y="645" fill="#F4F7F8" font-size="29">自动发布、生产或资金动作</text>
+    <text x="878" y="334" fill="#FF8EA0" font-size="26" font-weight="700">STAYS PRIVATE · 我的实时运行态</text>
+    <circle cx="892" cy="395" r="8" fill="#FF8EA0"/><text x="922" y="405" fill="#F4F7F8" font-size="29">当前任务、优先级与聊天记录</text>
+    <circle cx="892" cy="475" r="8" fill="#FF8EA0"/><text x="922" y="485" fill="#F4F7F8" font-size="29">thread ID、本机路径与账号</text>
+    <circle cx="892" cy="555" r="8" fill="#FF8EA0"/><text x="922" y="565" fill="#F4F7F8" font-size="29">仓位、健康、客户与凭证</text>
+    <circle cx="892" cy="635" r="8" fill="#FF8EA0"/><text x="922" y="645" fill="#F4F7F8" font-size="29">scheduler、生产与公开动作</text>
 
     <rect x="72" y="746" width="1456" height="92" rx="26" fill="#10161D" stroke="#273442"/>
-    <text x="108" y="802" fill="#F4F7F8" font-size="28">你可以只用 Core，也可以接入自己的系统。</text>
-    <text x="1490" y="802" fill="#B8F34A" font-size="28" font-weight="700" text-anchor="end">本次新增：默认热路径 +0 B</text>
+    <text x="108" y="802" fill="#F4F7F8" font-size="28">公开的不是匿名模板，而是可 fork 的真实结构。</text>
+    <text x="1490" y="802" fill="#B8F34A" font-size="28" font-weight="700" text-anchor="end">三端常驻模板合计 2,292 B</text>
   </g>
 </svg>

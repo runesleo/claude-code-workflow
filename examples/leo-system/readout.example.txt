@@ -1,0 +1,20 @@
+# Synthetic public example — not live state
+# ⌘9 Research Desk startup readout
+route: research_dd
+goals: 1
+- reliable-research-intake [in_progress/P2] Keep scheduled research artifacts verifiable
+tasks: active=0 waiting=1 monitoring=1
+- example-source-freshness-audit [waiting/P2] Verify freshness before summarizing a scheduled brief
+    trigger: a new dated brief is written
+- example-source-watch [monitoring/P3] Watch one public source for a schema change
+    trigger: the source format changes
+
+---
+
+# example-source-freshness-audit — Verify freshness before summarizing a scheduled research brief
+status=waiting priority=P2 owner_thread=research_dd primary_worker=cursor
+updated=2025-01-15T09:00:00Z
+next_action=Wait for the next scheduled artifact, then verify freshness before summarizing it.
+decision_gate=next_scheduled_artifact_arrives
+artifacts=["./artifacts/example-research-brief.md"]
+hard_gates_pending=[]

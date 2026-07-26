@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <rect width="1600" height="900" fill="#080B0E"/>
+  <g font-family="Hiragino Sans GB">
+    <text x="72" y="64" fill="#B8F34A" font-size="24">Q U I E T H A R N E S S</text>
+    <text x="1528" y="64" fill="#71808E" font-size="24" text-anchor="end">LEO'S AI WORK SYSTEM</text>
+
+    <text x="72" y="137" fill="#F4F7F8" font-size="54" font-weight="700">这不是一套模板，是我的 AI 工作系统地图</text>
+    <text x="74" y="180" fill="#9EABB8" font-size="24">小 Core 在中间；业务、任务和真实工具在外面继续生长。</text>
+
+    <text x="72" y="234" fill="#71808E" font-size="20">三端入口</text>
+    <rect x="190" y="205" width="230" height="54" rx="17" fill="#121922" stroke="#2B3A48"/>
+    <text x="305" y="240" fill="#DCE4EA" font-size="24" text-anchor="middle">Claude Code</text>
+    <rect x="450" y="205" width="230" height="54" rx="17" fill="#121922" stroke="#2B3A48"/>
+    <text x="565" y="240" fill="#DCE4EA" font-size="24" text-anchor="middle">Codex</text>
+    <rect x="710" y="205" width="230" height="54" rx="17" fill="#121922" stroke="#2B3A48"/>
+    <text x="825" y="240" fill="#DCE4EA" font-size="24" text-anchor="middle">Cursor</text>
+    <path d="M970 232 H1030" stroke="#71808E" stroke-width="2"/>
+    <path d="M1018 221 L1030 232 L1018 243" fill="none" stroke="#71808E" stroke-width="2"/>
+    <rect x="1060" y="195" width="468" height="74" rx="22" fill="#182916" stroke="#4B6E36"/>
+    <text x="1092" y="226" fill="#B8F34A" font-size="22" font-weight="700">QuietHarness Core · 1,604 B</text>
+    <text x="1092" y="251" fill="#D5DCE2" font-size="19">三端模板合计 2,292 B · 按风险验证</text>
+
+    <path d="M800 279 V310" stroke="#3E4B56" stroke-width="2"/>
+
+    <rect x="72" y="314" width="650" height="300" rx="28" fill="#10161D" stroke="#273442"/>
+    <text x="106" y="357" fill="#61D6FF" font-size="25" font-weight="700">九条长期业务线</text>
+    <text x="687" y="357" fill="#71808E" font-size="19" text-anchor="end">对话可换 · Owner 稳定</text>
+
+    <g font-size="20" text-anchor="middle">
+      <rect x="106" y="386" width="178" height="52" rx="16" fill="#14222A" stroke="#285264"/>
+      <text x="195" y="419" fill="#DCE4EA">Personal Ops</text>
+      <rect x="304" y="386" width="178" height="52" rx="16" fill="#14222A" stroke="#285264"/>
+      <text x="393" y="419" fill="#DCE4EA">Strategy Lab</text>
+      <rect x="502" y="386" width="178" height="52" rx="16" fill="#14222A" stroke="#285264"/>
+      <text x="591" y="419" fill="#DCE4EA">Data Platform</text>
+
+      <rect x="106" y="456" width="178" height="52" rx="16" fill="#14222A" stroke="#285264"/>
+      <text x="195" y="489" fill="#DCE4EA">Portfolio</text>
+      <rect x="304" y="456" width="178" height="52" rx="16" fill="#14222A" stroke="#285264"/>
+      <text x="393" y="489" fill="#DCE4EA">Content Studio</text>
+      <rect x="502" y="456" width="178" height="52" rx="16" fill="#14222A" stroke="#285264"/>
+      <text x="591" y="489" fill="#DCE4EA" font-size="17">Products &amp; Growth</text>
+
+      <rect x="106" y="526" width="178" height="52" rx="16" fill="#14222A" stroke="#285264"/>
+      <text x="195" y="559" fill="#DCE4EA">Health Ops</text>
+      <rect x="304" y="526" width="178" height="52" rx="16" fill="#14222A" stroke="#285264"/>
+      <text x="393" y="559" fill="#DCE4EA">Daily Rhythm</text>
+      <rect x="502" y="526" width="178" height="52" rx="16" fill="#14222A" stroke="#285264"/>
+      <text x="591" y="559" fill="#DCE4EA">Research Desk</text>
+    </g>
+
+    <rect x="746" y="314" width="782" height="300" rx="28" fill="#10161D" stroke="#273442"/>
+    <text x="780" y="357" fill="#FFCE62" font-size="25" font-weight="700">任务与连续性</text>
+    <text x="1492" y="357" fill="#71808E" font-size="19" text-anchor="end">聊天不是事实源</text>
+
+    <rect x="780" y="386" width="220" height="76" rx="20" fill="#211D13" stroke="#66552B"/>
+    <text x="890" y="417" fill="#FFCE62" font-size="21" text-anchor="middle">per-task SSOT</text>
+    <text x="890" y="444" fill="#D5DCE2" font-size="18" text-anchor="middle">状态 · 下一步 · 证据</text>
+    <path d="M1018 424 H1070" stroke="#71808E" stroke-width="2"/>
+    <path d="M1058 413 L1070 424 L1058 435" fill="none" stroke="#71808E" stroke-width="2"/>
+    <rect x="1090" y="386" width="196" height="76" rx="20" fill="#211D13" stroke="#66552B"/>
+    <text x="1188" y="417" fill="#FFCE62" font-size="21" text-anchor="middle">readout</text>
+    <text x="1188" y="444" fill="#D5DCE2" font-size="18" text-anchor="middle">按业务 / 按任务</text>
+    <path d="M1304 424 H1356" stroke="#71808E" stroke-width="2"/>
+    <path d="M1344 413 L1356 424 L1344 435" fill="none" stroke="#71808E" stroke-width="2"/>
+    <rect x="1376" y="386" width="118" height="76" rx="20" fill="#211D13" stroke="#66552B"/>
+    <text x="1435" y="417" fill="#FFCE62" font-size="20" text-anchor="middle">work</text>
+    <text x="1435" y="444" fill="#D5DCE2" font-size="17" text-anchor="middle">verify</text>
+
+    <rect x="780" y="488" width="714" height="90" rx="21" fill="#171C22" stroke="#34414C"/>
+    <text x="812" y="522" fill="#61D6FF" font-size="20" font-weight="700">Owner 稳定 · Worker 可替换 · 同一可变更面单 Writer</text>
+    <text x="812" y="552" fill="#D5DCE2" font-size="19">artifact → validation → writeback → rollback → next gate</text>
+
+    <path d="M800 626 V657" stroke="#3E4B56" stroke-width="2"/>
+
+    <rect x="72" y="661" width="1456" height="158" rx="28" fill="#121922" stroke="#273442"/>
+    <text x="106" y="704" fill="#B8F34A" font-size="25" font-weight="700">从这套系统里长出来的开源分支</text>
+    <text x="1492" y="704" fill="#71808E" font-size="19" text-anchor="end">真实使用 → 独立价值 → 单独仓库</text>
+
+    <g font-size="19" text-anchor="middle">
+      <rect x="106" y="733" width="230" height="54" rx="17" fill="#182916" stroke="#426634"/>
+      <text x="221" y="756" fill="#B8F34A">Prediction Market</text>
+      <text x="221" y="779" fill="#D5DCE2" font-size="16">polymarket-toolkit</text>
+
+      <rect x="358" y="733" width="230" height="54" rx="17" fill="#14222A" stroke="#285264"/>
+      <text x="473" y="756" fill="#61D6FF">Content Intake</text>
+      <text x="473" y="779" fill="#D5DCE2" font-size="16">x-reader · TG · long media</text>
+
+      <rect x="610" y="733" width="230" height="54" rx="17" fill="#251A22" stroke="#55303D"/>
+      <text x="725" y="756" fill="#FF8EA0">Video</text>
+      <text x="725" y="779" fill="#D5DCE2" font-size="16">claude-video-kit</text>
+
+      <rect x="862" y="733" width="230" height="54" rx="17" fill="#211D13" stroke="#66552B"/>
+      <text x="977" y="756" fill="#FFCE62">Health</text>
+      <text x="977" y="779" fill="#D5DCE2" font-size="16">ai-health-vault</text>
+
+      <rect x="1114" y="733" width="380" height="54" rx="17" fill="#171C22" stroke="#34414C"/>
+      <text x="1304" y="756" fill="#DCE4EA">System Audit &amp; Research</text>
+      <text x="1304" y="779" fill="#9EABB8" font-size="16">skill-audit · asset-dd · more</text>
+    </g>
+
+    <text x="72" y="866" fill="#71808E" font-size="20">复杂性没有消失，只是离开了每次请求的热路径。</text>
+    <text x="1528" y="866" fill="#B8F34A" font-size="20" text-anchor="end">真实系统 · 中文源语言 · 可持续演进</text>
+  </g>
+</svg>

@@ -7,7 +7,7 @@ cd "$repo_root"
 
 required_files="
 README.md
-README.zh.md
+README.en.md
 CHANGELOG.md
 LICENSE
 MIGRATION-v3.md
@@ -19,15 +19,24 @@ templates/shared/AGENTS.md
 templates/claude/CLAUDE.md
 templates/cursor/quiet-harness.mdc
 docs/DAILY-REPORTS.md
+docs/DAILY-REPORTS.en.md
 docs/ARCHITECTURE.md
+docs/ARCHITECTURE.en.md
 docs/PRIVATE-OVERLAY.md
+docs/PRIVATE-OVERLAY.en.md
 docs/TASK-CONTINUITY.md
-examples/solo-builder/README.md
-examples/solo-builder/AGENTS.private.example.md
-examples/solo-builder/workspaces.example.json
-examples/solo-builder/tasks/task-001.example.json
+docs/TASK-CONTINUITY.en.md
+examples/leo-system/README.md
+examples/leo-system/README.en.md
+examples/leo-system/AGENTS.private.example.md
+examples/leo-system/business-lines.example.json
+examples/leo-system/task.example.json
+examples/leo-system/writer-lock.example.json
+examples/leo-system/readout.example.txt
 media/launch-v3/README.md
 media/launch-v3/X-DRAFT.zh.md
+media/launch-v3/00-system-map.zh.svg
+media/launch-v3/00-system-map.zh.png
 media/launch-v3/01-positioning.zh.svg
 media/launch-v3/01-positioning.zh.png
 media/launch-v3/02-three-layers.zh.svg
@@ -50,13 +59,18 @@ for required in $required_files; do
   fi
 done
 
-if [ -e README.en.md ]; then
-  echo "VERIFY_FAIL README.en.md duplicates the English default" >&2
+if [ -e README.zh.md ]; then
+  echo "VERIFY_FAIL README.zh.md remains beside the Chinese default README.md" >&2
   exit 1
 fi
 
-if ! grep -Fq '# QuietHarness' README.md || ! grep -Fq '# QuietHarness' README.zh.md; then
+if ! grep -Fq '# QuietHarness' README.md || ! grep -Fq '# QuietHarness' README.en.md; then
   echo "VERIFY_FAIL product name is not consistent across both README files" >&2
+  exit 1
+fi
+
+if ! grep -Fq '**中文**' README.md || ! grep -Fq '**English**' README.en.md; then
+  echo "VERIFY_FAIL README language-source markers are missing" >&2
   exit 1
 fi
 
@@ -93,12 +107,42 @@ if [ -n "$private_hits" ]; then
   exit 1
 fi
 
-for marker in '"scope_id"' '"owner_scope"' '"next_action"' '"updated_at"'; do
-  if ! grep -Rq "$marker" examples/solo-builder; then
+for marker in '"owner_thread"' '"primary_worker"' '"next_action"' '"updated_at"' '"execution_map"' '"evaluator"'; do
+  if ! grep -Fq "$marker" examples/leo-system/task.example.json; then
     echo "VERIFY_FAIL continuity example omits contract marker: $marker" >&2
     exit 1
   fi
 done
+
+for marker in '"active_writer"' '"allowed_paths"' '"validation_required"' '"release_receipt"'; do
+  if ! grep -Fq "$marker" examples/leo-system/writer-lock.example.json; then
+    echo "VERIFY_FAIL writer-lock example omits contract marker: $marker" >&2
+    exit 1
+  fi
+done
+
+for slug in personal_ops pm_strategy pm_intel portfolio content_writing product_distribution health_ops daily_rhythm research_dd; do
+  if ! grep -Fq "\"slug\": \"$slug\"" examples/leo-system/business-lines.example.json; then
+    echo "VERIFY_FAIL business-line map omits $slug" >&2
+    exit 1
+  fi
+done
+
+python3 -m json.tool examples/leo-system/business-lines.example.json >/dev/null
+python3 -m json.tool examples/leo-system/task.example.json >/dev/null
+python3 -m json.tool examples/leo-system/writer-lock.example.json >/dev/null
+
+if command -v xmllint >/dev/null 2>&1; then
+  xmllint --noout media/launch-v3/*.svg
+fi
+
+legacy_copy_hits="$(grep -REn '(README\.zh\.md|examples/solo-builder)' \
+  README.md README.en.md docs examples media CHANGELOG.md RELEASE_NOTES.md 2>/dev/null || true)"
+if [ -n "$legacy_copy_hits" ]; then
+  echo "VERIFY_FAIL stale language or example path remains" >&2
+  echo "$legacy_copy_hits" >&2
+  exit 1
+fi
 
 stale_hits="$(grep -REni '(mandatory subagent|PreToolUse Hook|memory-flush|today\.md|session-end)' \
   AGENTS.md CLAUDE.md templates 2>/dev/null || true)"

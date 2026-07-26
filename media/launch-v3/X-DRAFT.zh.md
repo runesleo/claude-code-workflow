@@ -1,70 +1,87 @@
-# QuietHarness launch draft — not published
+# QuietHarness v3 launch draft — not published
 
 ## Main post
 
-之前我开源 Claude Code Workflow 后，其实没有频繁维护。很多人 fork 之后，按自己的需要继续改。
+几个月前，我开源过一套 Claude Code Workflow。
 
-这次重新动它，不是为了再造一套大而全的 AI OS。
+后来公开仓库没怎么更新，但我自己的系统一直没停：Claude Code、Codex、Cursor，各种模型，交易、数据、内容、视频、开源项目，全都在里面继续迭代。
 
-最近我把 Claude Code、Codex、Cursor 三端配置彻底重构，并放回真实项目里继续使用。最大的感受不是“Prompt 变短了”，而是小任务可以直接开始，复杂任务也没有因此失去连续性。
+最近用了一段时间最高推理档的模型，我回头看 v2，发现它有点过度设计了。
 
-所以我把这版整理成了 QuietHarness。
+当时模型容易忘、容易乱跑，我就不断往里加规则、Hook、Skill、Memory、模型路由、Morning、Today、Session End。
 
-默认 Core 仍然很小，只负责直接执行、真实证据、按风险验证，以及不可逆动作前确认。
+这些东西不是瞎设计的，当时都解决过真实问题。但模型变强以后，一部分保护开始变成重复规划、误触流程和维护负担。
 
-但瘦身以后，真正难的问题才出现：
+所以我把三端配置重新瘦了一遍：
 
-如果不再把 Morning、Today、Memory 和任务状态塞进每次对话，跨项目、跨会话、跨客户端的连续性怎么保留？
+- 共用 Core：1,604 字节；
+- Claude Code 入口：168 字节；
+- Cursor 项目规则：520 字节；
+- 三端模板合计：2,292 字节。
 
-这次新增的不是任务库，而是一套可选参考架构：
+但我的工作系统并没有因此变成一条 Prompt。
 
-Personal → Workspace → Task
+它现在是一张地图：
 
-- Personal：稳定偏好与私人系统指针；
-- Workspace：当前项目或业务范围的入口、测试和事实源；
-- Task：状态、下一步、证据与更新时间。
+1. Claude Code / Codex / Cursor 共用一个小 Core；
+2. 九条长期业务线负责稳定归属；
+3. 每个长期任务有自己的事实源，Owner 稳定，Worker 可以替换；
+4. 同一个仓库或任务事实面默认只有一个 Writer；
+5. 日报、同步和监控在后台继续运行，成功时安静，异常时提醒；
+6. 已经长成独立能力的分支，继续放在自己的开源仓库里。
 
-三层都不会全量塞进每次对话。真正连接它们的是三个协议：
+比如：
 
-1. readout：只读取当前请求需要的那一小段事实；
-2. writeback：状态发生变化时立即写回事实源，不等 Session End 再统一回忆；
-3. freshness：缺失或过期状态必须回源核验，不能让旧状态冒充当前事实。
+- 预测市场 → polymarket-toolkit；
+- 内容摄入 → x-reader / tg-reader-mcp / long-media-cli；
+- 视频制作 → claude-video-kit；
+- 健康资料 → ai-health-vault；
+- 系统体检 → claude-skill-audit。
 
-仓库现在交付三端 Core、安全迁移工具、连续性协议和脱敏示例；不交付我的任务库、身份、账号、私有路径、scheduler 或个人工作台。
+这次我更新旧仓库，不是想再造一个人人通用的 AI OS。
 
-这层架构完全可选，因此本次新增没有让默认热路径增加一个字节。
+我只是把自己目前真实在用的 AI 工作系统重新整理出来：保留业务结构、任务系统、失败后长出来的边界和各个开源分支，只拿掉私人路径、实时任务、账号和生产控制面。
 
-我暂时不把它想得太远。先让它继续在我自己的真实工作里接受检验；后面每次发现确实有用、也能被别人复用的更新，再持续写回公共版本。
+新版本叫 QuietHarness。
 
-真正想分享的不是我的文件夹，而是这件事：
+Harness 还在，但没有相关任务时，它应该安静。
 
-一个很小的 Core，可以接入复杂系统，但不必让复杂系统重新占领热路径。
+仓库仍然是原来的 claude-code-workflow，Git 历史也继续保留。以后我在真实工作里验证出新的东西，再继续往这张地图上更新。
 
-轻量和连续性，不需要二选一。
+## Optional reply 1 — current map
 
-## Optional reply 1 — what is actually included
+我的九条长期业务线：
 
-当前版本包含：
+⌘0 Personal Ops
+⌘1 Strategy Lab
+⌘2 Data Platform
+⌘3 Portfolio
+⌘4 Content Studio
+⌘5 Products & Growth
+⌘6 Health Ops
+⌘8 Daily Rhythm
+⌘9 Research Desk
 
-- Claude Code / Codex / Cursor 三端薄入口；
+它们不是九个常驻 Agent，而是九个稳定的业务 Owner。模型、客户端和对话都可以换，事实归属不跟着漂移。
+
+## Optional reply 2 — what ships
+
+仓库实际包含：
+
+- Claude Code / Codex / Cursor 三端小 Core；
 - inventory、dry-run、backup、rollback；
-- Personal / Workspace / Task 双轴架构说明；
-- readout / writeback / freshness 协议；
-- 不含私人数据的 solo-builder 示例。
+- 我的业务线和任务系统地图；
+- per-task SSOT、readout/writeback、claim 和 writer-lock 的脱敏示例；
+- 日报与交互工作流的边界；
+- 已开源业务分支的入口。
 
-没有内置任务数据库，也不会自动修改 scheduler、发布内容或跨会话派工。
-
-## Optional reply 2 — release boundary
-
-这次最刻意的一点，是把“参考架构”和“默认运行时”分开。
-
-你可以只安装 2,292 字节的三端模板，完全不用任务连续性示例；也可以把示例接到自己已有的文件、Issue Tracker 或数据库。
-
-协议是公共的，存储和执行机制由使用者自己决定。
+不包含我的实时任务、账号、仓位、健康记录、thread ID、scheduler 或生产环境。
 
 ## Image order
 
-1. `01-positioning.zh.png` — 瘦身以后，连续性怎么办？
-2. `02-three-layers.zh.png` — Personal → Workspace → Task
-3. `03-before-after.zh.png` — readout / freshness / writeback / receipt
-4. `04-rule-placement.zh.png` — 仓库交付与私人边界
+1. `00-system-map.zh.png` — 整套真实系统地图
+2. `01-positioning.zh.png` — 瘦身以后，连续性怎么办
+3. `03-before-after.zh.png` — 任务读取、验证与写回
+4. `04-rule-placement.zh.png` — 公开结构与私人运行态边界
+
+`02-three-layers.zh.png` 可作为 README 深入图，不占主帖四图。

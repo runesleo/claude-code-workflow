@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "repository": {
+    "repo": "./projects/current-workflow",
+    "branch_or_worktree": "./worktrees/current-workflow-v3",
+    "active_writer": "codex-system-map-batch",
+    "allowed_paths": [
+      "README.md",
+      "docs/**",
+      "examples/**",
+      "media/**"
+    ],
+    "forbidden_paths": [
+      ".env",
+      "secrets/**",
+      "production/**"
+    ],
+    "validation_required": [
+      "./scripts/verify.sh",
+      "privacy scan",
+      "independent review"
+    ],
+    "next_gate": "maintainer review before push or release"
+  },
+  "release_receipt": {
+    "artifact": [
+      "local commit SHA"
+    ],
+    "validation": [
+      "verification output"
+    ],
+    "writeback": [
+      "canonical task record updated"
+    ],
+    "rollback": "revert the local commit",
+    "outcome": "commit",
+    "next_gate": "explicit approval for public release"
+  }
+}

@@ -1,46 +1,45 @@
-# Private overlay
+# 私人层：把公共 Harness 接到你自己身上
 
-The public QuietHarness core is intentionally anonymous. A private overlay connects it to one person's stable preferences and existing systems without publishing those details or loading all live state into every request.
+[English](PRIVATE-OVERLAY.en.md) · **中文**
 
-## What belongs here
+QuietHarness 的公开 Core 不包含身份。我的真实系统会在 Core 之外加载一层很短的私人上下文，用来说明“我是谁、稳定偏好是什么、事实源在哪里”。
 
-- preferred language or response style;
-- a small number of stable working preferences;
-- pointers to workspace and task sources;
-- additional personal confirmation boundaries that are not already in the public core.
+这层不是个人知识库，也不是完整工作台。它只是一张地图。
 
-## What does not belong here
+## 我的实际边界
 
-- current priorities or a full task list;
-- account details, credentials, wallet data, or customer information;
-- copied project documentation;
-- transcripts, daily reports, or generated dashboards;
-- rules that can be enforced more reliably by tests, permissions, or scripts.
+私人层适合保存：
 
-## Keep it as a map
+- 默认语言和稳定表达偏好；
+- 少量跨项目都成立的工作习惯；
+- 业务线 registry、任务 SSOT 和项目目录的入口；
+- 公开 Core 没有覆盖的个人确认边界。
 
-A useful overlay is usually closer to this:
+不适合保存：
+
+- 当前 Top 5 或完整任务列表；
+- 项目文档的副本；
+- 日报、聊天记录和 Dashboard；
+- 账号、凭证、钱包、客户和健康数据；
+- 可以由测试、权限或脚本执行的机械规则。
+
+## 一个接近真实用法的示例
 
 ```markdown
-# Private working context
+# 私人工作上下文
 
-- Preferred language: English.
-- Workspace registry: <private workspace registry path>.
-- When a task is explicitly named, read only its canonical record.
-- If task state is missing or stale, report UNKNOWN and verify the source.
-- Persist durable task changes through the configured writeback path.
+- 默认语言：中文。
+- 我的工作按稳定业务线划分；进入哪条线，只读取哪条线的摘要。
+- 点名任务时，只读该任务的权威记录并报告更新时间。
+- 状态缺失、矛盾或过期时，标记 UNKNOWN 后回源核验。
+- 持久状态变化通过任务 writeback 保存。
+- 项目事实留在项目仓库，不复制到全局文件。
 ```
 
-It should not contain the current contents of every workspace and task.
+真正的路径和任务内容通过本机私有配置连接，不进入公开仓库。
 
-## Storage and loading
+## 为什么必须短
 
-Use a private, untracked location supported by your client or operating environment. The QuietHarness installer does not create, discover, or modify this file.
+私人层仍然可能常驻热路径。一旦它开始堆积当前任务、项目事实、模型路由或每日流程，就应该把这些内容移到业务线、项目或任务的按需读取入口后面。
 
-The example at [`examples/solo-builder/AGENTS.private.example.md`](../examples/solo-builder/AGENTS.private.example.md) is deliberately inert. Copy it to a private location, replace the placeholders, and connect it using your client's supported private/global instruction mechanism.
-
-Before committing any project, verify that the private overlay and generated state are ignored. Public repositories should contain only neutral examples.
-
-## Size discipline
-
-If the overlay starts accumulating current tasks, project facts, model routing tables, or daily procedures, move those details behind a workspace or task readout. The private overlay is still part of the hot path, so it should remain short and stable.
+QuietHarness 公开的是这种边界，不是 Leo 的私人文件。
