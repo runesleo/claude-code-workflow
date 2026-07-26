@@ -48,7 +48,25 @@ Harness 还在，但没有相关任务时，它应该安静。
 
 仓库仍然是原来的 claude-code-workflow，Git 历史也继续保留。以后我在真实工作里验证出新的东西，再继续往这张地图上更新。
 
-## Optional reply 1 — current map
+仓库链接放在 1F。
+
+## Optional reply 1 — repository and what ships
+
+仓库：
+https://github.com/runesleo/claude-code-workflow
+
+实际包含：
+
+- Claude Code / Codex / Cursor 三端小 Core；
+- inventory、dry-run、backup、rollback；
+- 我的业务线和任务系统地图；
+- per-task SSOT、readout/writeback、claim 和 writer-lock 的脱敏示例；
+- 日报与交互工作流的边界；
+- 已开源业务分支的入口。
+
+不包含我的实时任务、账号、仓位、健康记录、thread ID、scheduler 或生产环境。
+
+## Optional reply 2 — current map
 
 我的九条长期业务线：
 
@@ -63,19 +81,6 @@ Harness 还在，但没有相关任务时，它应该安静。
 ⌘9 Research Desk
 
 它们不是九个常驻 Agent，而是九个稳定的业务 Owner。模型、客户端和对话都可以换，事实归属不跟着漂移。
-
-## Optional reply 2 — what ships
-
-仓库实际包含：
-
-- Claude Code / Codex / Cursor 三端小 Core；
-- inventory、dry-run、backup、rollback；
-- 我的业务线和任务系统地图；
-- per-task SSOT、readout/writeback、claim 和 writer-lock 的脱敏示例；
-- 日报与交互工作流的边界；
-- 已开源业务分支的入口。
-
-不包含我的实时任务、账号、仓位、健康记录、thread ID、scheduler 或生产环境。
 
 ## Image order
 
