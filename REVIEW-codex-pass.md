@@ -34,6 +34,7 @@ Chinese is the source and default repository language in `README.md` and the def
 3. The system map now uses the full `Products & Growth` business-line name.
 4. A rendered PNG happened to contain a random compressed byte sequence matching `T###`. It was re-encoded; the visible image and 1600×900 dimensions are unchanged, and the task-ID scanner is clear.
 5. The uncertain `long-media-cli` link was checked through the GitHub API and confirmed public.
+6. Repository instructions and the v3 migration guide were aligned with the Chinese-source decision. `MIGRATION-v3.md` is now Chinese, `MIGRATION-v3.en.md` is its compatibility mirror, and the verifier checks both directions.
 
 ## Verification evidence
 
@@ -47,6 +48,7 @@ Chinese is the source and default repository language in `README.md` and the def
 - public-copy scan → no private paths, task IDs, thread IDs, wallet-like strings, or secret-like tokens
 - open-source preflight on a `.git`-free filesystem snapshot → pass after adding a temporary `README.zh.md` compatibility copy inside the snapshot only
 - independent second-pass review → PASS, zero blockers and zero warnings
+- independent language-alignment review → PASS; Chinese and English commands, safety semantics, links, and rollback instructions match
 
 The preflight script still assumes `README.md` is English and requires a separate `README.zh.md`. This release intentionally reverses that convention: Chinese lives at `README.md`, English at `README.en.md`, and no duplicate `README.zh.md` is shipped. The temporary compatibility copy was used only to exercise the scanner's privacy, task-ID, license, and environment checks; it was not added to the repository.
 

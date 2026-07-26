@@ -11,6 +11,7 @@ README.en.md
 CHANGELOG.md
 LICENSE
 MIGRATION-v3.md
+MIGRATION-v3.en.md
 RELEASE_NOTES.md
 REVIEW-codex-pass.md
 AGENTS.md
@@ -86,8 +87,16 @@ for legacy_dir in rules skills agents commands memory hooks; do
   fi
 done
 
-if ! grep -Fq './scripts/inventory.sh' MIGRATION-v3.md; then
+if ! grep -Fq './scripts/inventory.sh' MIGRATION-v3.md || ! grep -Fq './scripts/inventory.sh' MIGRATION-v3.en.md; then
   echo "VERIFY_FAIL migration guide omits the read-only inventory command" >&2
+  exit 1
+fi
+
+if ! grep -Fq '**中文**' MIGRATION-v3.md || \
+   ! grep -Fq '[English](MIGRATION-v3.en.md)' MIGRATION-v3.md || \
+   ! grep -Fq '[中文](MIGRATION-v3.md)' MIGRATION-v3.en.md || \
+   ! grep -Fq '**English**' MIGRATION-v3.en.md; then
+  echo "VERIFY_FAIL migration language-source markers are missing" >&2
   exit 1
 fi
 
@@ -137,7 +146,7 @@ if command -v xmllint >/dev/null 2>&1; then
 fi
 
 legacy_copy_hits="$(grep -REn '(README\.zh\.md|examples/solo-builder)' \
-  README.md README.en.md docs examples media CHANGELOG.md RELEASE_NOTES.md 2>/dev/null || true)"
+  AGENTS.md README.md README.en.md MIGRATION-v3.md MIGRATION-v3.en.md docs examples media CHANGELOG.md RELEASE_NOTES.md 2>/dev/null || true)"
 if [ -n "$legacy_copy_hits" ]; then
   echo "VERIFY_FAIL stale language or example path remains" >&2
   echo "$legacy_copy_hits" >&2
