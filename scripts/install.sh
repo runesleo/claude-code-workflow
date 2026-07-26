@@ -79,7 +79,7 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "$script_dir/.." && pwd)"
 shared_source="$repo_root/templates/shared/AGENTS.md"
 claude_source="$repo_root/templates/claude/CLAUDE.md"
-cursor_source="$repo_root/templates/cursor/lean-baseline.mdc"
+cursor_source="$repo_root/templates/cursor/quiet-harness.mdc"
 timestamp="$(date +%Y%m%d-%H%M%S)-$$"
 codex_home="${CODEX_HOME:-$workflow_home/.codex}"
 
@@ -143,7 +143,7 @@ if [ "$want_codex" -eq 1 ]; then
 fi
 
 if [ -n "$cursor_project" ]; then
-  add_target "$cursor_source" "$cursor_project/.cursor/rules/lean-workflow.mdc"
+  add_target "$cursor_source" "$cursor_project/.cursor/rules/quiet-harness.mdc"
 fi
 
 target_total="${#targets[@]}"

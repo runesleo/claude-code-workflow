@@ -1,16 +1,39 @@
-# Claude Code Workflow v3
+# QuietHarness
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 **English** · [中文](README.zh.md)
 
-A lighter default workflow for Claude Code, with shared adapters for Codex and Cursor.
+### A low-ceremony workflow reset for Claude Code, Codex, and Cursor.
 
-This is the third major version of the original `claude-code-workflow` project, not a renamed product. v3 changes what loads by default; it does not change the repository's identity.
+For developers whose AI coding setup has become a second system to maintain.
 
-No mandatory morning ritual. No automatic session closeout. No forced subagent choreography. Start with the request, load context when it is needed, and write durable state when it actually changes.
+QuietHarness inventories the instruction surfaces already active on your machine, documents how to move old rules and rituals out of the hot path, and installs one small shared core with dry-run, backups, and rollback.
 
-> **v3 release candidate:** the old v2 workflow is being replaced, not extended. See [MIGRATION-v3.md](MIGRATION-v3.md).
+It is still a workflow: it defines how requests, context, verification, durable state, and background signals meet. It is not another agent orchestrator, prompt collection, or mandatory daily routine.
+
+> **Formerly Claude Code Workflow.** QuietHarness is the v3 product direction of the same repository and Git history. The old vendor-specific name remains in the repository URL for continuity. See [MIGRATION-v3.md](MIGRATION-v3.md).
+
+## Who it is for
+
+QuietHarness is for independent developers, AI coding power users, and small teams who:
+
+- work across real projects with Claude Code, Codex, or Cursor every day;
+- have accumulated global rules, hooks, skills, memory, routing, and closeout flows;
+- see agents planning twice, triggering irrelevant workflows, or loading stale context;
+- want less configuration debt without deleting safety gates or losing rollback.
+
+It is not a skill marketplace, task database, model router, daily-report generator, or autonomous multi-agent framework. If you want a large batteries-included workflow bundle, v2 is more complete; v3 is for people who are already paying the maintenance cost of one.
+
+## What changes
+
+| Shipped example | v2 | QuietHarness v3 |
+|---|---:|---:|
+| Claude always-loaded configuration | 16,379 B | 1,772 B |
+| Bundled workflow assets | 25 rules/docs/memory/skills/agents/commands | 3 client templates |
+| Migration safety | manual copy or symlink | inventory + dry-run + backup + rollback |
+
+Byte counts describe shipped configuration, not token usage, response speed, or model-quality gains.
 
 ## Why v3
 
@@ -22,7 +45,7 @@ The useful lesson was not “remove all safeguards.” It was to separate three 
 2. project facts and tests, read only when relevant;
 3. background products such as daily reports, generated independently and read on demand.
 
-The v2 example loaded 16,379 bytes from `CLAUDE.md` and three rule files before project context. The three v3 templates total 2,287 bytes, and each client loads only its own subset. These are byte counts, not token claims; actual context behavior varies by client and version.
+The v2 Claude example loaded 16,379 bytes from `CLAUDE.md` and three rule files before project context. QuietHarness loads 1,772 bytes for Claude (the 1,604-byte shared core plus a 168-byte adapter). All three client templates total 2,292 bytes, but no client loads all three. These are byte counts, not token claims; actual context behavior varies by client and version.
 
 This direction also matches current platform guidance: Anthropic recommends scoped `CLAUDE.md` memory, OpenAI describes a short `AGENTS.md` as a map instead of a manual, and Cursor supports small project rules with explicit attachment modes.
 
@@ -33,6 +56,8 @@ This direction also matches current platform guidance: Anthropic recommends scop
 - **Safe installer** — dry-run by default, explicit apply, backups before overwrite, no network calls.
 - **Reversible migration** — disable old skills, hooks, and commands without deleting them.
 - **Quiet daily reports** — leave an existing scheduler untouched, verify its output separately, and avoid forcing every chat through a morning or closeout pipeline.
+
+The name is the architecture: the **harness** around the model remains available, but it stays **quiet** until the current task actually needs it.
 
 ## How it works
 
@@ -58,7 +83,7 @@ The workflow deliberately does not prescribe a task database, note app, model ro
 templates/
 ├── shared/AGENTS.md              # portable core
 ├── claude/CLAUDE.md              # imports the shared core
-└── cursor/lean-baseline.mdc      # compact project rule
+└── cursor/quiet-harness.mdc      # compact project rule
 docs/
 └── DAILY-REPORTS.md              # reports without daily rituals
 scripts/
@@ -94,7 +119,7 @@ For a Cursor project:
 ./scripts/install.sh --apply --cursor-project /path/to/project
 ```
 
-The Cursor installer creates `.cursor/rules/lean-workflow.mdc` inside the selected project. For a global Cursor preference, paste the small baseline into **Cursor Settings → Rules** instead of copying project-specific state globally.
+The Cursor installer creates `.cursor/rules/quiet-harness.mdc` inside the selected project. For a global Cursor preference, paste the small baseline into **Cursor Settings → Rules** instead of copying project-specific state globally.
 
 `--codex` respects `CODEX_HOME` and otherwise uses `~/.codex`. All selected targets pass preflight and staging before any file is replaced. An existing target symlink to a file is backed up as a symlink and replaced locally; the file it pointed to is not modified. A file target that resolves to a directory is rejected.
 
@@ -153,7 +178,7 @@ See [Daily reports without daily rituals](docs/DAILY-REPORTS.md).
 | Case | Environment | Result |
 |------|-------------|--------|
 | Installer dry-run + transaction + symlink rollback | macOS, Bash 3.2 | Automated smoke test |
-| Claude/Codex/Cursor template size | Any | 2,287 bytes combined |
+| Claude/Codex/Cursor template size | Any | 2,292 bytes combined |
 | Network/account access | Any | None |
 
 ## Known limitations (v3 release candidate)
@@ -167,14 +192,21 @@ See [Daily reports without daily rituals](docs/DAILY-REPORTS.md).
 
 ## Roadmap
 
+**Configuration doctor**
+
+- [ ] Detect duplicate instructions, conflicting rules, symlinked discovery paths, and cross-client drift.
+- [ ] Classify configuration into always-loaded core, on-demand capability, and background system.
+
 **Migration**
 
 - [ ] Add a PowerShell installer.
+- [ ] Add snapshots, diffs, and one-command restore without broad destructive cleanup.
 
 **Compatibility**
 
 - [ ] Track instruction-loading changes in Claude Code, Codex, and Cursor.
 - [ ] Add more client adapters only when they remain thin.
+- [ ] Offer optional capability packs that load explicitly instead of returning to the default hot path.
 
 **Evidence**
 

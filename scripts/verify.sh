@@ -17,8 +17,18 @@ AGENTS.md
 CLAUDE.md
 templates/shared/AGENTS.md
 templates/claude/CLAUDE.md
-templates/cursor/lean-baseline.mdc
+templates/cursor/quiet-harness.mdc
 docs/DAILY-REPORTS.md
+media/launch-v3/README.md
+media/launch-v3/X-DRAFT.zh.md
+media/launch-v3/01-positioning.zh.svg
+media/launch-v3/01-positioning.zh.png
+media/launch-v3/02-three-layers.zh.svg
+media/launch-v3/02-three-layers.zh.png
+media/launch-v3/03-before-after.zh.svg
+media/launch-v3/03-before-after.zh.png
+media/launch-v3/04-rule-placement.zh.svg
+media/launch-v3/04-rule-placement.zh.png
 scripts/inventory.sh
 scripts/install.sh
 scripts/verify.sh
@@ -35,6 +45,16 @@ done
 
 if [ -e README.en.md ]; then
   echo "VERIFY_FAIL README.en.md duplicates the English default" >&2
+  exit 1
+fi
+
+if ! grep -Fq '# QuietHarness' README.md || ! grep -Fq '# QuietHarness' README.zh.md; then
+  echo "VERIFY_FAIL product name is not consistent across both README files" >&2
+  exit 1
+fi
+
+if [ -e templates/cursor/lean-baseline.mdc ]; then
+  echo "VERIFY_FAIL stale pre-brand Cursor template remains active" >&2
   exit 1
 fi
 
@@ -77,7 +97,7 @@ fi
 template_bytes=$((
   $(wc -c < templates/shared/AGENTS.md) +
   $(wc -c < templates/claude/CLAUDE.md) +
-  $(wc -c < templates/cursor/lean-baseline.mdc)
+  $(wc -c < templates/cursor/quiet-harness.mdc)
 ))
 
 if [ "$template_bytes" -gt 8000 ]; then

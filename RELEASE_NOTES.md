@@ -1,8 +1,10 @@
-# v3.0.0 — Claude Code Workflow v3
+# QuietHarness v3.0.0
 
 v3 reverses the direction of v2.
 
-The project keeps its original `Claude Code Workflow` identity. Codex and Cursor support are thin adapters, not a product rename.
+QuietHarness is the new product name for the same repository and Git history previously published as **Claude Code Workflow**. The repository URL remains unchanged for continuity.
+
+The target user is now explicit: developers who use coding agents across real projects and have accumulated enough rules, hooks, skills, memory, and session rituals that the configuration itself has become work.
 
 Instead of adding more always-loaded rules, hooks, routing, and closeout steps, it ships a 1.6 KB shared core with thin adapters for Claude Code, Codex, and Cursor.
 
@@ -15,6 +17,7 @@ Instead of adding more always-loaded rules, hooks, routing, and closeout steps, 
 - Read-only inventory catches old rule files and symlinked `rules`, `commands`, or `skills` directories before migration.
 - Complete v2-to-v3 migration and rollback guide.
 - English default README plus an original Chinese edition.
+- Four [launch visuals](media/launch-v3/) that explain the three-layer model, before/after workflow, and rule-placement test without repeating context-size marketing.
 
 ## Breaking changes
 

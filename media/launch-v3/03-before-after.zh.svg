@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M48 0H0V48" fill="none" stroke="#1A2530"/></pattern>
+    <marker id="red" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#FF647C"/></marker>
+    <marker id="green" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#B8F34A"/></marker>
+    <marker id="gold" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#FFC56E"/></marker>
+  </defs>
+  <rect width="1600" height="900" fill="#0B0F14"/><rect width="1600" height="900" fill="url(#grid)" opacity=".48"/>
+  <g font-family="Hiragino Sans GB">
+    <text x="72" y="72" fill="#B8F34A" font-size="28" font-weight="700" letter-spacing="2">QUIETHARNESS</text>
+    <text x="1525" y="72" fill="#687887" font-size="24" text-anchor="end">03 / 04</text>
+    <text x="72" y="164" fill="#F4F7F8" font-size="72" font-weight="760">它到底好在哪？</text>
+    <text x="76" y="216" fill="#9EABB8" font-size="27">不是“少做步骤”——是让工作步骤和系统维护不再互相阻塞。</text>
+
+    <text x="72" y="292" fill="#FF647C" font-size="25" font-weight="700">旧工作日</text>
+    <path d="M190 284H1510" stroke="#6F3042" stroke-width="4" marker-end="url(#red)"/>
+    <g font-size="20" fill="#F4F7F8" text-anchor="middle">
+      <circle cx="208" cy="344" r="38" fill="#261923" stroke="#6F3042"/><text x="208" y="351">开对话</text>
+      <circle cx="380" cy="344" r="38" fill="#261923" stroke="#6F3042"/><text x="380" y="351">Morning</text>
+      <circle cx="552" cy="344" r="38" fill="#261923" stroke="#6F3042"/><text x="552" y="351">Today</text>
+      <circle cx="724" cy="344" r="38" fill="#261923" stroke="#6F3042"/><text x="724" y="351">路由</text>
+      <circle cx="896" cy="344" r="38" fill="#261923" stroke="#6F3042"/><text x="896" y="351">Plan</text>
+      <circle cx="1068" cy="344" r="38" fill="#261923" stroke="#6F3042"/><text x="1068" y="351">任务</text>
+      <circle cx="1240" cy="344" r="38" fill="#261923" stroke="#6F3042"/><text x="1240" y="351">收尾</text>
+      <circle cx="1412" cy="344" r="44" fill="#261923" stroke="#6F3042"/><text x="1412" y="337">Memory</text><text x="1412" y="361">flush</text>
+    </g>
+    <text x="1516" y="410" fill="#FF8EA0" font-size="21" text-anchor="end">真正任务只占中间一格</text>
+
+    <text x="72" y="452" fill="#B8F34A" font-size="25" font-weight="700">QuietHarness</text>
+    <path d="M262 444H1510" stroke="#5E8233" stroke-width="4" marker-end="url(#green)"/>
+    <g font-size="22" fill="#F4F7F8" text-anchor="middle">
+      <rect x="178" y="490" width="180" height="68" rx="22" fill="#20301B" stroke="#5E8233"/><text x="268" y="532">直接说任务</text>
+      <rect x="426" y="490" width="232" height="68" rx="22" fill="#142A35" stroke="#2E7898"/><text x="542" y="532">读相关上下文</text>
+      <rect x="726" y="490" width="232" height="68" rx="22" fill="#20301B" stroke="#5E8233"/><text x="842" y="532">执行 + 验证</text>
+      <rect x="1026" y="490" width="246" height="68" rx="22" fill="#20301B" stroke="#5E8233"/><text x="1149" y="532">变化时写回</text>
+      <rect x="1340" y="490" width="120" height="68" rx="22" fill="#20301B" stroke="#5E8233"/><text x="1400" y="532">停</text>
+    </g>
+
+    <text x="72" y="626" fill="#FFC56E" font-size="23" font-weight="700">已有后台平行运行</text>
+    <rect x="264" y="588" width="240" height="66" rx="20" fill="#2A2319" stroke="#886438"/><text x="384" y="630" fill="#F4F7F8" font-size="22" text-anchor="middle">日报 · 同步 · 监控</text>
+    <path d="M522 621H718" stroke="#FFC56E" stroke-width="4" marker-end="url(#gold)"/>
+    <rect x="738" y="588" width="348" height="66" rx="20" fill="#2A2319" stroke="#886438"/><text x="912" y="630" fill="#F4F7F8" font-size="22" text-anchor="middle">按日期产物 / 异常通知</text>
+    <text x="1122" y="630" fill="#9EABB8" font-size="22">成功时不打扰，失败时再出现。</text>
+
+    <g>
+      <rect x="72" y="714" width="340" height="118" rx="24" fill="#121821" stroke="#2A3541"/>
+      <text x="102" y="756" fill="#63D7FF" font-size="22" font-weight="700">01</text><text x="102" y="796" fill="#F4F7F8" font-size="28" font-weight="650">小任务直接开工</text>
+      <rect x="438" y="714" width="340" height="118" rx="24" fill="#121821" stroke="#2A3541"/>
+      <text x="468" y="756" fill="#63D7FF" font-size="22" font-weight="700">02</text><text x="468" y="796" fill="#F4F7F8" font-size="28" font-weight="650">三端共享原则</text>
+      <rect x="804" y="714" width="340" height="118" rx="24" fill="#121821" stroke="#2A3541"/>
+      <text x="834" y="756" fill="#63D7FF" font-size="22" font-weight="700">03</text><text x="834" y="796" fill="#F4F7F8" font-size="28" font-weight="650">安全边界还在</text>
+      <rect x="1170" y="714" width="358" height="118" rx="24" fill="#121821" stroke="#2A3541"/>
+      <text x="1200" y="756" fill="#63D7FF" font-size="22" font-weight="700">04</text><text x="1200" y="796" fill="#F4F7F8" font-size="28" font-weight="650">少维护工作流</text>
+    </g>
+  </g>
+</svg>

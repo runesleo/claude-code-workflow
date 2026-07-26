@@ -3,11 +3,11 @@ set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "$script_dir/.." && pwd)"
-tmp_root="$(mktemp -d "${TMPDIR:-/tmp}/lean-ai-inventory.XXXXXX")"
+tmp_root="$(mktemp -d "${TMPDIR:-/tmp}/quiet-harness-inventory.XXXXXX")"
 
 cleanup() {
   case "$tmp_root" in
-    "${TMPDIR:-/tmp}"/lean-ai-inventory.*) rm -rf -- "$tmp_root" ;;
+    "${TMPDIR:-/tmp}"/quiet-harness-inventory.*) rm -rf -- "$tmp_root" ;;
     *) echo "REFUSE_CLEANUP unexpected temp path: $tmp_root" >&2 ;;
   esac
 }

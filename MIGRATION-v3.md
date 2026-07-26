@@ -1,8 +1,10 @@
-# Migrating from v2 to v3
+# Migrating from Claude Code Workflow v2 to QuietHarness v3
 
 v3 is intentionally breaking. It removes the assumption that every AI session must pass through automatic routing, daily memory, and closeout workflows.
 
-The migration is reversible: disable first, use the lean setup for real work, and restore only the capability you actually miss.
+The migration is reversible: disable first, use QuietHarness for real work, and restore only the capability you actually miss.
+
+QuietHarness is the new product name for this repository's v3 direction. The repository URL remains unchanged for continuity; no Git history or prior attribution is discarded.
 
 ## 1. Take an inventory
 
@@ -26,7 +28,7 @@ Typical v2 assets include:
 - automatic memory-flush rules;
 - Morning, Today, session-end, today-end, and weekly-end skills or commands;
 - hooks that remind, route, or persist those workflows;
-- `AGENTS.override.md` or local instruction files that take precedence over the lean baseline;
+- `AGENTS.override.md` or local instruction files that take precedence over the QuietHarness baseline;
 - symlinked rules, skills, and commands whose targets remain active elsewhere;
 - duplicate copies of the same skill across clients.
 
@@ -88,7 +90,7 @@ The installer places a sibling backup beside every overwritten file:
 ```text
 CLAUDE.md.bak-ai-workflow-<timestamp>
 AGENTS.md.bak-ai-workflow-<timestamp>
-lean-workflow.mdc.bak-ai-workflow-<timestamp>
+quiet-harness.mdc.bak-ai-workflow-<timestamp>
 ```
 
 To roll back, move the current file aside and restore the exact backup you selected. Old skills and commands can likewise be moved back from their dated disabled directory one at a time.

@@ -3,11 +3,11 @@ set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "$script_dir/.." && pwd)"
-tmp_root="$(mktemp -d "${TMPDIR:-/tmp}/lean-ai-workflow.XXXXXX")"
+tmp_root="$(mktemp -d "${TMPDIR:-/tmp}/quiet-harness.XXXXXX")"
 
 cleanup() {
   case "$tmp_root" in
-    "${TMPDIR:-/tmp}"/lean-ai-workflow.*) rm -rf -- "$tmp_root" ;;
+    "${TMPDIR:-/tmp}"/quiet-harness.*) rm -rf -- "$tmp_root" ;;
     *) echo "REFUSE_CLEANUP unexpected temp path: $tmp_root" >&2 ;;
   esac
 }
@@ -25,7 +25,7 @@ test ! -e "$test_home/AGENTS.md"
 test ! -e "$test_home/.claude/CLAUDE.md"
 test ! -e "$codex_home/AGENTS.md"
 test ! -e "$test_home/.codex/AGENTS.md"
-test ! -e "$cursor_project/.cursor/rules/lean-workflow.mdc"
+test ! -e "$cursor_project/.cursor/rules/quiet-harness.mdc"
 
 HOME="$test_home" CODEX_HOME="$codex_home" "$repo_root/scripts/install.sh" \
   --apply --claude --codex --cursor-project "$cursor_project" >/dev/null
@@ -33,25 +33,25 @@ HOME="$test_home" CODEX_HOME="$codex_home" "$repo_root/scripts/install.sh" \
 cmp "$repo_root/templates/shared/AGENTS.md" "$test_home/AGENTS.md"
 cmp "$repo_root/templates/claude/CLAUDE.md" "$test_home/.claude/CLAUDE.md"
 cmp "$repo_root/templates/shared/AGENTS.md" "$codex_home/AGENTS.md"
-cmp "$repo_root/templates/cursor/lean-baseline.mdc" "$cursor_project/.cursor/rules/lean-workflow.mdc"
+cmp "$repo_root/templates/cursor/quiet-harness.mdc" "$cursor_project/.cursor/rules/quiet-harness.mdc"
 
 backup_plan="$(HOME="$test_home" CODEX_HOME="$codex_home" "$repo_root/scripts/install.sh" \
   --dry-run --claude --codex --cursor-project "$cursor_project")"
 echo "$backup_plan" | grep -q 'BACKUP_PLAN'
 
 printf 'old claude config\n' > "$test_home/.claude/CLAUDE.md"
-printf 'old cursor rule\n' > "$cursor_project/.cursor/rules/lean-workflow.mdc"
+printf 'old cursor rule\n' > "$cursor_project/.cursor/rules/quiet-harness.mdc"
 HOME="$test_home" CODEX_HOME="$codex_home" "$repo_root/scripts/install.sh" \
   --apply --claude --cursor-project "$cursor_project" >/dev/null
 
 claude_backup="$(find "$test_home/.claude" -maxdepth 1 -name 'CLAUDE.md.bak-ai-workflow-*' -type f | head -n 1)"
-cursor_backup="$(find "$cursor_project/.cursor/rules" -maxdepth 1 -name 'lean-workflow.mdc.bak-ai-workflow-*' -type f | head -n 1)"
+cursor_backup="$(find "$cursor_project/.cursor/rules" -maxdepth 1 -name 'quiet-harness.mdc.bak-ai-workflow-*' -type f | head -n 1)"
 test -n "$claude_backup"
 test -n "$cursor_backup"
 grep -q '^old claude config$' "$claude_backup"
 grep -q '^old cursor rule$' "$cursor_backup"
 cmp "$repo_root/templates/claude/CLAUDE.md" "$test_home/.claude/CLAUDE.md"
-cmp "$repo_root/templates/cursor/lean-baseline.mdc" "$cursor_project/.cursor/rules/lean-workflow.mdc"
+cmp "$repo_root/templates/cursor/quiet-harness.mdc" "$cursor_project/.cursor/rules/quiet-harness.mdc"
 
 # A target symlink must be backed up as a symlink and replaced, never followed.
 symlink_home="$tmp_root/symlink-home"

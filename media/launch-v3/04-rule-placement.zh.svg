@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M48 0H0V48" fill="none" stroke="#1A2530"/></pattern>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#687887"/></marker>
+  </defs>
+  <rect width="1600" height="900" fill="#0B0F14"/><rect width="1600" height="900" fill="url(#grid)" opacity=".48"/>
+  <g font-family="Hiragino Sans GB">
+    <text x="72" y="72" fill="#B8F34A" font-size="28" font-weight="700" letter-spacing="2">QUIETHARNESS</text>
+    <text x="1525" y="72" fill="#687887" font-size="24" text-anchor="end">04 / 04</text>
+    <text x="72" y="164" fill="#F4F7F8" font-size="72" font-weight="760">一条规则，应该住哪里？</text>
+    <text x="76" y="216" fill="#9EABB8" font-size="27">不要凭感觉删。用三问，把它放回正确的运行层。</text>
+
+    <rect x="72" y="282" width="290" height="92" rx="24" fill="#121821" stroke="#455361"/>
+    <text x="217" y="320" fill="#F4F7F8" font-size="24" font-weight="650" text-anchor="middle">多数任务</text>
+    <text x="217" y="350" fill="#F4F7F8" font-size="24" font-weight="650" text-anchor="middle">都会用到吗？</text>
+    <path d="M362 328H468" stroke="#687887" stroke-width="4" marker-end="url(#arrow)"/>
+    <text x="416" y="311" fill="#B8F34A" font-size="20" text-anchor="middle">是</text>
+    <rect x="486" y="282" width="256" height="92" rx="24" fill="#20301B" stroke="#5E8233"/>
+    <text x="614" y="338" fill="#B8F34A" font-size="28" font-weight="700" text-anchor="middle">常驻候选</text>
+
+    <path d="M217 374V464" stroke="#687887" stroke-width="4" marker-end="url(#arrow)"/>
+    <text x="236" y="425" fill="#9EABB8" font-size="20">否</text>
+    <rect x="72" y="482" width="290" height="104" rx="24" fill="#121821" stroke="#455361"/>
+    <text x="217" y="524" fill="#F4F7F8" font-size="24" font-weight="650" text-anchor="middle">漏掉会不可逆</text>
+    <text x="217" y="556" fill="#F4F7F8" font-size="24" font-weight="650" text-anchor="middle">或代价很高吗？</text>
+    <path d="M362 534H468" stroke="#687887" stroke-width="4" marker-end="url(#arrow)"/>
+    <text x="416" y="517" fill="#FF8EA0" font-size="20" text-anchor="middle">是</text>
+    <rect x="486" y="482" width="256" height="104" rx="24" fill="#261923" stroke="#6F3042"/>
+    <text x="614" y="527" fill="#FF8EA0" font-size="27" font-weight="700" text-anchor="middle">Hard gate</text>
+    <text x="614" y="558" fill="#D5DCE2" font-size="21" text-anchor="middle">或权限边界</text>
+
+    <path d="M217 586V676" stroke="#687887" stroke-width="4" marker-end="url(#arrow)"/>
+    <text x="236" y="637" fill="#9EABB8" font-size="20">否</text>
+    <rect x="72" y="694" width="290" height="104" rx="24" fill="#121821" stroke="#455361"/>
+    <text x="217" y="736" fill="#F4F7F8" font-size="24" font-weight="650" text-anchor="middle">能用代码</text>
+    <text x="217" y="768" fill="#F4F7F8" font-size="24" font-weight="650" text-anchor="middle">机械保证吗？</text>
+    <path d="M362 746H468" stroke="#687887" stroke-width="4" marker-end="url(#arrow)"/>
+    <text x="416" y="729" fill="#63D7FF" font-size="20" text-anchor="middle">是</text>
+    <rect x="486" y="694" width="256" height="104" rx="24" fill="#142A35" stroke="#2E7898"/>
+    <text x="614" y="738" fill="#63D7FF" font-size="25" font-weight="700" text-anchor="middle">测试 · 脚本</text>
+    <text x="614" y="770" fill="#D5DCE2" font-size="21" text-anchor="middle">权限 · CI</text>
+
+    <path d="M742 746H846" stroke="#687887" stroke-width="4" marker-end="url(#arrow)"/>
+    <text x="794" y="729" fill="#9EABB8" font-size="20" text-anchor="middle">否</text>
+    <rect x="846" y="752" width="306" height="54" rx="18" fill="#12242D" stroke="#2E7898"/>
+    <text x="999" y="786" fill="#63D7FF" font-size="22" font-weight="700" text-anchor="middle">按需 Skill / 项目文档</text>
+
+    <rect x="846" y="282" width="682" height="304" rx="28" fill="#121821" stroke="#2A3541"/>
+    <text x="888" y="333" fill="#FFC56E" font-size="25" font-weight="700">另一条支线：它是定时或事件型吗？</text>
+    <rect x="888" y="374" width="252" height="86" rx="22" fill="#2A2319" stroke="#886438"/>
+    <text x="1014" y="426" fill="#F4F7F8" font-size="25" font-weight="650" text-anchor="middle">已有日报 · 同步 · 监控</text>
+    <path d="M1158 417H1248" stroke="#687887" stroke-width="4" marker-end="url(#arrow)"/>
+    <rect x="1266" y="374" width="220" height="86" rx="22" fill="#2A2319" stroke="#886438"/>
+    <text x="1376" y="410" fill="#FFC56E" font-size="24" font-weight="700" text-anchor="middle">已有后台 Job</text>
+    <text x="1376" y="440" fill="#D5DCE2" font-size="20" text-anchor="middle">Artifact / Exception</text>
+    <text x="888" y="514" fill="#9EABB8" font-size="22">它可以持续运行，但不必挡在每次对话的入口。</text>
+
+    <text x="846" y="642" fill="#9EABB8" font-size="22">安全迁移，不靠一把梭：</text>
+    <g font-size="20" font-weight="650" text-anchor="middle">
+      <rect x="846" y="674" width="132" height="54" rx="18" fill="#202A35"/><text x="912" y="708" fill="#F4F7F8">Inventory</text>
+      <text x="998" y="708" fill="#687887">→</text>
+      <rect x="1020" y="674" width="132" height="54" rx="18" fill="#202A35"/><text x="1086" y="708" fill="#F4F7F8">Dry-run</text>
+      <text x="1172" y="708" fill="#687887">→</text>
+      <rect x="1194" y="674" width="132" height="54" rx="18" fill="#202A35"/><text x="1260" y="708" fill="#F4F7F8">Backup</text>
+      <text x="1346" y="708" fill="#687887">→</text>
+      <rect x="1368" y="674" width="132" height="54" rx="18" fill="#20301B"/><text x="1434" y="708" fill="#B8F34A">Apply</text>
+      <rect x="1194" y="752" width="306" height="54" rx="18" fill="#261923" stroke="#6F3042"/><text x="1347" y="786" fill="#FF8EA0">Rollback 随时可用</text>
+    </g>
+
+    <text x="800" y="864" fill="#F4F7F8" font-size="30" font-weight="700" text-anchor="middle">规则的价值不在数量，而在归位。</text>
+  </g>
+</svg>

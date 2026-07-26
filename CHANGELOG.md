@@ -8,7 +8,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Changed
 
-- Rebuilt the project as a lean workflow for Claude Code, Codex, and Cursor.
+- Introduced the **QuietHarness** product name for the same repository and history formerly published as Claude Code Workflow.
+- Rebuilt the project as a low-ceremony workflow for Claude Code, Codex, and Cursor.
 - Replaced the rule-heavy hot path with a 1.6 KB shared core and thin client adapters.
 - Changed persistence from mandatory end-of-session cleanup to writeback at the point of state change.
 - Separated scheduled daily-report generation from interactive startup and closeout rituals.

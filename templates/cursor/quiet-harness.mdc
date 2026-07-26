@@ -1,5 +1,5 @@
 ---
-description: Minimal project baseline for direct, evidence-backed work
+description: QuietHarness project baseline for direct, evidence-backed work
 globs:
 alwaysApply: true
 ---

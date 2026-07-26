@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M 48 0 L 0 0 0 48" fill="none" stroke="#1A2530" stroke-width="1"/>
+    </pattern>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#000000" flood-opacity="0.32"/>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#687887"/>
+    </marker>
+  </defs>
+  <rect width="1600" height="900" fill="#0B0F14"/>
+  <rect width="1600" height="900" fill="url(#grid)" opacity="0.48"/>
+
+  <g font-family="Hiragino Sans GB">
+    <text x="72" y="72" fill="#B8F34A" font-size="28" font-weight="700" letter-spacing="2">QUIETHARNESS</text>
+    <text x="1525" y="72" fill="#687887" font-size="24" text-anchor="end">01 / 04</text>
+
+    <text x="72" y="164" fill="#F4F7F8" font-size="72" font-weight="760">不是更短的 Prompt</text>
+    <text x="72" y="246" fill="#F4F7F8" font-size="72" font-weight="760">而是正确的运行层</text>
+    <text x="76" y="296" fill="#9EABB8" font-size="27">提示词太长只是症状。真正的问题，是把不同生命周期的能力都塞进每一次对话。</text>
+
+    <g filter="url(#shadow)">
+      <rect x="72" y="350" width="680" height="438" rx="28" fill="#121821" stroke="#2A3541"/>
+      <rect x="848" y="350" width="680" height="438" rx="28" fill="#121821" stroke="#2A3541"/>
+    </g>
+
+    <text x="108" y="405" fill="#FF647C" font-size="26" font-weight="700">旧：所有能力挤进每次对话</text>
+    <g font-size="22" fill="#D5DCE2">
+      <rect x="108" y="444" width="132" height="50" rx="25" fill="#202A35"/><text x="174" y="476" text-anchor="middle">Morning</text>
+      <rect x="254" y="444" width="112" height="50" rx="25" fill="#202A35"/><text x="310" y="476" text-anchor="middle">Today</text>
+      <rect x="380" y="444" width="130" height="50" rx="25" fill="#202A35"/><text x="445" y="476" text-anchor="middle">Memory</text>
+      <rect x="524" y="444" width="126" height="50" rx="25" fill="#202A35"/><text x="587" y="476" text-anchor="middle">Router</text>
+      <rect x="132" y="514" width="108" height="50" rx="25" fill="#202A35"/><text x="186" y="546" text-anchor="middle">Plan</text>
+      <rect x="254" y="514" width="126" height="50" rx="25" fill="#202A35"/><text x="317" y="546" text-anchor="middle">Review</text>
+      <rect x="394" y="514" width="132" height="50" rx="25" fill="#202A35"/><text x="460" y="546" text-anchor="middle">Publish</text>
+      <rect x="540" y="514" width="132" height="50" rx="25" fill="#202A35"/><text x="606" y="546" text-anchor="middle">Reports</text>
+    </g>
+    <text x="390" y="633" fill="#687887" font-size="48" text-anchor="middle">↓</text>
+    <rect x="174" y="642" width="432" height="76" rx="20" fill="#261923" stroke="#6F3042"/>
+    <text x="390" y="690" fill="#FF8EA0" font-size="27" font-weight="700" text-anchor="middle">请求被流程层层包围</text>
+    <text x="390" y="756" fill="#FF647C" font-size="22" text-anchor="middle">冲突 · 仪式 · 维护成本</text>
+
+    <text x="884" y="405" fill="#B8F34A" font-size="26" font-weight="700">新：每种能力回到正确位置</text>
+    <rect x="884" y="444" width="608" height="82" rx="22" fill="#20301B" stroke="#6C9836"/>
+    <text x="920" y="478" fill="#B8F34A" font-size="25" font-weight="700">常驻核心</text>
+    <text x="920" y="507" fill="#D5DCE2" font-size="21">直接执行 · 真实证据 · 不可逆边界</text>
+    <rect x="884" y="542" width="608" height="82" rx="22" fill="#142A35" stroke="#2E7D9F"/>
+    <text x="920" y="576" fill="#63D7FF" font-size="25" font-weight="700">按需能力</text>
+    <text x="920" y="605" fill="#D5DCE2" font-size="21">项目事实 · Debug · Review · 研究 · 发布</text>
+    <rect x="884" y="640" width="608" height="82" rx="22" fill="#2B241A" stroke="#8D6638"/>
+    <text x="920" y="674" fill="#FFC56E" font-size="25" font-weight="700">已有后台系统</text>
+    <text x="920" y="703" fill="#D5DCE2" font-size="21">日报 · 同步 · 监控 → Artifact / Exception</text>
+    <text x="1188" y="758" fill="#9EABB8" font-size="22" text-anchor="middle">已有能力可按需保留，不再默认打扰。</text>
+
+    <text x="72" y="850" fill="#687887" font-size="22">formerly Claude Code Workflow</text>
+    <text x="1528" y="850" fill="#F4F7F8" font-size="24" font-weight="650" text-anchor="end">A low-ceremony workflow for coding agents.</text>
+  </g>
+</svg>
