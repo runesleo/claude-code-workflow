@@ -222,6 +222,15 @@ This template draws from:
 
 [![Star History Chart](https://api.star-history.com/svg?repos=runesleo/claude-code-workflow&type=Date)](https://star-history.com/#runesleo/claude-code-workflow&Date)
 
+## More from this workshop
+
+Full map: **[runesleo](https://github.com/runesleo/runesleo)** — all open-source projects and working systems.
+
+- [x-reader](https://github.com/runesleo/x-reader) — universal content reader MCP, 10+ platforms
+- [polymarket-toolkit](https://github.com/runesleo/polymarket-toolkit) — Polymarket research CLI + AI skills
+- [ai-health-vault](https://github.com/runesleo/ai-health-vault) — AI + Obsidian health management system
+- [claude-video-kit](https://github.com/runesleo/claude-video-kit) — Agent Skill + Remotion video pipeline
+
 ## License
 
 MIT — Use it, fork it, make it yours.
