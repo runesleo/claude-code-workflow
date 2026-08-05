@@ -1,56 +1,32 @@
-# QuietHarness v3.0.0
+# QuietHarness v3.1.0
 
-这是 Claude Code Workflow 同一仓库、同一段 Git 历史上的第三版。
-
-公开仓库停在 v2 以后，我自己的工作系统仍在 Claude Code、Codex、Cursor 和多个真实业务里持续演进。随着最高推理档模型变强，旧版一部分原本有用的规则、Hook、Skill、Memory 和固定流程开始变成重复规划与维护负担。
-
-v3 不再继续堆规则，而是公开我目前实际使用的结构。
+v3.1.0 不再扩充系统版图，而是补齐新用户最重要的一步：只选一个 AI 编程客户端，在隔离项目里完成一次可观察的首次成功。
 
 ## 主要变化
 
-- v3.0.0 发布时，三端共用一个 1,604 字节 Core；加上 Claude Code 与 Cursor 薄入口，总计 2,292 字节。当前模板大小以 README 为准。
-- 默认直接执行，不要求先跑 Morning、Today 或 Session End。
-- 状态发生变化时立即写回，不再依赖最后一次统一回忆。
-- 已有日报、同步和监控保持独立；成功静默落盘，异常单独处理。
-- 安装器默认 dry-run，覆盖前备份，支持回滚和自定义 `CODEX_HOME`。
-- inventory 会发现普通文件和整目录符号链接，方便迁移旧规则、Skill 和 Command。
+- README 默认入口改成单客户端路径：Claude Code、Codex 或 Cursor 任意一个都能开始，多端兼容只是可选扩展。
+- 新增 Claude Code / Codex 项目级安装模式，首次试用无需覆盖用户级配置；Cursor 继续使用项目规则。
+- 安装结束会明确指向首次成功练习，不再把新用户直接送进完整系统架构。
+- 新增 `examples/first-success/`：一个隔离、可重复、目标十分钟完成的行为练习。
+- 新增 `tests/first-success-smoke.sh`，验证 fixture、预期失败和无关用户改动可稳定复现。
+- Cursor 规则补齐状态持久化、单 Writer、持续推进、验证回执和高风险确认边界。
 
-## 当前系统地图
+## 首次成功是什么
 
-这次公开的不只是 Core，也包括我真实系统的结构：
+练习要求 Agent 修复一个最小缺陷，同时保留无关用户改动、运行真实检查，并诚实报告结果。它用于验证 onboarding 行为是否可观察，不宣称 QuietHarness 必然提升模型能力。
 
-- 九条长期业务线与稳定 Owner；
-- per-task SSOT 和五状态生命周期；
-- Owner/Worker 分离与有时效的 claim；
-- readout、writeback、freshness、state revision 和 negative result；
-- 同一仓库/任务事实面单 Writer；
-- artifact、validation、writeback、rollback 和 next gate 回执；
-- Daily Rhythm 与各业务 Owner 的边界；
-- 已开源业务分支之间的地图。
-
-脱敏示例在 [examples/leo-system](examples/leo-system/)，完整说明在 [系统架构](docs/ARCHITECTURE.md)。
-
-## 已连接的开源分支
-
-- Prediction Market：`polymarket-toolkit`
-- Asset Research：`asset-dd-and-opportunity-evaluation`
-- Content Intake：`x-reader`、`tg-reader-mcp`、`long-media-cli`
-- Video：`claude-video-kit`
-- Health：`ai-health-vault`
-- System Audit：`claude-skill-audit`
-
-这些仓库不是 v3 的依赖。它们展示的是同一套个人工作系统里已经独立生长出去的分支。
+入口见 [首次成功练习](examples/first-success/README.md)，英文版见 [first-success exercise](examples/first-success/README.en.md)。
 
 ## Breaking changes
 
-- v2 的 rules、memory、skills、agents、commands 和 hooks 不再属于默认分支。
-- 老用户应先运行 `./scripts/inventory.sh`，再按 `MIGRATION-v3.md` 可逆停用旧发现路径。
-- Cursor 全局 User Rules 仍由应用设置管理；安装器只写项目规则。
-- 业务线、任务和 writer-lock 示例是当前架构的公共参考，不会自动创建 Leo 的私人运行时。
+没有。v3.1.0 保留 v3.0.0 的默认 Core、全局安装方式、仓库 URL 和 Git 历史。
 
-## Privacy
+## 安全与隐私
 
-公开版本保留真实架构和设计取舍，但不包含私人绝对路径、thread ID、实时任务、账号、凭证、仓位、健康记录、客户、scheduler、VPS 或生产状态。
+- 项目级安装会拒绝经中间 symlink 逃出所选项目的写入。
+- 若自动回滚无法恢复原文件，会保留并明确报告 recovery backup。
+- 安装器不执行网络、账号、凭证、scheduler、生产或公开发布操作。
+- 首次成功 fixture 不包含私人路径、账号、凭证或真实业务数据。
 
 ## Verification
 
@@ -58,4 +34,4 @@ v3 不再继续堆规则，而是公开我目前实际使用的结构。
 ./scripts/verify.sh
 ```
 
-独立审查已清除全部 blocker。本版本对应 `v3.0.0`；仓库名称和 URL 继续保留 `claude-code-workflow`。
+产品与安装器安全独立审查均无 blocker。本版本对应 `v3.1.0`；仓库名称和 URL 继续保留 `claude-code-workflow`。
