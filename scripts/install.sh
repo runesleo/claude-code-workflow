@@ -4,8 +4,14 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Usage:
-  ./scripts/install.sh --dry-run --claude [--codex]
-  ./scripts/install.sh --apply --claude [--codex]
+  ./scripts/install.sh --dry-run --claude
+  ./scripts/install.sh --apply --claude
+  ./scripts/install.sh --dry-run --codex
+  ./scripts/install.sh --apply --codex
+  ./scripts/install.sh --dry-run --claude-project /path/to/project
+  ./scripts/install.sh --apply --claude-project /path/to/project
+  ./scripts/install.sh --dry-run --codex-project /path/to/project
+  ./scripts/install.sh --apply --codex-project /path/to/project
   ./scripts/install.sh --dry-run --cursor-project /path/to/project
   ./scripts/install.sh --apply --cursor-project /path/to/project
 
@@ -14,6 +20,8 @@ Options:
   --apply                Write files after backing up existing targets.
   --claude               Install ~/AGENTS.md and ~/.claude/CLAUDE.md.
   --codex                Install $CODEX_HOME/AGENTS.md (default: ~/.codex/AGENTS.md).
+  --claude-project PATH  Install AGENTS.md and CLAUDE.md in one project only.
+  --codex-project PATH   Install AGENTS.md in one project only.
   --cursor-project PATH  Install one project-scoped Cursor rule.
   --help                 Show this help.
 EOF
@@ -22,6 +30,8 @@ EOF
 mode="dry-run"
 want_claude=0
 want_codex=0
+claude_project=""
+codex_project=""
 cursor_project=""
 target_count=0
 
@@ -39,6 +49,24 @@ while [ "$#" -gt 0 ]; do
       ;;
     --codex)
       want_codex=1
+      target_count=$((target_count + 1))
+      ;;
+    --claude-project)
+      shift
+      if [ "$#" -eq 0 ]; then
+        echo "ERROR: --claude-project requires a path" >&2
+        exit 2
+      fi
+      claude_project="$1"
+      target_count=$((target_count + 1))
+      ;;
+    --codex-project)
+      shift
+      if [ "$#" -eq 0 ]; then
+        echo "ERROR: --codex-project requires a path" >&2
+        exit 2
+      fi
+      codex_project="$1"
       target_count=$((target_count + 1))
       ;;
     --cursor-project)
@@ -64,7 +92,7 @@ while [ "$#" -gt 0 ]; do
 done
 
 if [ "$target_count" -eq 0 ]; then
-  echo "ERROR: choose --claude, --codex, or --cursor-project PATH" >&2
+  echo "ERROR: choose one global or project-scoped client target" >&2
   usage >&2
   exit 2
 fi
@@ -79,6 +107,7 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "$script_dir/.." && pwd)"
 shared_source="$repo_root/templates/shared/AGENTS.md"
 claude_source="$repo_root/templates/claude/CLAUDE.md"
+claude_project_source="$repo_root/templates/claude/CLAUDE.project.md"
 cursor_source="$repo_root/templates/cursor/quiet-harness.mdc"
 timestamp="$(date +%Y%m%d-%H%M%S)-$$"
 codex_home="${CODEX_HOME:-$workflow_home/.codex}"
@@ -105,32 +134,83 @@ if [ "$want_codex" -eq 1 ]; then
   esac
 fi
 
-for required in "$shared_source" "$claude_source" "$cursor_source"; do
+for required in "$shared_source" "$claude_source" "$claude_project_source" "$cursor_source"; do
   if [ ! -f "$required" ]; then
     echo "ERROR: missing template: $required" >&2
     exit 2
   fi
 done
 
+resolve_project() {
+  project_path="$1"
+  project_label="$2"
+  if [ ! -d "$project_path" ]; then
+    echo "ERROR: $project_label does not exist: $project_path" >&2
+    exit 2
+  fi
+  project_path="$(cd "$project_path" && pwd -P)"
+  if [ "$project_path" = "/" ]; then
+    echo "ERROR: $project_label must not be /" >&2
+    exit 2
+  fi
+  printf '%s\n' "$project_path"
+}
+
+assert_project_dir_contained() {
+  local requested_dir="$1"
+  local project_root="$2"
+  local probe="$requested_dir"
+  local parent=""
+  local resolved_probe=""
+
+  # Resolve the nearest existing ancestor before mkdir follows any project-local
+  # symlink. Run the same check again after mkdir to cover the final parent.
+  while [ ! -e "$probe" ] && [ ! -L "$probe" ]; do
+    parent="$(dirname "$probe")"
+    if [ "$parent" = "$probe" ]; then
+      echo "ERROR: cannot resolve project target parent: $requested_dir" >&2
+      return 1
+    fi
+    probe="$parent"
+  done
+
+  if [ ! -d "$probe" ]; then
+    echo "ERROR: project target parent is not a directory: $probe" >&2
+    return 1
+  fi
+  if ! resolved_probe="$(cd "$probe" && pwd -P)"; then
+    echo "ERROR: cannot resolve project target parent: $probe" >&2
+    return 1
+  fi
+
+  case "$resolved_probe/" in
+    "$project_root/"*) return 0 ;;
+    *)
+      echo "ERROR: project target escapes project root: $requested_dir -> $resolved_probe" >&2
+      return 1
+      ;;
+  esac
+}
+
+if [ -n "$claude_project" ]; then
+  claude_project="$(resolve_project "$claude_project" "Claude project")"
+fi
+if [ -n "$codex_project" ]; then
+  codex_project="$(resolve_project "$codex_project" "Codex project")"
+fi
 if [ -n "$cursor_project" ]; then
-  if [ ! -d "$cursor_project" ]; then
-    echo "ERROR: Cursor project does not exist: $cursor_project" >&2
-    exit 2
-  fi
-  cursor_project="$(cd "$cursor_project" && pwd)"
-  if [ "$cursor_project" = "/" ]; then
-    echo "ERROR: Cursor project must not be /" >&2
-    exit 2
-  fi
+  cursor_project="$(resolve_project "$cursor_project" "Cursor project")"
 fi
 
 sources=()
 targets=()
+project_roots=()
 
 add_target() {
   target_index="${#targets[@]}"
   sources[target_index]="$1"
   targets[target_index]="$2"
+  project_roots[target_index]="${3:-}"
 }
 
 if [ "$want_claude" -eq 1 ]; then
@@ -142,15 +222,40 @@ if [ "$want_codex" -eq 1 ]; then
   add_target "$shared_source" "$codex_home/AGENTS.md"
 fi
 
+if [ -n "$claude_project" ]; then
+  add_target "$shared_source" "$claude_project/AGENTS.md" "$claude_project"
+  add_target "$claude_project_source" "$claude_project/CLAUDE.md" "$claude_project"
+fi
+
+if [ -n "$codex_project" ]; then
+  add_target "$shared_source" "$codex_project/AGENTS.md" "$codex_project"
+fi
+
 if [ -n "$cursor_project" ]; then
-  add_target "$cursor_source" "$cursor_project/.cursor/rules/quiet-harness.mdc"
+  add_target "$cursor_source" "$cursor_project/.cursor/rules/quiet-harness.mdc" "$cursor_project"
 fi
 
 target_total="${#targets[@]}"
+duplicate_left=0
+while [ "$duplicate_left" -lt "$target_total" ]; do
+  duplicate_right=$((duplicate_left + 1))
+  while [ "$duplicate_right" -lt "$target_total" ]; do
+    if [ "${targets[$duplicate_left]}" = "${targets[$duplicate_right]}" ]; then
+      echo "ERROR: duplicate install target: ${targets[$duplicate_left]}" >&2
+      echo "Choose one client mode for that project." >&2
+      exit 2
+    fi
+    duplicate_right=$((duplicate_right + 1))
+  done
+  duplicate_left=$((duplicate_left + 1))
+done
+
 target_index=0
 while [ "$target_index" -lt "$target_total" ]; do
   source_file="${sources[$target_index]}"
   target_file="${targets[$target_index]}"
+  project_root="${project_roots[$target_index]:-}"
+  target_dir="$(dirname "$target_file")"
 
   if [ ! -f "$source_file" ]; then
     echo "ERROR: missing template: $source_file" >&2
@@ -158,6 +263,9 @@ while [ "$target_index" -lt "$target_total" ]; do
   fi
   if [ -d "$target_file" ]; then
     echo "ERROR: target is a directory: $target_file" >&2
+    exit 2
+  fi
+  if [ -n "$project_root" ] && ! assert_project_dir_contained "$target_dir" "$project_root"; then
     exit 2
   fi
 
@@ -170,6 +278,7 @@ done
 
 if [ "$mode" = "dry-run" ]; then
   echo "DRY_RUN_COMPLETE no files written"
+  echo "NEXT review the targets above, then rerun with --apply using only the client(s) you use"
   exit 0
 fi
 
@@ -188,7 +297,11 @@ cleanup_transaction_files() {
       rm -f "$staged_file" || true
     fi
     if [ -n "$backup_file" ] && { [ -e "$backup_file" ] || [ -L "$backup_file" ]; }; then
-      rm -f "$backup_file" || true
+      if [ "$cleanup_index" -lt "$applied_count" ]; then
+        echo "RECOVERY_BACKUP preserved after incomplete rollback: $backup_file" >&2
+      else
+        rm -f "$backup_file" || true
+      fi
     fi
     cleanup_index=$((cleanup_index + 1))
   done
@@ -247,6 +360,7 @@ while [ "$target_index" -lt "$target_total" ]; do
   target_file="${targets[$target_index]}"
   target_dir="$(dirname "$target_file")"
   target_name="$(basename "$target_file")"
+  project_root="${project_roots[$target_index]:-}"
   stage_file="$target_dir/.${target_name}.stage-ai-workflow-${timestamp}"
   backup_file="${target_file}.bak-ai-workflow-${timestamp}"
 
@@ -254,8 +368,14 @@ while [ "$target_index" -lt "$target_total" ]; do
   backup_files[target_index]=""
   had_original[target_index]=0
 
+  if [ -n "$project_root" ] && ! assert_project_dir_contained "$target_dir" "$project_root"; then
+    abort_transaction "project target containment check failed: $target_dir"
+  fi
   if ! mkdir -p "$target_dir"; then
     abort_transaction "cannot create target directory: $target_dir"
+  fi
+  if [ -n "$project_root" ] && ! assert_project_dir_contained "$target_dir" "$project_root"; then
+    abort_transaction "project target containment changed: $target_dir"
   fi
   if [ -e "$stage_file" ] || [ -L "$stage_file" ]; then
     abort_transaction "staging path already exists: $stage_file"
@@ -307,4 +427,7 @@ while [ "$target_index" -lt "$target_total" ]; do
   target_index=$((target_index + 1))
 done
 
-echo "APPLY_COMPLETE restart affected clients or open a new session"
+echo "APPLY_COMPLETE restart the affected client or open a new session"
+echo "NEXT try the first-success exercise:"
+echo "  中文 $repo_root/examples/first-success/README.md"
+echo "  English $repo_root/examples/first-success/README.en.md"

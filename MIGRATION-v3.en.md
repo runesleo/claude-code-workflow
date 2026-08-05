@@ -61,16 +61,20 @@ Do not stop or mutate a scheduler merely to migrate agent instructions.
 ## 4. Preview the v3 install
 
 ```bash
-./scripts/install.sh --dry-run --claude --codex
+./scripts/install.sh --dry-run --claude
+./scripts/install.sh --dry-run --codex
 ./scripts/install.sh --dry-run --cursor-project /path/to/project
 ```
 
 Review every target and backup path. Then apply only the clients you use:
 
 ```bash
-./scripts/install.sh --apply --claude --codex
+./scripts/install.sh --apply --claude
+./scripts/install.sh --apply --codex
 ./scripts/install.sh --apply --cursor-project /path/to/project
 ```
+
+These are three independent options, not a requirement to run all of them. Install only the client you use today; add another client later if you want the same reliability boundaries there.
 
 ## 5. Restart and use it normally
 

@@ -1,14 +1,102 @@
-# QuietHarness: My AI Work System
+# QuietHarness: a reliable working layer for your AI coding agent
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 [中文](README.md) · **English**
 
-> The current evolution of **Claude Code Workflow**: one small shared core for Claude Code, Codex, and Cursor, connected to the business lines, task source of truth, background reports, and open-source branches I use in real work.
+> Give the AI coding agent you already use a small, reversible operating boundary: inspect first, preserve unrelated work, verify in proportion to risk, and stop before irreversible actions.
 
-This is not a generic workflow generated from first principles. It is a sanitized public snapshot of my current system. Private paths, accounts, live tasks, and production controls are removed; the architecture and its tradeoffs remain.
+**Claude Code, Codex, or Cursor on its own is enough to get the same core reliability boundaries.** Cross-client support lets those boundaries travel with you later; it is not an installation requirement.
 
-## Why I rebuilt it now
+QuietHarness does not turn every request into a ceremony, and it does not ask you to copy my private operating system. It compresses the behaviors that survived long-term real use into a 1,604-byte shared Core, with dry-run, backup, isolated tests, and reversible installation.
+
+## Who it is for
+
+QuietHarness is for people maintaining real projects with any supported AI coding agent who have seen failures such as:
+
+- overwriting files without inspecting existing work;
+- claiming completion without running the available test;
+- expanding a small request into an unnecessary redesign or process;
+- crossing a deletion, release, production, or credential boundary without confirmation;
+- rewriting the same basic rules after changing agents.
+
+QuietHarness does not include a task database, background automation, or a team orchestration platform. The larger Leo System later in this README is an optional reference, not a prerequisite.
+
+## Try it inside one isolated project
+
+```bash
+git clone https://github.com/runesleo/claude-code-workflow.git
+cd claude-code-workflow
+./scripts/inventory.sh
+
+demo_dir="$(mktemp -d "${TMPDIR:-/tmp}/quiet-harness-first-success.XXXXXX")"
+./examples/first-success/setup.sh "$demo_dir"
+```
+
+Choose one of the three options below. Run dry-run before `--apply`; the trial writes only inside `$demo_dir` and leaves your user-level Claude/Codex configuration untouched.
+
+### Claude Code
+
+```bash
+./scripts/install.sh --dry-run --claude-project "$demo_dir"
+./scripts/install.sh --apply --claude-project "$demo_dir"
+```
+
+Writes `$demo_dir/AGENTS.md` and `$demo_dir/CLAUDE.md`.
+
+### Codex
+
+```bash
+./scripts/install.sh --dry-run --codex-project "$demo_dir"
+./scripts/install.sh --apply --codex-project "$demo_dir"
+```
+
+Writes only `$demo_dir/AGENTS.md`.
+
+### Cursor
+
+```bash
+./scripts/install.sh --dry-run --cursor-project "$demo_dir"
+./scripts/install.sh --apply --cursor-project "$demo_dir"
+```
+
+Writes only `$demo_dir/.cursor/rules/quiet-harness.mdc`.
+
+The installer previews by default and writes only with explicit `--apply`. It makes no network or account calls and does not modify schedulers.
+
+## Observe the first success
+
+Open your chosen agent in `$demo_dir` and send only:
+
+```text
+Read TASK.md and complete the task.
+```
+
+A successful run discovers and preserves an unrelated user edit without being coached by the task, fixes only the discount calculation, runs the existing test, and reports real verification evidence.
+
+This is an onboarding behavior check, not a causal experiment proving that QuietHarness always improves a model. It is designed for a ten-minute first success; automation currently proves only that the fixture is reproducible, while timing by a real non-author remains the next product gate.
+
+[Open the complete first-success guide and acceptance criteria →](examples/first-success/README.en.md)
+
+## Install for everyday use after the trial (optional)
+
+```bash
+# Claude Code user-level
+./scripts/install.sh --dry-run --claude
+./scripts/install.sh --apply --claude
+
+# Codex user-level
+./scripts/install.sh --dry-run --codex
+./scripts/install.sh --apply --codex
+
+# Or keep using --*-project for one real project only
+```
+
+Claude user-level installation targets `~/AGENTS.md` and `~/.claude/CLAUDE.md`; Codex targets `$CODEX_HOME/AGENTS.md`, defaulting to `~/.codex/AGENTS.md`. Before replacing an existing file, the installer creates a timestamped `.bak-ai-workflow-*` sibling. To restore, keep the current file and move the exact backup you selected back to its original path; see [v3 migration and rollback](MIGRATION-v3.en.md#rollback).
+
+The installer prints one `INSTALLED <target>` entry per target; only a target that replaced an old file has an adjacent `BACKUP <backup>` entry. Uninstall per target: restore its exact backup when present; only a target without its own backup was created by QuietHarness. For a new target, confirm that it still matches the template before removing that exact path. If you changed it, move it aside instead of deleting it.
+
+## Why it is called QuietHarness
 
 When I first open-sourced this workflow, models needed much more prompt-level help. I kept adding rules, hooks, skills, memory, model routing, Morning, Today, and Session End flows to reduce forgetting and missed verification.
 
@@ -47,15 +135,15 @@ Complexity did not disappear. It moved out of every request's hot path.
 
 ## The current system
 
-### One core, three thin client adapters
+### One core, whichever client you use
 
 | Surface | File | Bytes |
 |---|---|---:|
 | Shared Core | `templates/shared/AGENTS.md` | 1,604 B |
 | Claude Code adapter | `templates/claude/CLAUDE.md` | 168 B |
-| Cursor project rule | `templates/cursor/quiet-harness.mdc` | 520 B |
+| Cursor project rule | `templates/cursor/quiet-harness.mdc` | 546 B |
 
-Codex reads the shared `AGENTS.md` directly; Claude Code and Cursor add their thin adapters. The three files total 2,292 bytes, but no client loads all three. These are file sizes, not token, latency, or model-quality claims.
+You need to install only the client you use. Codex reads the shared `AGENTS.md` directly; Claude Code imports it through a thin entrypoint; the Cursor project rule mirrors the same reliability boundaries in `.mdc` form. The three files total 2,318 bytes, but no client loads all three. Adding a second client reuses the same behavior boundary; it does not unlock a hidden complete edition. These are file sizes, not token, latency, or model-quality claims.
 
 The core keeps only direct execution, truthful evidence, proportional verification, and confirmation before irreversible actions.
 
@@ -96,35 +184,20 @@ Reports, sync jobs, and monitors may continue independently. Success writes an a
 
 These repositories were extracted from real branches of the system after they became independently useful. New public projects can continue to attach to the same map.
 
-## Quick start
+## Extend only when you need it
 
-```bash
-git clone https://github.com/runesleo/claude-code-workflow.git
-cd claude-code-workflow
-
-./scripts/inventory.sh
-./scripts/install.sh --dry-run --claude --codex
-./scripts/install.sh --apply --claude --codex
-```
-
-For a Cursor project:
-
-```bash
-./scripts/install.sh --dry-run --cursor-project /path/to/project
-./scripts/install.sh --apply --cursor-project /path/to/project
-```
-
-The installer previews by default, backs up before replacement, makes no network or account calls, and does not modify schedulers.
+The Core and first-success exercise above are enough to begin. The structures below are optional extensions, not prerequisite knowledge.
 
 To adapt the larger system, begin with [examples/leo-system](examples/leo-system/). Keep or rename the business lines, choose stable owners, connect per-task records to your own storage, and add claims or writer locks only when real concurrency requires them.
 
-Existing v2 users should follow [MIGRATION-v3.md](MIGRATION-v3.md) and disable old discovery paths reversibly before installing.
+Existing v2 users should follow [MIGRATION-v3.en.md](MIGRATION-v3.en.md) and disable old discovery paths reversibly before installing.
 
 ## Repository layout
 
 ```text
 templates/                      # current three-client Core
 docs/                           # architecture, task, overlay, report boundaries
+examples/first-success/         # isolated single-client trial and behavior check
 examples/leo-system/            # sanitized current-system examples
 scripts/                        # inventory, install, verification
 tests/                          # isolated-HOME smoke tests
@@ -136,7 +209,9 @@ MIGRATION-v3.md                 # v2 → v3 and rollback
 
 `./scripts/verify.sh` checks shell syntax, isolated installation, dry-run and rollback behavior, symlink inventory, custom `CODEX_HOME`, bilingual entrypoints, private-pattern leakage, template size, JSON/SVG integrity, and `git diff --check`.
 
-The current three-client template baseline is 2,292 bytes. No API key is required.
+The current three-client template baseline is 2,318 bytes. No API key is required.
+
+These checks prove that installation and repository contracts are repeatable; they do not claim that an outside user has already received product value. The new first-success exercise makes activation observable. The next evidence must come from a non-author completing it, not from stars or views.
 
 ## Boundaries
 
@@ -146,7 +221,15 @@ The current three-client template baseline is 2,292 bytes. No API key is require
 - Cursor global User Rules remain an application setting; the installer writes project rules only.
 - A Windows PowerShell installer is not included yet.
 
-Future changes should come from repeated real use or observable external adoption, not from a desire to make the repository look more complete.
+## Roadmap
+
+The current productization sequence is deliberately small:
+
+1. one non-author completes first success without a private walkthrough;
+2. real failure points shorten setup, recovery, or acceptance;
+3. expand to three users, repeat use, and one third-party integration.
+
+Future features should still come from repeated real use or observable external adoption, not from a desire to make the repository look more complete.
 
 ## About
 

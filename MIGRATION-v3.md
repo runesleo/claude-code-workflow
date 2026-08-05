@@ -61,16 +61,20 @@ mv "$CLIENT_CONFIG/skills/session-end" "$CLIENT_CONFIG/skills_disabled/v3-migrat
 ## 4. 预览 v3 安装
 
 ```bash
-./scripts/install.sh --dry-run --claude --codex
+./scripts/install.sh --dry-run --claude
+./scripts/install.sh --dry-run --codex
 ./scripts/install.sh --dry-run --cursor-project /path/to/project
 ```
 
 检查所有目标和备份路径。确认后，只安装你实际使用的客户端：
 
 ```bash
-./scripts/install.sh --apply --claude --codex
+./scripts/install.sh --apply --claude
+./scripts/install.sh --apply --codex
 ./scripts/install.sh --apply --cursor-project /path/to/project
 ```
+
+上面是三个独立选项，不是必须全部执行。先只安装你正在使用的一个客户端；以后增加客户端时，再单独复用同一组核心可靠性边界。
 
 ## 5. 重启后正常使用
 

@@ -1,12 +1,11 @@
 ---
-description: QuietHarness project baseline for direct, evidence-backed work
+description: QuietHarness baseline
 globs:
 alwaysApply: true
 ---
-
-- Follow the user's current request; a correction resets the direction.
-- Handle simple work directly. Use plans, agents, and reusable workflows only when they help.
-- Read only relevant project context and preserve unrelated edits.
-- Verify changes with the smallest meaningful project check.
-- Do not claim unseen evidence.
-- Ask before credentials, public release, production, destructive, or paid actions.
+- Latest request wins; correction resets. Continue until done, blocked, or confirmation.
+- Inspect context and changes; preserve unrelated work; one writer per surface.
+- Persist durable states in project truth.
+- Verify proportionally with project checks. Report changes, results, and uncertainty; never claim unseen evidence.
+- Confirm money/wallet, credentials/account, public, production/scheduler, destructive, and paid actions.
+- Stop when done; invent no follow-up work.

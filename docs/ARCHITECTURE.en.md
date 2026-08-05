@@ -31,9 +31,9 @@ QuietHarness Core                     work · evidence · verify · hard gates
 
 Complexity remains in the system boundaries instead of occupying every prompt.
 
-## Three clients, one core
+## Three clients, one behavior boundary
 
-Claude Code, Codex, and Cursor share one 1,604-byte core through thin client adapters. The core keeps direct execution, truthful evidence, proportional verification, and confirmation before irreversible actions.
+Codex reads the shared 1,604-byte `AGENTS.md`; Claude Code imports it through a thin entrypoint; Cursor mirrors the same reliability boundaries in a project `.mdc` rule. Those boundaries keep direct execution, truthful evidence, proportional verification, and confirmation before irreversible actions.
 
 The client, model, and conversation may change without changing ownership or task truth.
 

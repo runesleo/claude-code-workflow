@@ -18,6 +18,7 @@ AGENTS.md
 CLAUDE.md
 templates/shared/AGENTS.md
 templates/claude/CLAUDE.md
+templates/claude/CLAUDE.project.md
 templates/cursor/quiet-harness.mdc
 docs/DAILY-REPORTS.md
 docs/DAILY-REPORTS.en.md
@@ -34,6 +35,13 @@ examples/leo-system/business-lines.example.json
 examples/leo-system/task.example.json
 examples/leo-system/writer-lock.example.json
 examples/leo-system/readout.example.txt
+examples/first-success/README.md
+examples/first-success/README.en.md
+examples/first-success/setup.sh
+examples/first-success/fixture/checkout.sh
+examples/first-success/fixture/test.sh
+examples/first-success/fixture/TASK.md
+examples/first-success/fixture/notes.md
 media/launch-v3/README.md
 media/launch-v3/X-DRAFT.zh.md
 media/launch-v3/00-system-map.zh.svg
@@ -51,6 +59,7 @@ scripts/install.sh
 scripts/verify.sh
 tests/inventory-smoke.sh
 tests/install-smoke.sh
+tests/first-success-smoke.sh
 "
 
 for required in $required_files; do
@@ -74,6 +83,41 @@ if ! grep -Fq '**中文**' README.md || ! grep -Fq '**English**' README.en.md; t
   echo "VERIFY_FAIL README language-source markers are missing" >&2
   exit 1
 fi
+
+if grep -Fq './scripts/install.sh --dry-run --claude --codex' \
+  README.md README.en.md MIGRATION-v3.md MIGRATION-v3.en.md; then
+  echo "VERIFY_FAIL public docs still present multi-client installation as the default" >&2
+  exit 1
+fi
+
+for marker in \
+  '## 先在一个隔离项目试用' \
+  "--claude-project \"\$demo_dir\"" \
+  "--codex-project \"\$demo_dir\"" \
+  'examples/first-success/README.md'; do
+  if ! grep -Fq -- "$marker" README.md; then
+    echo "VERIFY_FAIL Chinese first-success entry omits: $marker" >&2
+    exit 1
+  fi
+done
+
+for marker in \
+  '## Try it inside one isolated project' \
+  "--claude-project \"\$demo_dir\"" \
+  "--codex-project \"\$demo_dir\"" \
+  'examples/first-success/README.en.md'; do
+  if ! grep -Fq -- "$marker" README.en.md; then
+    echo "VERIFY_FAIL English first-success entry omits: $marker" >&2
+    exit 1
+  fi
+done
+
+for marker in '--claude-project)' '--codex-project)' 'duplicate install target'; do
+  if ! grep -Fq -- "$marker" scripts/install.sh; then
+    echo "VERIFY_FAIL project-scoped installer omits: $marker" >&2
+    exit 1
+  fi
+done
 
 if [ -e templates/cursor/lean-baseline.mdc ]; then
   echo "VERIFY_FAIL stale pre-brand Cursor template remains active" >&2
@@ -105,8 +149,13 @@ bash -n scripts/install.sh
 bash -n scripts/verify.sh
 bash -n tests/inventory-smoke.sh
 bash -n tests/install-smoke.sh
+bash -n tests/first-success-smoke.sh
+bash -n examples/first-success/setup.sh
+bash -n examples/first-success/fixture/checkout.sh
+bash -n examples/first-success/fixture/test.sh
 ./tests/inventory-smoke.sh
 ./tests/install-smoke.sh
+./tests/first-success-smoke.sh
 
 private_hits="$(grep -REn '(/(Users|home)/[^/]+|leo[-]vault|_[i]nventory|active[-]tasks|T[0-9]{3,})' \
   AGENTS.md CLAUDE.md templates docs examples 2>/dev/null || true)"

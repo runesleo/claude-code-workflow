@@ -57,7 +57,7 @@ Claude Code Workflow v1/v2 形成时，模型需要更多显式规则才能稳�
 
 ## 第一层：三端只是入口
 
-Claude Code、Codex、Cursor 不各自维护一套完整人格。它们共享一个小型 Core，再用薄 adapter 接入各自的原生指令机制。
+Claude Code、Codex、Cursor 不各自维护一套完整人格。Codex 读取共享 `AGENTS.md`，Claude Code 通过薄入口引用它，Cursor 用项目 `.mdc` 镜像同一组核心可靠性边界。
 
 Core 只负责：
 
