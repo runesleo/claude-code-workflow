@@ -59,3 +59,60 @@ The English README embeds the Chinese system-map image. This matches the Chinese
 ## Gates
 
 This review authorizes no public mutation. Push, tag, GitHub Release, repository rename, profile edits, and X publication require Leo's explicit approval.
+
+---
+
+## First-success productization review — PASS
+
+Date: 2026-08-05
+
+Branch: `codex/quietharness-first-success-20260805`
+
+### Decision
+
+The single-agent onboarding slice is **PASS with zero blockers** after independent product and installer-safety reviews. The default first experience now stays inside an isolated project, supports one client at a time, exercises observable behavior, and leaves user-level configuration untouched.
+
+Public push, tag, release, external tester recruitment, and publication remain separate maintainer gates.
+
+### Product changes reviewed
+
+- The repository entrypoint now targets a maintainer using any one supported AI coding agent instead of requiring a three-client setup.
+- Claude Code, Codex, and Cursor each have a project-scoped trial path with dry-run before apply.
+- `examples/first-success/` creates an isolated failing checkout fixture with an unrelated user draft that must survive the repair.
+- The fixture task describes only the business defect; it does not coach the reliability behaviors being observed.
+- The first-success check covers inspection, preservation of unrelated work, a minimal repair, real validation, and truthful reporting.
+- Cursor now mirrors the same core reliability boundaries, including proportional verification and confirmation before money or wallet actions.
+
+### Findings resolved
+
+1. The first fixture originally revealed the behaviors under evaluation. The task was reduced to the user-visible defect, and a regression test prevents coaching language from returning.
+2. The first trial originally risked replacing user-level instruction files. Project-scoped Claude Code and Codex modes now join the existing Cursor project mode, and smoke tests prove that user-level paths remain untouched.
+3. The Cursor adapter initially omitted several shared reliability boundaries. It now includes continuation, one-writer discipline, durable state, proportional verification, uncertainty reporting, and the full confirmation boundary.
+4. Project-local intermediate symlinks could redirect a Cursor install outside the selected project. Physical-root containment is now checked before and after target-directory creation, with a regression reproducing the original escape attempt and proving zero outside writes.
+5. An incomplete automatic restore could delete the surviving recovery backup. Cleanup now preserves and reports that backup, and a fault-injection test exercises the actual rollback failure branch.
+6. Two rendered README images initially retained the old template total after their SVG sources changed. Both PNGs were regenerated at 1600×900 and visually checked; they now show the current 2,318-byte total.
+7. One regenerated PNG randomly matched the task-ID scanner in compressed bytes. It was losslessly re-encoded; pixel comparison reports zero changed pixels and the full public-copy scan is clear.
+
+### Verification evidence
+
+- `./scripts/verify.sh` → `INVENTORY_SMOKE_OK`, `INSTALL_SMOKE_OK`, `FIRST_SUCCESS_SMOKE_OK`, `VERIFY_OK template_bytes=2318`
+- ShellCheck → pass for the installer, verifier, demo scripts, and smoke tests
+- installer failure injection → recovery backup preserved and reported when restore is forced to fail
+- project-containment regression → intermediate Cursor symlink rejected with no outside file or directory created
+- `git diff --check` → pass
+- `xmllint --noout media/launch-v3/*.svg` → pass
+- revised PNG files → 1600×900; direct visual inspection confirms `2,318 B` and no clipping
+- lossless PNG re-encode comparison → `0 (0)` differing pixels
+- `.git`-free public snapshot preflight → no private paths and no task IDs; license, README, and environment-ignore checks pass
+- independent product review → approve, zero blockers
+- independent installer-safety review → the two medium findings are closed; one narrow same-directory race remains low and non-blocking
+
+### Remaining limitations
+
+- The “ten-minute” first-success label is a target, not measured evidence. It must be timed by at least one real non-author before becoming a performance claim.
+- The installer still uses predictable sidecar names. Exploitation requires another process with write access to the same target directory and winning a narrow race; exclusive-create staging can harden this later.
+- A repeatable SVG-to-PNG consistency check would prevent stale rendered numbers from recurring. Current assets were manually and visually verified for this candidate.
+
+### Gates
+
+This review authorizes no public mutation. Push, tag, GitHub Release, repository rename, profile edits, tester outreach, and publication require Leo's explicit approval.
