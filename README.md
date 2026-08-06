@@ -308,6 +308,15 @@ Leo（[@runes_leo](https://x.com/runes_leo)）— AI × Crypto 独立构建者�
 
 [leolabs.me](https://leolabs.me) · [GitHub](https://github.com/runesleo) · [X](https://x.com/runes_leo)
 
+## More from this workshop
+
+Full map: **[runesleo](https://github.com/runesleo/runesleo)** — all open-source projects and working systems.
+
+- [x-reader](https://github.com/runesleo/x-reader) — universal content reader MCP, 10+ platforms
+- [polymarket-toolkit](https://github.com/runesleo/polymarket-toolkit) — Polymarket research CLI + AI skills
+- [ai-health-vault](https://github.com/runesleo/ai-health-vault) — AI + Obsidian health management system
+- [claude-video-kit](https://github.com/runesleo/claude-video-kit) — Agent Skill + Remotion video pipeline
+
 ## License
 
 MIT — 见 [LICENSE](LICENSE)。
