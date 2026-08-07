@@ -169,6 +169,14 @@ This boundary came from real cross-model write collisions, not from a theoretica
 
 Reports, sync jobs, and monitors may continue independently. Success writes an artifact quietly; missing, stale, or failed output raises an exception. An unrelated interactive request does not need to run a Morning or closeout pipeline first. See [Daily reports](docs/DAILY-REPORTS.en.md).
 
+### Session closeout: extract the 5% that matters
+
+About 95% of a long conversation is worthless to the next one. Closeout writes the remaining 5% — what changed, what is still open, who approved what — into files, and discards the rest.
+
+What matters is not how detailed the write-up is, but that **every step produces a file**. Skipping a closeout step never throws, so the only usable test is "did this produce an artifact," never "did we cover it in the conversation."
+
+The six steps, the problem each one solves, and why "just write a PROJECT_STATUS.md" is not enough: [Session closeout](docs/SESSION-CLOSEOUT.en.md).
+
 ## Open-source branches on the map
 
 | Branch | Repository | Role in the system |
@@ -196,7 +204,7 @@ Existing v2 users should follow [MIGRATION-v3.en.md](MIGRATION-v3.en.md) and dis
 
 ```text
 templates/                      # current three-client Core
-docs/                           # architecture, task, overlay, report boundaries
+docs/                           # architecture, task, overlay, closeout, report boundaries
 examples/first-success/         # isolated single-client trial and behavior check
 examples/leo-system/            # sanitized current-system examples
 scripts/                        # inventory, install, verification
