@@ -219,6 +219,14 @@ artifact / validation / writeback / rollback / outcome / next gate
 
 交互 Agent 不需要为了回答一个无关问题，先重跑 Morning、扫描全部任务或生成一次 Dashboard。详见 [日报可以继续，但不必成为仪式](docs/DAILY-REPORTS.md)。
 
+### 6. 会话收尾：把长对话里那 5% 抽出来
+
+一次长对话结束时，95% 的内容对下一次没有价值。收尾就是把剩下的 5%——改了什么、还差什么、谁批准了什么——写进文件，其余全部丢掉。
+
+关键不在于写得多详细，而在于**每一步都要有产物文件**。少做一步收尾从来不抛异常，所以判据只能是"这一步产生文件了吗"，不能是"对话里说清楚了吗"。
+
+六步、每步在解决什么问题、以及为什么"写一份 PROJECT_STATUS.md"不够，见 [会话收尾协议](docs/SESSION-CLOSEOUT.md)。
+
 ## 这张地图上的开源分支
 
 QuietHarness 是主干。我的一些真实业务能力已经长成独立仓库：
@@ -258,7 +266,7 @@ QuietHarness 是主干。我的一些真实业务能力已经长成独立仓库�
 
 ```text
 templates/                      # 当前三端小 Core
-docs/                           # 我的系统架构、任务与日报边界
+docs/                           # 我的系统架构、任务、收尾与日报边界
 examples/first-success/         # 单客户端隔离试用与行为验收
 examples/leo-system/            # 脱敏的真实结构示例
 scripts/                        # 盘点、安装、验证
