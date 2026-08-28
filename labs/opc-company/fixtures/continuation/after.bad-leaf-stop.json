@@ -1,6 +1,6 @@
 {
   "schema_version": "opc.continuation.v1",
-  "canonical_task_id": "T248",
+  "canonical_task_id": "synthetic-content-task",
   "scope_id": "opc-merge-milestone",
   "work_continuing": false,
   "global_status": "blocked",
