@@ -24,6 +24,18 @@ python3 scripts/opc.py failover \
   --before fixtures/quota-failover/task.before.json \
   --after fixtures/quota-failover/task.after.json
 # expected: same task, same owner, new worker, PASS
+
+# A blocked leaf execution path does not stop the canonical task
+python3 scripts/opc.py continuation \
+  --before fixtures/continuation/before.json \
+  --after fixtures/continuation/after.bad-leaf-stop.json
+# expected: rejected with leaf_blocker_promoted_global / premature_global_stop
+
+# An owner turn cannot drift to another scope without a semantic handoff
+python3 scripts/opc.py continuation \
+  --before fixtures/continuation/before.json \
+  --after fixtures/continuation/after.bad-scope-drift.json
+# expected: rejected with scope_drift_without_handoff
 ```
 
 Public: protocols, schemas, synthetic fixtures, verifier.

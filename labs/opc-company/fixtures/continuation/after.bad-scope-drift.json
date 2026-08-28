@@ -1,0 +1,12 @@
+{
+  "schema_version": "opc.continuation.v1",
+  "canonical_task_id": "T248",
+  "scope_id": "cross-business-scan",
+  "work_continuing": true,
+  "global_status": "active",
+  "blocker_level": "none",
+  "remaining_work": [
+    "scan-cmd1",
+    "scan-cmd2"
+  ]
+}

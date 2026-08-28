@@ -1,0 +1,16 @@
+{
+  "schema_version": "opc.continuation.v1",
+  "canonical_task_id": "T248",
+  "scope_id": "opc-merge-milestone",
+  "work_continuing": false,
+  "global_status": "blocked",
+  "blocker_level": "leaf",
+  "leaf_blocker": {
+    "id": "x-native-schedule",
+    "reason": "long-post-schedule-disabled"
+  },
+  "remaining_work": [
+    "reuse_validation",
+    "incident_driven_opc_patch"
+  ]
+}

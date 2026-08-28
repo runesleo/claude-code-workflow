@@ -28,6 +28,18 @@ python3 scripts/opc.py failover \
   --before fixtures/quota-failover/task.before.json \
   --after fixtures/quota-failover/task.after.json
 # 预期：同 task / 同 owner / 新 worker，PASS
+
+# 4) 叶子执行面被阻塞，不等于整个 canonical task 停止
+python3 scripts/opc.py continuation \
+  --before fixtures/continuation/before.json \
+  --after fixtures/continuation/after.bad-leaf-stop.json
+# 预期：拒绝 leaf_blocker_promoted_global / premature_global_stop
+
+# 5) 无 semantic handoff 不允许 owner turn 漂到另一个 scope
+python3 scripts/opc.py continuation \
+  --before fixtures/continuation/before.json \
+  --after fixtures/continuation/after.bad-scope-drift.json
+# 预期：拒绝 scope_drift_without_handoff
 ```
 
 ## 公开边界

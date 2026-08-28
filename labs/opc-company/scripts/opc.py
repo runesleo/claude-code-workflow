@@ -62,12 +62,33 @@ def cmd_failover(args):
         return 1
     print(f"OPC_FAILOVER_PASS task={before.get('id')} from={before.get('primary_worker')} to={after.get('primary_worker')}"); return 0
 
+def cmd_continuation(args):
+    before=read_json(args.before); after=read_json(args.after); errors=[]
+    if before.get("canonical_task_id") != after.get("canonical_task_id"):
+        errors.append("canonical_task_changed")
+    scope_changed = before.get("scope_id") != after.get("scope_id")
+    handoff = after.get("scope_handoff")
+    if scope_changed:
+        if not isinstance(handoff, dict) or handoff.get("status") != "ADOPTED":
+            errors.append("scope_drift_without_handoff")
+    if after.get("blocker_level") == "leaf" and after.get("global_status") == "blocked":
+        errors.append("leaf_blocker_promoted_global")
+    remaining = after.get("remaining_work") or []
+    if after.get("work_continuing") is False and remaining:
+        errors.append("premature_global_stop")
+    if errors:
+        for e in errors: print("OPC_CONTINUATION_REJECT", e)
+        return 1
+    print(f"OPC_CONTINUATION_PASS task={after.get('canonical_task_id')} scope={after.get('scope_id')} work_continuing={str(bool(after.get('work_continuing'))).lower()}")
+    return 0
+
 def main():
     ap=argparse.ArgumentParser(prog="opc"); sp=ap.add_subparsers(dest="cmd",required=True)
     p=sp.add_parser("lint"); p.add_argument("files",nargs="+"); p.set_defaults(fn=cmd_lint)
     p=sp.add_parser("status"); p.add_argument("company"); p.set_defaults(fn=cmd_status)
     p=sp.add_parser("verify"); p.add_argument("--task",required=True); p.add_argument("--receipt",required=True); p.set_defaults(fn=cmd_verify)
     p=sp.add_parser("failover"); p.add_argument("--before",required=True); p.add_argument("--after",required=True); p.set_defaults(fn=cmd_failover)
+    p=sp.add_parser("continuation"); p.add_argument("--before",required=True); p.add_argument("--after",required=True); p.set_defaults(fn=cmd_continuation)
     args=ap.parse_args(); raise SystemExit(args.fn(args))
 
 if __name__=="__main__": main()
