@@ -1,0 +1,1 @@
+{"schema_version":1,"receipt_id":"receipt-research-1","task_id":"research-to-content","worker":"worker-a","outcome":"completed","artifacts":["artifacts/research.md"],"validation":["sources: verified"],"owner_writeback":true,"downstream_ack":null,"created_at":"2026-01-01T09:30:00Z"}

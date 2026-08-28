@@ -1,0 +1,1 @@
+{"reason":"worker_quota_exhausted","from_worker":"worker-a","to_worker":"worker-b","same_task_id":true,"new_task_created":false,"canonical_state_preserved":true}
