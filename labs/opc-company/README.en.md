@@ -8,19 +8,19 @@ QuietHarness focuses on reliable execution by one or a few agents. The OPC Compa
 
 ```bash
 cd labs/opc-company
-./scripts/opc.py status examples/synthetic-company
+python3 scripts/opc.py status examples/synthetic-company
 
-./scripts/opc.py verify \
+python3 scripts/opc.py verify \
   --task fixtures/false-completion/task.json \
   --receipt fixtures/false-completion/receipt.json
 # expected: rejected
 
-./scripts/opc.py verify \
+python3 scripts/opc.py verify \
   --task examples/synthetic-company/tasks/product-release.json \
   --receipt examples/synthetic-company/receipts/product-release.valid.json
 # expected: PASS
 
-./scripts/opc.py failover \
+python3 scripts/opc.py failover \
   --before fixtures/quota-failover/task.before.json \
   --after fixtures/quota-failover/task.after.json
 # expected: same task, same owner, new worker, PASS
