@@ -61,6 +61,16 @@ python3 scripts/opc.py continuation   --before fixtures/continuation/before.json
 # exact output:
 # OPC_CONTINUATION_PASS task=synthetic-content-task scope=opc-merge-milestone work_continuing=true
 
+# 8) A handoff without semantic downstream ACK is not completion
+python3 scripts/opc.py verify   --task fixtures/missing-ack/task.json   --receipt fixtures/missing-ack/receipt.json
+# exit 1
+# exact token: OPC_VERIFY_REJECT missing_semantic_ack
+
+# 9) lint accepts a company directory and checks its JSON files
+python3 scripts/opc.py lint examples/synthetic-company
+# exit 0
+# exact output: OPC_LINT_OK files=5
+
 # Optional full regression suite
 python3 tests/run.py
 # exit 0; exact token: OPC_TEST_OK
