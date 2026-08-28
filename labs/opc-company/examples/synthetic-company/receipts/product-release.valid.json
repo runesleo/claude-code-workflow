@@ -1,0 +1,1 @@
+{"schema_version":1,"receipt_id":"receipt-product-release-1","task_id":"product-release","worker":"worker-b","outcome":"completed","artifacts":["artifacts/product-change.diff"],"validation":["tests: PASS"],"owner_writeback":true,"downstream_ack":null,"created_at":"2026-01-01T10:00:00Z"}
