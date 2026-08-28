@@ -22,6 +22,8 @@ QuietHarness is for people maintaining real projects with any supported AI codin
 
 QuietHarness does not include a task database, background automation, or a team orchestration platform. The larger Leo System later in this README is an optional reference, not a prerequisite.
 
+If you are exploring how multiple long-lived owners/workers can share canonical state, use semantic handoffs, reject false completion, and continue the same task after worker failover, see the experimental [OPC Company Layer](labs/opc-company/README.en.md). It is a governance lab in this same repository, not a QuietHarness installation requirement.
+
 ## Try it inside one isolated project
 
 ```bash

@@ -22,6 +22,8 @@ QuietHarness 不会给每个请求套一层仪式，也不是要求你复制我�
 
 如果你需要完整任务数据库、后台自动化或团队编排平台，QuietHarness 本身并不提供这些能力；后文的 Leo System 只是可选参考。
 
+如果你关心多个长期 Owner / Worker 如何共享 canonical state、做 semantic handoff、拒绝假完成并在换 worker 后继续同一任务，可以看实验性的 [OPC Company Layer](labs/opc-company/README.md)。它是同一仓库里的治理实验层，不是 QuietHarness 的安装前提。
+
 ## 先在一个隔离项目试用
 
 ```bash
