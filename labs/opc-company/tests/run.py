@@ -17,4 +17,5 @@ out=run(["continuation","--before",str(ROOT/"fixtures/continuation/before.json")
 out=run(["continuation","--before",str(ROOT/"fixtures/continuation/before.json"),"--after",str(ROOT/"fixtures/continuation/after.bad-scope-drift.json")],1); assert "scope_drift_without_handoff" in out
 out=run(["continuation","--before",str(ROOT/"fixtures/continuation/before.json"),"--after",str(ROOT/"fixtures/continuation/after.good-leaf-continue.json")],0); assert "OPC_CONTINUATION_PASS" in out
 task_files=[str(p) for p in (ROOT/"examples/synthetic-company/tasks").glob("*.json")]; out=run(["lint",*task_files],0); assert "OPC_LINT_OK" in out
+out=run(["lint",str(ROOT/"examples/synthetic-company")],0); assert "OPC_LINT_OK" in out
 print("OPC_TEST_OK")

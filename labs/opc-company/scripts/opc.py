@@ -18,15 +18,28 @@ def lint_task(task):
     return errors
 
 def cmd_lint(args):
-    errors=[]
-    for p in args.files:
-        obj=read_json(p)
+    errors=[]; files=[]
+    for raw in args.files:
+        path=Path(raw)
+        if not path.exists():
+            errors.append(f"{raw}:not_found")
+            continue
+        if path.is_dir():
+            files.extend(sorted(path.rglob("*.json")))
+        else:
+            files.append(path)
+    for path in files:
+        try:
+            obj=read_json(path)
+        except (OSError, json.JSONDecodeError) as exc:
+            errors.append(f"{path}:unreadable_json:{exc.__class__.__name__}")
+            continue
         if isinstance(obj, dict) and "status" in obj and "id" in obj:
-            errors += [f"{p}:{e}" for e in lint_task(obj)]
+            errors += [f"{path}:{e}" for e in lint_task(obj)]
     if errors:
         for e in errors: print("OPC_LINT_ERROR", e)
         return 1
-    print(f"OPC_LINT_OK files={len(args.files)}")
+    print(f"OPC_LINT_OK files={len(files)}")
     return 0
 
 def cmd_status(args):
