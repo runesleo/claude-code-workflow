@@ -9,22 +9,22 @@ QuietHarness 解决单个或少量 Agent 的可靠执行；OPC Company Layer 解
 ```bash
 cd labs/opc-company
 
-./scripts/opc.py status examples/synthetic-company
+python3 scripts/opc.py status examples/synthetic-company
 
 # 1) Agent 自述完成，但没有 artifact / validation / owner writeback
-./scripts/opc.py verify \
+python3 scripts/opc.py verify \
   --task fixtures/false-completion/task.json \
   --receipt fixtures/false-completion/receipt.json
 # 预期：拒绝
 
 # 2) 真实 receipt
-./scripts/opc.py verify \
+python3 scripts/opc.py verify \
   --task examples/synthetic-company/tasks/product-release.json \
   --receipt examples/synthetic-company/receipts/product-release.valid.json
 # 预期：PASS
 
 # 3) Worker 额度耗尽，但任务不迁移
-./scripts/opc.py failover \
+python3 scripts/opc.py failover \
   --before fixtures/quota-failover/task.before.json \
   --after fixtures/quota-failover/task.after.json
 # 预期：同 task / 同 owner / 新 worker，PASS
