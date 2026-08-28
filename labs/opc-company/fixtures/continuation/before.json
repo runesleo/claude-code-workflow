@@ -1,0 +1,12 @@
+{
+  "schema_version": "opc.continuation.v1",
+  "canonical_task_id": "synthetic-content-task",
+  "scope_id": "opc-merge-milestone",
+  "work_continuing": true,
+  "global_status": "active",
+  "blocker_level": "none",
+  "remaining_work": [
+    "x_release",
+    "reuse_validation"
+  ]
+}

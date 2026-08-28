@@ -13,5 +13,8 @@ out=run(["verify","--task",str(ROOT/"fixtures/false-completion/task.json"),"--re
 out=run(["verify","--task",str(ROOT/"fixtures/missing-ack/task.json"),"--receipt",str(ROOT/"fixtures/missing-ack/receipt.json")],1); assert "missing_semantic_ack" in out
 out=run(["verify","--task",str(ROOT/"examples/synthetic-company/tasks/product-release.json"),"--receipt",str(ROOT/"examples/synthetic-company/receipts/product-release.valid.json")],0); assert "OPC_VERIFY_PASS" in out
 out=run(["failover","--before",str(ROOT/"fixtures/quota-failover/task.before.json"),"--after",str(ROOT/"fixtures/quota-failover/task.after.json")],0); assert "OPC_FAILOVER_PASS" in out
+out=run(["continuation","--before",str(ROOT/"fixtures/continuation/before.json"),"--after",str(ROOT/"fixtures/continuation/after.bad-leaf-stop.json")],1); assert "leaf_blocker_promoted_global" in out and "premature_global_stop" in out
+out=run(["continuation","--before",str(ROOT/"fixtures/continuation/before.json"),"--after",str(ROOT/"fixtures/continuation/after.bad-scope-drift.json")],1); assert "scope_drift_without_handoff" in out
+out=run(["continuation","--before",str(ROOT/"fixtures/continuation/before.json"),"--after",str(ROOT/"fixtures/continuation/after.good-leaf-continue.json")],0); assert "OPC_CONTINUATION_PASS" in out
 task_files=[str(p) for p in (ROOT/"examples/synthetic-company/tasks").glob("*.json")]; out=run(["lint",*task_files],0); assert "OPC_LINT_OK" in out
 print("OPC_TEST_OK")
