@@ -80,6 +80,8 @@ This is an onboarding behavior check, not a causal experiment proving that Quiet
 
 [Open the complete first-success guide and acceptance criteria →](examples/first-success/README.en.md)
 
+Whether you complete the trial or get blocked, spend two minutes on a [public usage receipt](https://github.com/runesleo/claude-code-workflow/issues/new?template=quiet-harness-usage-receipt.yml). It measures install outcome, time to first success, support friction, and 7-day reuse; if day 7 has not arrived, edit the same issue later. Do not include private code, repository names, absolute paths, credentials, or account details.
+
 ## Install for everyday use after the trial (optional)
 
 ```bash
