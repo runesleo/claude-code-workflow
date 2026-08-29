@@ -1,0 +1,122 @@
+name: QuietHarness usage receipt / 使用回执
+description: Record first-success completion, blockers, and 7-day reuse without sharing private data.
+title: "[QuietHarness receipt] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for trying QuietHarness. This issue is public.
+
+        请勿提交私有代码、仓库名、绝对路径、凭证、账号信息或其他敏感内容。Do not include private code, repository names, absolute paths, credentials, account details, or other sensitive information.
+
+        If seven days have not passed yet, submit the first receipt now and edit this same issue later with the reuse result. 7 天未到时先提交首次回执，之后直接编辑同一条 issue，不要重复新建。
+
+  - type: dropdown
+    id: receipt_type
+    attributes:
+      label: 回执类型 / Receipt type
+      options:
+        - Completed first success / 已完成首次成功
+        - Blocked before completion / 完成前卡住
+        - 7-day reuse update / 7 天复用更新
+    validations:
+      required: true
+
+  - type: dropdown
+    id: client
+    attributes:
+      label: 客户端 / Client
+      options:
+        - Claude Code
+        - Codex
+        - Cursor
+        - Other / 其他
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: QuietHarness version
+      description: Use a release tag such as v3.1.0, or the commit SHA if you used main.
+      placeholder: v3.1.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install_scope
+    attributes:
+      label: 安装范围 / Install scope
+      options:
+        - Isolated first-success demo / 隔离首次成功练习
+        - Project-level install / 项目级安装
+        - User-level install / 用户级安装
+        - Not installed; blocked earlier / 尚未安装，之前已卡住
+    validations:
+      required: true
+
+  - type: input
+    id: elapsed_minutes
+    attributes:
+      label: 完成或停止前共用多少分钟？ / Minutes until completion or stop
+      description: Enter a whole number. For a blocker, report total time spent before stopping.
+      placeholder: "10"
+    validations:
+      required: true
+
+  - type: input
+    id: support_minutes
+    attributes:
+      label: 私下讲解或人工支持用了多少分钟？ / Minutes of private walkthrough or human support
+      description: Enter 0 if you completed the trial without private help from the maintainer.
+      placeholder: "0"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: observed_behaviors
+    attributes:
+      label: 实际观察到的行为 / Behaviors actually observed
+      description: Select only what you directly observed. Leave items unchecked when blocked or not observed.
+      options:
+        - label: The agent preserved the unrelated user edit / Agent 保留了无关用户改动
+        - label: The agent changed only the discount calculation / Agent 只修改了折扣计算
+        - label: The agent ran the existing test / Agent 运行了现有测试
+        - label: The final response included real verification evidence / 最终回复包含真实验证证据
+
+  - type: dropdown
+    id: reuse_status
+    attributes:
+      label: 7 天复用状态 / 7-day reuse status
+      description: Edit this same issue later when the answer changes.
+      options:
+        - Day 7 not reached yet / 尚未到第 7 天
+        - Reused once after day 7 / 第 7 天后复用 1 次
+        - Reused at least twice after day 7 / 第 7 天后复用至少 2 次
+        - Did not reuse after day 7 / 第 7 天后未复用
+    validations:
+      required: true
+
+  - type: textarea
+    id: friction
+    attributes:
+      label: 最大摩擦或卡点 / Biggest friction or blocker
+      description: Write "None" if there was no meaningful friction. Keep the description generic and privacy-safe.
+      placeholder: None / 无
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 可公开的验证证据（可选） / Public-safe verification evidence (optional)
+      description: A short redacted result or public link is enough. Do not paste private project content.
+      placeholder: Redacted test result, public link, or short outcome summary
+
+  - type: checkboxes
+    id: privacy_check
+    attributes:
+      label: 隐私确认 / Privacy check
+      options:
+        - label: I removed private code, repository names, absolute paths, credentials, account details, and other sensitive information. / 我已移除私有代码、仓库名、绝对路径、凭证、账号信息和其他敏感内容。
+          required: true

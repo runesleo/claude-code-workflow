@@ -80,6 +80,8 @@ Read TASK.md and complete the task.
 
 [查看完整首次成功步骤与验收标准 →](examples/first-success/README.md)
 
+完成或卡住后，请用 2 分钟提交一份 [公开使用回执](https://github.com/runesleo/claude-code-workflow/issues/new?template=quiet-harness-usage-receipt.yml)。它只用来测量安装结果、首次成功耗时、支持摩擦和 7 天复用；7 天未到时，之后直接编辑同一条 issue。不要提交私有代码、仓库名、绝对路径、凭证或账号信息。
+
 ## 通过后再安装到日常环境（可选）
 
 ```bash
