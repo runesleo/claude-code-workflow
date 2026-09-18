@@ -42,6 +42,7 @@ examples/first-success/fixture/checkout.sh
 examples/first-success/fixture/test.sh
 examples/first-success/fixture/TASK.md
 examples/first-success/fixture/notes.md
+examples/first-success/SUCCESS-REPORT.md
 media/launch-v3/README.md
 media/launch-v3/X-DRAFT.zh.md
 media/launch-v3/00-system-map.zh.svg

@@ -91,3 +91,8 @@ If any condition fails, open a GitHub issue with the client, model, final respon
 ## Cleanup
 
 Delete `$demo_dir` yourself when you no longer need it. QuietHarness never deletes the directory automatically and never uploads its contents.
+
+
+## 5. Send proof (optional)
+
+If you are not the author: copy [`SUCCESS-REPORT.md`](./SUCCESS-REPORT.md), fill it, and open a Discussion/Issue so we can verify the 15-minute path.

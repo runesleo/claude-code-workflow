@@ -91,3 +91,8 @@ git diff -- notes.md
 ## 清理
 
 确认不再需要练习目录后，由你自己删除 `$demo_dir`。QuietHarness 不会自动删除该目录，也不会上传其中内容。
+
+
+## 5. 回传证据（可选）
+
+若你不是作者：复制 [`SUCCESS-REPORT.md`](./SUCCESS-REPORT.md) 填好后开 Discussion/Issue，帮助验证 15 分钟路径。
