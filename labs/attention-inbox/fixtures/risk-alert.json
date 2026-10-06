@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "event_id": "evt-risk-001",
+  "task_ref": "synthetic-worker-health",
+  "source": "synthetic-host-sentinel",
+  "owner": "personal_ops",
+  "kind": "risk_alert",
+  "severity": "high",
+  "summary": "Execution host disk usage crossed the configured risk threshold.",
+  "occurred_at": "2026-10-06T14:02:00Z",
+  "dedupe_key": "synthetic-worker-health:disk-high",
+  "source_revision": 9,
+  "evidence": [
+    {"type": "receipt", "ref": "./artifacts/host-health.json", "label": "health receipt"}
+  ],
+  "decision": {"required": false}
+}
