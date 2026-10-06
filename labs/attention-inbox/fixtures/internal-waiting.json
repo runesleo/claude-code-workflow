@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "event_id": "evt-wait-001",
+  "task_ref": "synthetic-research",
+  "source": "synthetic-worker",
+  "owner": "research_dd",
+  "kind": "blocked",
+  "severity": "low",
+  "summary": "Worker emitted an internal waiting_for_user-like state but no concrete decision exists.",
+  "occurred_at": "2026-10-06T14:01:00Z",
+  "dedupe_key": "synthetic-research:internal-wait",
+  "source_revision": 2,
+  "evidence": [],
+  "decision": {"required": false}
+}
