@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/attention-inbox/inbox-event.schema.json",
+  "title": "AttentionEvent",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_id",
+    "task_ref",
+    "source",
+    "owner",
+    "kind",
+    "severity",
+    "summary",
+    "occurred_at",
+    "dedupe_key",
+    "source_revision"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "event_id": {"type": "string", "minLength": 1},
+    "task_ref": {"type": "string", "minLength": 1},
+    "source": {"type": "string", "minLength": 1},
+    "owner": {"type": "string", "minLength": 1},
+    "kind": {
+      "enum": ["decision_required", "blocked", "failure", "risk_alert", "completion", "info"]
+    },
+    "severity": {"enum": ["low", "medium", "high", "critical"]},
+    "summary": {"type": "string", "minLength": 1, "maxLength": 500},
+    "occurred_at": {"type": "string", "minLength": 1},
+    "dedupe_key": {"type": "string", "minLength": 1},
+    "source_revision": {"type": ["string", "integer"]},
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "ref"],
+        "properties": {
+          "type": {"enum": ["artifact", "receipt", "log", "diff", "url", "other"]},
+          "ref": {"type": "string", "minLength": 1},
+          "label": {"type": "string"}
+        }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required"],
+      "properties": {
+        "required": {"type": "boolean"},
+        "gate_id": {"type": "string"},
+        "question": {"type": "string"},
+        "allowed_actions": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}
