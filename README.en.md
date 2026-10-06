@@ -24,6 +24,8 @@ QuietHarness does not include a task database, background automation, or a team 
 
 If you are exploring how multiple long-lived owners/workers can share canonical state, use semantic handoffs, reject false completion, and continue the same task after worker failover, see the experimental [OPC Company Layer](labs/opc-company/README.en.md). It is a governance lab in this same repository, not a QuietHarness installation requirement.
 
+If your agents can already keep working but keep interrupting you for the wrong reasons, see the experimental [Attention Inbox Lab](labs/attention-inbox/README.md). It keeps routine completions and internal waiting states quiet, and surfaces only concrete human decisions or meaningful risks. It is a derived attention layer over existing task/receipt state, not another queue or scheduler.
+
 ## Try it inside one isolated project
 
 ```bash

@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "event_id": "evt-decision-001",
+  "task_ref": "synthetic-release",
+  "source": "synthetic-codex-worker",
+  "owner": "product_distribution",
+  "kind": "decision_required",
+  "severity": "medium",
+  "summary": "Release artifact is validated and ready for a public publish gate.",
+  "occurred_at": "2026-10-06T14:00:00Z",
+  "dedupe_key": "synthetic-release:publish_release",
+  "source_revision": 4,
+  "evidence": [
+    {"type": "artifact", "ref": "./artifacts/release-review.md", "label": "validated review"}
+  ],
+  "decision": {
+    "required": true,
+    "gate_id": "publish_release",
+    "question": "Publish the validated release publicly?",
+    "allowed_actions": ["approve_publish", "hold"]
+  }
+}
