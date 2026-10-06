@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "event_id": "evt-done-001",
+  "task_ref": "synthetic-background-sync",
+  "source": "synthetic-background-worker",
+  "owner": "daily_rhythm",
+  "kind": "completion",
+  "severity": "low",
+  "summary": "Routine background sync completed successfully.",
+  "occurred_at": "2026-10-06T14:03:00Z",
+  "dedupe_key": "synthetic-background-sync:done",
+  "source_revision": 11,
+  "evidence": [],
+  "decision": {"required": false}
+}
