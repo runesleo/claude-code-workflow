@@ -24,6 +24,8 @@ QuietHarness 不会给每个请求套一层仪式，也不是要求你复制我�
 
 如果你关心多个长期 Owner / Worker 如何共享 canonical state、做 semantic handoff、拒绝假完成并在换 worker 后继续同一任务，可以看实验性的 [OPC Company Layer](labs/opc-company/README.md)。它是同一仓库里的治理实验层，不是 QuietHarness 的安装前提。
 
+如果你的 Agent 已经能持续工作，但经常因为错误的 `waiting_for_user`、常规完成或重复状态打断你，可以看实验性的 [Attention Inbox Lab](labs/attention-inbox/README.md)。它只把真正的人工决策和有意义的风险送到注意力入口；任务事实、调度和执行仍留在现有系统里，不另造一套队列或控制面。
+
 ## 先在一个隔离项目试用
 
 ```bash
@@ -273,6 +275,7 @@ templates/                      # 当前三端小 Core
 docs/                           # 我的系统架构、任务、收尾与日报边界
 examples/first-success/         # 单客户端隔离试用与行为验收
 examples/leo-system/            # 脱敏的真实结构示例
+labs/attention-inbox/           # 实验性的 Agent 注意力协议与策略
 scripts/                        # 盘点、安装、验证
 tests/                          # 隔离 HOME 冒烟测试
 media/launch-v3/                # 系统地图与发布素材
