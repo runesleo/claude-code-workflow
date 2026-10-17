@@ -19,6 +19,8 @@ jobs:
         run: ./scripts/verify.sh
       - name: Verify OPC fixtures
         run: python3 labs/opc-company/tests/run.py
+      - name: Verify Chat Export fixtures
+        run: python3 labs/chat-export/tests/run.py
       - name: Parse OPC JSON
         run: |
           find labs/opc-company -name '*.json' -print0 | while IFS= read -r -d '' file; do
