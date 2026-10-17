@@ -1,7 +1,11 @@
 """Shared pieces for the chat exporters: turn grouping, redaction, markdown rendering, watermark."""
 import json
+import os
 import re
 from pathlib import Path
+
+# Exports are private conversations: every directory and file this process creates is owner-only.
+os.umask(0o077)
 
 DEST_ROOT = Path.home() / ".local/share/chat-export"
 
@@ -97,3 +101,8 @@ class Watermark:
     def save(self):
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.path.write_text(json.dumps(self.state, indent=0))
+        # Tighten directories left world-readable by an earlier run; new ones already get 0700 from the umask.
+        # Only the export dir itself and the default root; never a parent the user pointed --dest into.
+        self.path.parent.chmod(0o700)
+        if self.path.parent.parent == DEST_ROOT:
+            DEST_ROOT.chmod(0o700)

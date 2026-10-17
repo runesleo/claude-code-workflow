@@ -44,7 +44,7 @@ rg -l "上次那个部署问题" ~/.local/share/chat-export
 
 丢：系统提示和注入的上下文（`<system-reminder>`、整份 AGENTS.md、环境信息）、思考过程、工具调用与结果、子 Agent 的旁支对话。不丢的话，每个会话都带一份 AGENTS.md，任何关键词一搜就命中全部会话。
 
-导出前会把常见凭证替换成 `<REDACTED_…>`：私钥、`sk-` 开头的 API key、GitHub / AWS / Slack token、Bearer 头、`*_TOKEN=` 这类赋值、超长 base64。这是尽力而为的规则匹配，**不能保证把所有敏感内容都清掉**。导出目录只适合留在本机，不要提交到仓库，也不要上传。
+导出前会把常见凭证替换成 `<REDACTED_…>`：私钥、`sk-` 开头的 API key、GitHub / AWS / Slack token、Bearer 头、`*_TOKEN=` 这类赋值、超长 base64。这是尽力而为的规则匹配，**不能保证把所有敏感内容都清掉**。导出的目录和文件都只有你本人能读写（0700 / 0600），只适合留在本机，不要提交到仓库，也不要上传。
 
 ## 踩过的坑
 

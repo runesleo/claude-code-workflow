@@ -59,6 +59,9 @@ def test_claude(tmp):
     with contextlib.redirect_stdout(out):
         export_claude.main(["--src", str(tmp / "src"), "--dest", str(tmp / "out")])
     expect("0 written" in out.getvalue(), "claude: unchanged session must not be rewritten")
+    md = next((tmp / "out").glob("*.md"))
+    expect(md.stat().st_mode & 0o077 == 0, "claude: exported file must be owner-only")
+    expect((tmp / "out").stat().st_mode & 0o077 == 0, "claude: export dir must be owner-only")
 
 
 def test_codex_rollout_keeps_final_answer(tmp):
