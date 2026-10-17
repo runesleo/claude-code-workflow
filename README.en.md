@@ -26,6 +26,8 @@ If you are exploring how multiple long-lived owners/workers can share canonical 
 
 If your agents can already keep working but keep interrupting you for the wrong reasons, see the experimental [Attention Inbox Lab](labs/attention-inbox/README.md). It keeps routine completions and internal waiting states quiet, and surfaces only concrete human decisions or meaningful risks. It is a derived attention layer over existing task/receipt state, not another queue or scheduler.
 
+If you use several AI tools and want each of them to find what you discussed in the others, see the experimental [Chat Export Lab](labs/chat-export/README.md). It turns local Claude Code, Codex, Cursor and Grok Bot chat history into one Markdown format: read-only, incremental, with common credentials redacted. Chat logs stay retrieval hints; files remain the source of truth.
+
 ## Try it inside one isolated project
 
 ```bash

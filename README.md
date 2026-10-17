@@ -26,6 +26,8 @@ QuietHarness 不会给每个请求套一层仪式，也不是要求你复制我�
 
 如果你的 Agent 已经能持续工作，但经常因为错误的 `waiting_for_user`、常规完成或重复状态打断你，可以看实验性的 [Attention Inbox Lab](labs/attention-inbox/README.md)。它只把真正的人工决策和有意义的风险送到注意力入口；任务事实、调度和执行仍留在现有系统里，不另造一套队列或控制面。
 
+如果你同时用几家 AI，想让它们都能翻到之前在别家聊过什么，可以看实验性的 [Chat Export Lab](labs/chat-export/README.md)。它把 Claude Code、Codex、Cursor、Grok Bot 的本地聊天记录导成同一种 Markdown，只读、增量、导出前去掉常见凭证；聊天记录只当线索，事实仍以文件为准。
+
 ## 先在一个隔离项目试用
 
 ```bash
@@ -276,6 +278,7 @@ docs/                           # 我的系统架构、任务、收尾与日报�
 examples/first-success/         # 单客户端隔离试用与行为验收
 examples/leo-system/            # 脱敏的真实结构示例
 labs/attention-inbox/           # 实验性的 Agent 注意力协议与策略
+labs/chat-export/               # 实验性的多 AI 聊天记录导出
 scripts/                        # 盘点、安装、验证
 tests/                          # 隔离 HOME 冒烟测试
 media/launch-v3/                # 系统地图与发布素材
