@@ -14,6 +14,13 @@ MAX_TURN_CHARS = 60_000
 
 # Credentials are redacted before anything touches disk. Most specific patterns first.
 REDACTIONS = [
+    # Complete multi-line PEM private keys (RSA, EC, OpenSSH, PKCS#8, encrypted).
+    # Stop at another BEGIN marker to avoid eating unrelated chat text.
+    (re.compile(
+        r"-----BEGIN (?P<kind>(?:[A-Z0-9-]+ )*PRIVATE KEY)-----"
+        r"(?:(?!-----BEGIN (?:[A-Z0-9-]+ )*PRIVATE KEY-----)[\s\S])*?"
+        r"-----END (?P=kind)-----"
+    ), "<REDACTED_PRIVKEY>"),
     (re.compile(r"0x[a-fA-F0-9]{64}\b"), "<REDACTED_PRIVKEY>"),
     (re.compile(r"\bsk-[A-Za-z0-9_\-]{20,}"), "<REDACTED_APIKEY>"),
     (re.compile(r"\bghp_[A-Za-z0-9]{20,}"), "<REDACTED_GHTOKEN>"),
