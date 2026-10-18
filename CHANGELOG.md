@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- `labs/session-hooks/`：实验性的三个 Claude Code 钩子（会话标题提醒、归档检查、「需要我决定」清单注入），只用 Python 标准库，附中英文说明、示例配置和合成数据测试。
+
 ## [3.1.0] - 2026-08-05
 
 ### Changed

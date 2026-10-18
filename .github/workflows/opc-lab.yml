@@ -5,6 +5,7 @@ on:
     paths:
       - 'labs/opc-company/**'
       - 'labs/chat-export/**'
+      - 'labs/session-hooks/**'
       - 'scripts/verify.sh'
       - 'README.md'
       - 'README.en.md'
@@ -22,6 +23,8 @@ jobs:
         run: python3 labs/opc-company/tests/run.py
       - name: Verify Chat Export fixtures
         run: python3 labs/chat-export/tests/run.py
+      - name: Verify Session Hooks fixtures
+        run: python3 labs/session-hooks/tests/run.py
       - name: Parse OPC JSON
         run: |
           find labs/opc-company -name '*.json' -print0 | while IFS= read -r -d '' file; do

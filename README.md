@@ -28,6 +28,8 @@ QuietHarness 不会给每个请求套一层仪式，也不是要求你复制我�
 
 如果你同时用几家 AI，想让它们都能翻到之前在别家聊过什么，可以看实验性的 [Chat Export Lab](labs/chat-export/README.md)。它把 Claude Code、Codex、Cursor、Grok Bot 的本地聊天记录导成同一种 Markdown，只读、增量、导出前去掉常见凭证；聊天记录只当线索，事实仍以文件为准。
 
+如果你的 Claude Code 会话越开越多，标题对不上内容、分不清哪个能关、只有你能拍板的事没人提，可以看实验性的 [Session Hooks Lab](labs/session-hooks/README.md)。三个独立钩子：主线换了提醒改标题、每次收尾写一行归档检查、把「需要我决定」清单的未勾选项带指纹去重地放到模型眼前；只加提示，不替你改标题、归档或关事项。
+
 ## 先在一个隔离项目试用
 
 ```bash
@@ -279,6 +281,7 @@ examples/first-success/         # 单客户端隔离试用与行为验收
 examples/leo-system/            # 脱敏的真实结构示例
 labs/attention-inbox/           # 实验性的 Agent 注意力协议与策略
 labs/chat-export/               # 实验性的多 AI 聊天记录导出
+labs/session-hooks/             # 实验性的会话标题、归档检查与待决清单钩子
 scripts/                        # 盘点、安装、验证
 tests/                          # 隔离 HOME 冒烟测试
 media/launch-v3/                # 系统地图与发布素材
