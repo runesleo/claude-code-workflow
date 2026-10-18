@@ -10,6 +10,7 @@ import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+import common  # noqa: E402
 import export_claude  # noqa: E402
 import export_codex  # noqa: E402
 import export_cursor  # noqa: E402
@@ -39,6 +40,49 @@ def jsonl(path, records):
     path.write_text("\n".join(json.dumps(r, ensure_ascii=False) for r in records) + "\n")
 
 
+
+def fake_pem(kind, newline="\n"):
+    """Not a real key: tiny base64-encoded plain text, assembled at runtime."""
+    return newline.join((
+        "-----" + "BEGIN " + kind + "-----",
+        "QUJDREVGRw==",
+        "SElKS0w=",
+        "-----" + "END " + kind + "-----",
+    ))
+
+
+def test_redaction(tmp):
+    # All private-key labels use complete BEGIN/END delimiters and short PEM lines.
+    for kind in ("PRIVATE KEY", "RSA PRIVATE KEY", "EC PRIVATE KEY",
+                 "DSA PRIVATE KEY", "OPENSSH PRIVATE KEY", "ENCRYPTED PRIVATE KEY"):
+        text = "Intro\n" + fake_pem(kind) + "\nOutro"
+        expect(common.redact(text) == "Intro\n<REDACTED_PRIVKEY>\nOutro",
+               f"PEM {kind}: redact only the key block, retain surrounding text")
+
+    crlf = "Before\r\n" + fake_pem("ENCRYPTED PRIVATE KEY", "\r\n") + "\r\nAfter"
+    expect(common.redact(crlf) == "Before\r\n<REDACTED_PRIVKEY>\r\nAfter",
+           "PEM: CRLF-encoded key must be redacted")
+
+    separate = fake_pem("RSA PRIVATE KEY") + "\nkeep between\n" + fake_pem("RSA PRIVATE KEY")
+    expect(common.redact(separate) == "<REDACTED_PRIVKEY>\nkeep between\n<REDACTED_PRIVKEY>",
+           "PEM: separately redact adjacent keys without consuming other messages")
+
+    orphan = "-----" + "BEGIN RSA PRIVATE KEY-----\nexample only\n"
+    expect(common.redact(orphan + "keep\n" + fake_pem("RSA PRIVATE KEY")) ==
+           orphan + "keep\n<REDACTED_PRIVKEY>",
+           "PEM: unpaired example must not swallow a later complete key")
+
+    ordinary = ("普通聊天不应消失。\n多行说明继续保留。\n"
+                "-----BEGIN PUBLIC KEY-----\nQUJDREVGRw==\n-----END PUBLIC KEY-----")
+    expect(common.redact(ordinary) == ordinary,
+           "normal multiline text and public keys must be preserved")
+
+    api = KEY + "\n" + "ghp_" + "b" * 30 + "\nAPI_KEY=fictional-value"
+    expect(common.redact(api) ==
+           "<REDACTED_APIKEY>\n<REDACTED_GHTOKEN>\nAPI_KEY=<REDACTED>",
+           "existing API-key, GitHub-token and assignment redaction must remain")
+
+
 def test_claude(tmp):
     jsonl(tmp / "src/proj/s1.jsonl", [
         {"type": "user", "sessionId": "s1", "timestamp": "2026-10-01T00:00:00Z", "cwd": "/w",
@@ -47,11 +91,15 @@ def test_claude(tmp):
                                                       {"type": "text", "text": f"Use the key {KEY}"}]}},
         {"type": "user", "message": {"content": [{"type": "tool_result", "content": "tool noise"}]}},
         {"type": "assistant", "isSidechain": True, "message": {"content": [{"type": "text", "text": "subagent"}]}},
-        {"type": "assistant", "message": {"content": [{"type": "text", "text": "Then run tests."}]}},
+        {"type": "assistant", "message": {"content": [{"type": "text", "text":
+                                                               "Then run tests.\n" + fake_pem("RSA PRIVATE KEY") + "\nDone."}]}},
     ])
     run(export_claude, ["--src", str(tmp / "src"), "--dest", str(tmp / "out")])
     text = only_md(tmp / "out")
-    expect("How do I ship?" in text and "Then run tests." in text, "claude: user prompt and both replies kept")
+    expect("How do I ship?" in text and "Then run tests." in text and "Done." in text,
+           "claude: user prompt and both replies kept")
+    expect("<REDACTED_PRIVKEY>" in text and "QUJDREVGRw==" not in text,
+           "claude: PEM blocks must be removed before writing Markdown")
     for dropped in ("injected", "hidden", "tool noise", "subagent", KEY):
         expect(dropped not in text, f"claude: {dropped!r} should not be exported")
     # Watermark: an unchanged rerun writes nothing.
@@ -125,7 +173,7 @@ def test_grok(tmp):
 
 
 def main():
-    for test in (test_claude, test_codex_rollout_keeps_final_answer, test_codex_thread_history,
+    for test in (test_redaction, test_claude, test_codex_rollout_keeps_final_answer, test_codex_thread_history,
                  test_cursor_app, test_grok):
         with tempfile.TemporaryDirectory() as tmp:
             test(Path(tmp))

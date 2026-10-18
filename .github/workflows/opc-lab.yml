@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'labs/opc-company/**'
+      - 'labs/chat-export/**'
       - 'scripts/verify.sh'
       - 'README.md'
       - 'README.en.md'
