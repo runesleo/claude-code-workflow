@@ -28,6 +28,8 @@ If your agents can already keep working but keep interrupting you for the wrong 
 
 If you use several AI tools and want each of them to find what you discussed in the others, see the experimental [Chat Export Lab](labs/chat-export/README.md). It turns local Claude Code, Codex, Cursor and Grok Bot chat history into one Markdown format: read-only, incremental, with common credentials redacted. Chat logs stay retrieval hints; files remain the source of truth.
 
+If your Claude Code sessions keep multiplying, with titles that no longer match the work, no idea which can be closed, and decisions only you can make that nobody raises, see the experimental [Session Hooks Lab](labs/session-hooks/README.en.md). Three independent hooks: a retitle nudge when the main thread moves, a one-line archive check at the end of every final answer, and a fingerprint-deduplicated "needs me" checklist surfaced to the model. They only add prompts; they never rename, archive or close anything for you.
+
 ## Try it inside one isolated project
 
 ```bash

@@ -1,0 +1,30 @@
+{
+  "env": {
+    "SESSION_HOOKS_LANG": "en",
+    "NEEDS_ME_PATH": "~/.claude/needs-me.md"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {"type": "command", "command": "python3 ~/.claude/hooks/needs_me_surface.py", "timeout": 10}
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {"type": "command", "command": "python3 ~/.claude/hooks/needs_me_surface.py", "timeout": 10},
+          {"type": "command", "command": "python3 ~/.claude/hooks/session_title_nudge.py", "timeout": 5}
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {"type": "command", "command": "python3 ~/.claude/hooks/archive_readiness_nudge.py", "timeout": 5}
+        ]
+      }
+    ]
+  }
+}
