@@ -96,6 +96,18 @@ def title_rejects_bad_session_id():
     expect(run("session_title_nudge.py", None, env, raw="not json") is None, "bad stdin must fail silently")
 
 
+@case
+def title_concurrent_cleanup_does_not_swallow_nudge():
+    state = Path(TMP) / "title-race"
+    state.mkdir()
+    # A dangling entry behaves like a file another session deleted between glob() and stat().
+    (state / "gone.json").symlink_to(state / "already-deleted")
+    env = title_env(TITLE_NUDGE_STATE_DIR=str(state), TITLE_NUDGE_FIRST="1")
+    out = run("session_title_nudge.py", {"session_id": "t6"}, env)
+    expect(out and "Session title check" in out["hookSpecificOutput"]["additionalContext"],
+           "cleanup race must not suppress the reminder")
+
+
 # ---------- archive_readiness_nudge ----------
 
 def stop(message, **extra):
@@ -203,6 +215,60 @@ def needs_pagination_reports_remaining():
     expect("returned_count=2" in ctx and "remaining_new_count=3" in ctx, ctx)
     ctx = ctx_of(run("needs_me_surface.py", {"hook_event_name": "UserPromptSubmit", "session_id": "n3"}, env))
     expect("returned_count=2" in ctx and "remaining_new_count=1" in ctx and "item 2" in ctx, ctx)
+
+
+@case
+def needs_restart_after_full_consumption_keeps_later_pages():
+    path = Path(TMP) / "restart.md"
+    path.write_text("".join(f"- [ ] task {i}\n" for i in range(5)), encoding="utf-8")
+    env = needs_env(path, "seen7")
+    env["NEEDS_ME_MAX_EMIT"] = "2"
+    ups = {"hook_event_name": "UserPromptSubmit", "session_id": "n7"}
+    for _ in range(3):  # consume all five
+        run("needs_me_surface.py", ups, env)
+    expect(run("needs_me_surface.py", ups, env) is None, "everything consumed")
+    ctx = ctx_of(run("needs_me_surface.py", {"hook_event_name": "SessionStart", "session_id": "n7"}, env))
+    expect("returned_count=2" in ctx and "remaining_new_count=3" in ctx, ctx)
+    seen_text = []
+    for _ in range(2):
+        out = run("needs_me_surface.py", ups, env)
+        expect(out is not None, "later pages after restart must not be silently dropped")
+        seen_text.append(ctx_of(out))
+    joined = "\n".join(seen_text)
+    for i in (2, 3, 4):
+        expect(f"task {i}" in joined, f"task {i} lost after restart")
+    expect(run("needs_me_surface.py", ups, env) is None, "no repeats once the restart pass is done")
+
+
+@case
+def install_snippet_never_overwrites_existing_checklist():
+    lines = []
+    for readme in ("README.md", "README.en.md"):
+        hit = [l for l in (LAB / readme).read_text(encoding="utf-8").splitlines()
+               if "needs-me.example.md ~/.claude/needs-me.md" in l]
+        expect(len(hit) == 1, f"{readme}: expected one checklist install line")
+        lines.append(hit[0])
+    for n, line in enumerate(lines):
+        home = Path(TMP) / f"home-install-{n}"
+        (home / ".claude").mkdir(parents=True)
+        env = {"HOME": str(home), "PATH": os.environ.get("PATH", "")}
+        sh = lambda: subprocess.run(["bash", "-c", line], cwd=LAB, env=env, timeout=20)
+        target = home / ".claude" / "needs-me.md"
+        sh()
+        expect(target.read_text(encoding="utf-8") == EXAMPLE.read_text(encoding="utf-8"), "fresh install")
+        target.write_text("- [ ] my real decision\n", encoding="utf-8")
+        sh()  # reinstall
+        expect(target.read_text(encoding="utf-8") == "- [ ] my real decision\n", "reinstall overwrote checklist")
+        target.unlink()
+        real = home / "real-needs.md"
+        real.write_text("- [ ] linked decision\n", encoding="utf-8")
+        target.symlink_to(real)
+        sh()
+        expect(real.read_text(encoding="utf-8") == "- [ ] linked decision\n", "symlink target overwritten")
+        target.unlink()
+        target.symlink_to(home / "missing-target.md")  # dangling link: still must not create through it
+        sh()
+        expect(not (home / "missing-target.md").exists(), "wrote through a dangling symlink")
 
 
 @case

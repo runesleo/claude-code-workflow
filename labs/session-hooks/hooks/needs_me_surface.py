@@ -150,8 +150,12 @@ def main(event: dict) -> None:
 
     seen = _seen(seen_path)
     if name == "SessionStart" or seen is None:
+        # Fresh pass: the cursor restarts too, so later pages are not hidden by
+        # fingerprints injected before the restart.
+        base: set[str] = set()
         pending = list(items.items())
     else:
+        base = seen
         pending = [(k, v) for k, v in items.items() if k not in seen]
     batch = pending[:MAX_EMIT]
     if not batch:
@@ -166,12 +170,15 @@ def main(event: dict) -> None:
         SEEN_DIR.mkdir(parents=True, exist_ok=True)
         seen_path.write_text(json.dumps({
             "version": CURSOR_VERSION,
-            "injected_fingerprints": sorted((seen or set()) | {k for k, _ in batch}),
+            "injected_fingerprints": sorted(base | {k for k, _ in batch}),
         }), encoding="utf-8")
         now = time.time()
         for old in SEEN_DIR.glob("*.json"):
-            if now - old.stat().st_mtime > 7 * 86400:
-                old.unlink(missing_ok=True)
+            try:
+                if now - old.stat().st_mtime > 7 * 86400:
+                    old.unlink(missing_ok=True)
+            except OSError:
+                continue  # concurrently removed by another session
     except OSError:
         pass  # a cursor error can repeat an item later; it never hides one
 

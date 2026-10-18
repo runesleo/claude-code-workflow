@@ -28,7 +28,8 @@ echo '{"last_assistant_message":"改完了，测试通过。"}' \
 ```bash
 mkdir -p ~/.claude/hooks
 cp hooks/*.py ~/.claude/hooks/
-cp examples/needs-me.example.md ~/.claude/needs-me.md   # 只装第三个钩子时需要，再改成你自己的内容
+# 只装第三个钩子时需要；已有清单（包括符号链接）绝不覆盖，重装也安全
+[ -e ~/.claude/needs-me.md ] || [ -L ~/.claude/needs-me.md ] || cp examples/needs-me.example.md ~/.claude/needs-me.md
 ```
 
 然后把 [`examples/settings.example.json`](examples/settings.example.json) 里的 `env` 和 `hooks` 合并进 `~/.claude/settings.json`（已有同名事件就把条目追加进去，不要整段覆盖）。三个钩子互相独立，只装其中一个也行。

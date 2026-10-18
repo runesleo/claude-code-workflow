@@ -92,15 +92,23 @@ def main() -> None:
     now = time.time()
     due = prompts >= FIRST and (last == 0 or now - last >= INTERVAL_S)
     path.write_text(json.dumps({"prompts": prompts, "last_nudge": now if due else last}), encoding="utf-8")
-    for old in STATE_DIR.glob("*.json"):  # forget sessions idle for a week
-        if now - old.stat().st_mtime > 7 * 86400:
-            old.unlink(missing_ok=True)
-    if not due:
-        return
-    print(json.dumps({"hookSpecificOutput": {
-        "hookEventName": "UserPromptSubmit",
-        "additionalContext": _text("nudge").format(how=how),
-    }}, ensure_ascii=False))
+    if due:
+        print(json.dumps({"hookSpecificOutput": {
+            "hookEventName": "UserPromptSubmit",
+            "additionalContext": _text("nudge").format(how=how),
+        }}, ensure_ascii=False), flush=True)
+    _cleanup(now)
+
+
+def _cleanup(now: float) -> None:
+    """Forget sessions idle for a week. Best effort per file: another session may
+    delete the same file concurrently, which must never affect the reminder."""
+    for old in STATE_DIR.glob("*.json"):
+        try:
+            if now - old.stat().st_mtime > 7 * 86400:
+                old.unlink(missing_ok=True)
+        except OSError:
+            continue
 
 
 if __name__ == "__main__":

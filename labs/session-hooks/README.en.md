@@ -27,7 +27,8 @@ echo '{"last_assistant_message":"Done, tests pass."}' | python3 hooks/archive_re
 ```bash
 mkdir -p ~/.claude/hooks
 cp hooks/*.py ~/.claude/hooks/
-cp examples/needs-me.example.md ~/.claude/needs-me.md   # only for the third hook; then replace with your own items
+# only for the third hook; never overwrites an existing checklist (or symlink), safe to re-run
+[ -e ~/.claude/needs-me.md ] || [ -L ~/.claude/needs-me.md ] || cp examples/needs-me.example.md ~/.claude/needs-me.md
 ```
 
 Merge `env` and `hooks` from [`examples/settings.example.json`](examples/settings.example.json) into `~/.claude/settings.json` (append to existing events, do not overwrite them). The hooks are independent; install any subset.
