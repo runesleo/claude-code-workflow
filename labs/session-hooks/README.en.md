@@ -1,5 +1,7 @@
 # Session Hooks Lab
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](../../LICENSE) ![Python 3 stdlib](https://img.shields.io/badge/Python-3%20stdlib-blue.svg) ![Status: experimental](https://img.shields.io/badge/status-experimental-orange.svg)
+
 [中文](README.md) · **English**
 
 Three Claude Code hooks for the three ways long-running agent sessions drift: titles that no longer match the work, no idea which sessions can be closed, and decisions only you can make that nobody brings up.
@@ -118,3 +120,33 @@ Format: [`examples/needs-me.example.md`](examples/needs-me.example.md).
 ## What it is not
 
 Not a task system, a reminder service or an archiving tool. Each hook does one thing: put one rule in front of the model at the right moment. Your files and task records stay the source of truth.
+
+## Requirements & privacy
+
+- Claude Code (a version with `UserPromptSubmit` / `Stop` / `SessionStart` hooks), macOS or Linux.
+- Python 3, standard library only — nothing to `pip install`.
+- No network, no login, no API keys. It reads your checklist file and writes per-session counters under `~/.local/state/claude-session-hooks/`, cleaned up after 7 idle days.
+
+## Verified
+
+`python3 tests/run.py` feeds synthetic events with a throwaway HOME; all 20 cases pass (`SESSION_HOOKS_TESTS_OK 20`, Python 3.14). The author runs all three hooks daily. This shows the hook behaviour is repeatable, not that your Claude Code version sends the same event fields.
+
+## Roadmap
+
+- Tune default intervals and wording from real usage feedback.
+- Port to Codex / Cursor where their hook surfaces line up.
+- Consider folding into the main QuietHarness install once stable; until then it stays an optional lab.
+
+## About the author
+
+*Leo ([@runes_leo](https://x.com/runes_leo)) — AI × Crypto independent builder. Trading on [Polymarket](https://polymarket.com/?via=runes-leo&r=runesleo&utm_source=github&utm_content=claude-code-workflow), building data and content pipelines with Claude Code and Codex.*
+
+*[leolabs.me](https://leolabs.me) — writing · community · open-source tools · indie projects · all platforms.*
+
+*[X Subscription](https://x.com/runes_leo/creator-subscriptions/subscribe) — paid content weekly, or just buy me a coffee 😁*
+
+*Learn in public, Build in public.*
+
+## License
+
+MIT — see [LICENSE](../../LICENSE).

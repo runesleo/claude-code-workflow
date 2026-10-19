@@ -1,5 +1,7 @@
 # Session Hooks Lab
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](../../LICENSE) ![Python 3 stdlib](https://img.shields.io/badge/Python-3%20stdlib-blue.svg) ![Status: experimental](https://img.shields.io/badge/status-experimental-orange.svg)
+
 **中文** · [English](README.en.md)
 
 三个 Claude Code 钩子，解决长期用 Agent 时最常见的三种「会话失控」：标题对不上内容、不知道哪个对话能关、只有你能拍板的事没人提。
@@ -119,3 +121,33 @@ cp hooks/*.py ~/.claude/hooks/
 ## 它不是什么
 
 不是任务系统、提醒服务或归档工具。三个钩子都只做一件事：在对的时机把一条规则放到模型眼前。事实仍以你的文件和任务记录为准。
+
+## 环境要求与隐私
+
+- Claude Code（支持 `UserPromptSubmit` / `Stop` / `SessionStart` 钩子的版本），macOS 或 Linux。
+- Python 3，只用标准库，不用 `pip install`。
+- 不联网、不登录、不需要任何 API key。只读你的清单文件，只在 `~/.local/state/claude-session-hooks/` 写每个会话的计数，7 天不动自动清掉。
+
+## 已验证
+
+`python3 tests/run.py` 用临时 HOME 喂合成事件，20 个用例全部通过（`SESSION_HOOKS_TESTS_OK 20`，Python 3.14）。三个钩子作者每天在用；这证明的是钩子行为可重复，不代表在你的 Claude Code 版本上一定拿得到同样的事件字段。
+
+## 接下来
+
+- 根据真实使用反馈调整默认提醒间隔和文案。
+- 看 Codex / Cursor 的钩子能力，能对上的再移植。
+- 用得稳了再考虑并入 QuietHarness 主安装流程；在那之前一直是可选实验模块。
+
+## 关于作者
+
+*Leo（[@runes_leo](https://x.com/runes_leo)）— AI × Crypto 独立构建者。在 [Polymarket](https://polymarket.com/?via=runes-leo&r=runesleo&utm_source=github&utm_content=claude-code-workflow) 做量化，用 Claude Code 和 Codex 搭数据与内容管线。*
+
+*[leolabs.me](https://leolabs.me) — 写作 · 社群 · 开源工具 · 独立项目*
+
+*[X 订阅](https://x.com/runes_leo/creator-subscriptions/subscribe) — 付费内容周刊*
+
+*Learn in public, Build in public.*
+
+## License
+
+MIT — 见 [LICENSE](../../LICENSE)。
