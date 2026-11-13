@@ -208,6 +208,8 @@ The Core and first-success exercise above are enough to begin. The structures be
 
 To adapt the larger system, begin with [examples/leo-system](examples/leo-system/). Keep or rename the business lines, choose stable owners, connect per-task records to your own storage, and add claims or writer locks only when real concurrency requires them.
 
+The optional [sanitized AGENTS example](examples/leo-system/AGENTS.public.example.en.md) ([中文](examples/leo-system/AGENTS.public.example.md)) describes portable multi-agent rules, not the private original or default Core.
+
 Existing v2 users should follow [MIGRATION-v3.en.md](MIGRATION-v3.en.md) and disable old discovery paths reversibly before installing.
 
 ## Repository layout

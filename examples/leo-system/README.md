@@ -20,6 +20,8 @@
 
 ```text
 AGENTS.private.example.md       私人层只保存偏好与事实源入口
+AGENTS.public.example.md        可选的通用协作规则（中文脱敏版）
+AGENTS.public.example.en.md     上述规则的英文镜像
 business-lines.example.json    Leo 的九条真实业务线拓扑
 task.example.json              一份沿用真实约束的合成任务样例
 writer-lock.example.json       一次仓库写入的 acquire/release 契约

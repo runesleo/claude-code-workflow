@@ -11,6 +11,8 @@ It removes absolute paths, thread UUIDs, live tasks, accounts, positions, health
 Files:
 
 - `AGENTS.private.example.md`: stable preferences and pointers only;
+- `AGENTS.public.example.md`: optional sanitized working rules (Chinese source);
+- `AGENTS.public.example.en.md`: English mirror of those rules;
 - `business-lines.example.json`: Leo's real nine-line topology;
 - `task.example.json`: a synthetic task that preserves the real contracts;
 - `writer-lock.example.json`: acquire/release contract;
