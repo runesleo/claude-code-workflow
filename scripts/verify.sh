@@ -31,6 +31,8 @@ docs/TASK-CONTINUITY.en.md
 examples/leo-system/README.md
 examples/leo-system/README.en.md
 examples/leo-system/AGENTS.private.example.md
+examples/leo-system/AGENTS.public.example.md
+examples/leo-system/AGENTS.public.example.en.md
 examples/leo-system/business-lines.example.json
 examples/leo-system/task.example.json
 examples/leo-system/writer-lock.example.json
@@ -163,6 +165,15 @@ private_hits="$(grep -REn '(/(Users|home)/[^/]+|leo[-]vault|_[i]nventory|active[
 if [ -n "$private_hits" ]; then
   echo "VERIFY_FAIL private or maintainer-only pattern in shipped instructions" >&2
   echo "$private_hits" >&2
+  exit 1
+fi
+
+public_agent_examples=(
+  examples/leo-system/AGENTS.public.example.md
+  examples/leo-system/AGENTS.public.example.en.md
+)
+if grep -Eq '(AKIA[A-Z0-9]{16}|(sk-|ghp_|github_pat_|glpat-|xox[baprs]-)[A-Za-z0-9_-]{12,}|-----BEGIN (RSA |OPENSSH |EC )?PRIVATE KEY-----|0x[[:xdigit:]]{40})' "${public_agent_examples[@]}"; then
+  echo "VERIFY_FAIL possible secret in public AGENTS example" >&2
   exit 1
 fi
 

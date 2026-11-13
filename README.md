@@ -268,6 +268,8 @@ QuietHarness 是主干。我的一些真实业务能力已经长成独立仓库�
 4. 接入自己的 readout/writeback；
 5. 只有出现真实冲突时，再加入 claim 或 writer lock。
 
+多模型协作的工作约束可选读 [公开脱敏版 AGENTS 示例](examples/leo-system/AGENTS.public.example.md)。它不是我的私人原文，也不会随 Core 自动安装。
+
 ### 从 v2 迁移
 
 先运行只读盘点，再按 [MIGRATION-v3.md](MIGRATION-v3.md) 可逆停用旧规则、Skill、Hook 和固定日流程。不要直接删除已有配置。

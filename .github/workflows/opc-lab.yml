@@ -6,6 +6,8 @@ on:
       - 'labs/opc-company/**'
       - 'labs/chat-export/**'
       - 'labs/session-hooks/**'
+      - 'examples/leo-system/**'
+      - 'CHANGELOG.md'
       - 'scripts/verify.sh'
       - 'README.md'
       - 'README.en.md'

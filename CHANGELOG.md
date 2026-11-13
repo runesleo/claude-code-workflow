@@ -6,6 +6,8 @@
 
 ### Added
 
+- `examples/leo-system/AGENTS.public.example*.md`：新增可选的中英文脱敏 AGENTS 协作规则，不影响默认 Core，并纳入仓库验证及隐私检查。
+
 - `labs/session-hooks/`：实验性的三个 Claude Code 钩子（会话标题提醒、归档检查、「需要我决定」清单注入），只用 Python 标准库，附中英文说明、示例配置和合成数据测试。
 
 ## [3.1.0] - 2026-08-05
