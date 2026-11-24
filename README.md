@@ -1,8 +1,28 @@
-# QuietHarness：让你的 AI 编程 Agent 更可靠
+# QuietHarness · AI 一人公司操作系统
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 **中文** · [English](README.en.md)
+
+> 一个人，借助 AI 经营研究、内容、产品与商业化。把实际工作中验证过的系统逐步开源，而不是从头设计一家虚拟公司。
+
+这是一个持续建设的 **AI 一人公司（One-Person Company / OPC）** 开源总入口。我把机会发现、信息研究、文字和视频生产、产品开发、分发增长、业务运营以及 Agent 协作中的可复用能力逐步整理出来。
+
+不是要求你复制我的私人运行环境，也不是宣称整个公司已经能够无人值守。你可以从一个模块开始：可靠地完成一个任务、发现一条值得研究的机会，或交付一份有事实依据的内容，再按自己的需求组合。
+
+| 你想做什么 | 从这里开始 |
+|---|---|
+| 看懂整家公司如何工作 | [AI 一人公司模块地图与开源路线](docs/ONE-PERSON-COMPANY.md) |
+| 让正在使用的 Agent 更可靠 | [QuietHarness Core：隔离试用](#先在一个隔离项目试用) |
+| 管理多 Agent 的任务、接力与验收 | [OPC Company Layer（实验）](labs/opc-company/README.md) |
+| 减少无效打扰、沉淀跨工具上下文 | [Attention Inbox](labs/attention-inbox/README.md) · [Chat Export](labs/chat-export/README.md) |
+| 选择研究、内容、视频等真实业务工具 | [开源业务模块目录](docs/ONE-PERSON-COMPANY.md#业务模块) |
+
+**目前已经公开的**是可独立试用的 Core、若干治理实验和独立业务仓库；完整公司级组合仍按模块逐步开放。各模块成熟度见目录。原仓库地址、Git 历史和现有安装契约保持不变。
+
+---
+
+## QuietHarness Core：可靠执行基础层
 
 > 给你已经在使用的 AI 编程 Agent 装上一层极小、可回滚的工作边界：先看现状、保留无关改动、按风险验证、对不可逆动作先确认。
 
@@ -10,7 +30,7 @@
 
 QuietHarness 不会给每个请求套一层仪式，也不是要求你复制我的私人系统。它把我长期使用后仍值得保留的行为压缩成 1,604 字节共享 Core，并提供 dry-run、备份、隔离测试和可逆安装。
 
-## 适合谁
+## 当前可直接试用的 Core 适合谁
 
 适合正在用任意一种 AI 编程 Agent 维护真实项目，并遇到过这些问题的人：
 
@@ -315,9 +335,9 @@ MIGRATION-v3.md                 # v2 → v3 与回滚
 - Cursor 全局 User Rules 仍需在应用设置中管理；安装器只写项目规则。
 - Windows PowerShell 安装器尚未提供。
 
-## 接下来
+## QuietHarness Core 接下来
 
-我不会再为了显得完整而给它堆功能。当前产品化顺序是：
+我不会再为了显得完整而给 Core 堆功能。公司级模块按[开源路线](docs/ONE-PERSON-COMPANY.md#分阶段开放)逐步开放。当前产品化顺序是：
 
 1. 让至少一位非作者在没有口头解释的情况下完成首次成功；
 2. 根据真实失败点缩短安装、恢复或验收路径；
