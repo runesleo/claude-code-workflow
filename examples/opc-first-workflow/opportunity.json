@@ -1,0 +1,39 @@
+{
+  "synthetic": true,
+  "signal_id": "synthetic-ai-tool-trial",
+  "title": "Example AI note tool opens a sandbox trial",
+  "sources": [
+    {
+      "id": "S1",
+      "kind": "synthetic_announcement",
+      "text": "The fictional Example Note Tool offers a sandbox trial that does not require an account."
+    },
+    {
+      "id": "S2",
+      "kind": "synthetic_documentation",
+      "text": "The fictional sandbox supports Markdown export. Production data handling and pricing after the trial are not documented."
+    }
+  ],
+  "facts": [
+    {
+      "id": "F1",
+      "claim": "A sandbox trial is available without an account.",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "id": "F2",
+      "claim": "Markdown export is supported in the sandbox.",
+      "source_ids": [
+        "S2"
+      ]
+    }
+  ],
+  "unknowns": [
+    "Production data handling",
+    "Post-trial pricing"
+  ],
+  "decision": "Prepare a research brief and an unpublished draft; do not adopt or connect a real account.",
+  "draft": "Example Note Tool's fictional sandbox is worth a small offline test. It offers an account-free trial and Markdown export. Production data handling and future pricing are unknown. This is a synthetic demonstration, not a product recommendation."
+}
