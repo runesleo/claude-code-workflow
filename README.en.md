@@ -1,8 +1,28 @@
-# QuietHarness: a reliable working layer for your AI coding agent
+# QuietHarness · AI One-Person Company
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 [中文](README.md) · **English**
+
+> One person, working with AI across research, content, products, and commercial operations. Open-source the system gradually as it proves useful in real work, rather than inventing a virtual company from scratch.
+
+This is a living **AI One-Person Company (OPC)** open-source entry point. It brings together reusable capabilities from opportunity discovery, research, written and video content, product development, distribution, business operations, and agent collaboration.
+
+You do not need to copy my private operating environment, and this repository does not claim the whole company is autonomously operated. Start with one module: finish a task reliably, identify an opportunity worth investigating, or deliver a piece of evidence-backed content. Combine modules only when your own work requires them.
+
+| What you want to do | Start here |
+|---|---|
+| Understand how the company works | [Company module map and open-source roadmap](docs/ONE-PERSON-COMPANY.en.md) |
+| Make your current agent more reliable | [QuietHarness Core: isolated trial](#try-it-inside-one-isolated-project) |
+| Coordinate tasks, handoffs, and acceptance across agents | [OPC Company Layer (experimental)](labs/opc-company/README.en.md) |
+| Reduce interruptions and preserve cross-tool context | [Attention Inbox](labs/attention-inbox/README.md) · [Chat Export](labs/chat-export/README.md) |
+| Choose real tools for research, content, video, and more | [Business module catalog](docs/ONE-PERSON-COMPANY.en.md#business-modules) |
+
+**What is public today:** the independently usable Core, several governance labs, and separate business-tool repositories. The complete company composition is a staged open-source effort; see each module's maturity in the catalog. The existing repository URL, Git history, and installation contract are preserved.
+
+---
+
+## QuietHarness Core: the reliable execution foundation
 
 > Give the AI coding agent you already use a small, reversible operating boundary: inspect first, preserve unrelated work, verify in proportion to risk, and stop before irreversible actions.
 
@@ -10,7 +30,7 @@
 
 QuietHarness does not turn every request into a ceremony, and it does not ask you to copy my private operating system. It compresses the behaviors that survived long-term real use into a 1,604-byte shared Core, with dry-run, backup, isolated tests, and reversible installation.
 
-## Who it is for
+## Who the Core is for
 
 QuietHarness is for people maintaining real projects with any supported AI coding agent who have seen failures such as:
 
