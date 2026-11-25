@@ -25,4 +25,19 @@ python3 examples/opc-first-workflow/run.py --out "$out" --phase resume
 
 失败时可保留 checkpoint/，但不会提交 result/；已完成的结果不接受重复恢复。正常运行须退出 0 并输出 OPC_FIRST_WORKFLOW_PASS；测试须输出 FIRST_WORKFLOW_FOCUSED_TESTS_OK。
 
-这是模拟 Worker 中断和交接确认的真实本地进程测试，不是两个 AI 模型的独立协作，确认也不是独立内容审查。Attention Inbox 集成与真实 Agent 运行尚待验证。
+这是模拟 Worker 中断和交接确认的真实本地进程测试，不是两个 AI 模型的独立协作，确认也不是独立内容审查。Attention Inbox 已在离线案例中接入，真实 Agent 运行尚待验证。
+
+## 创始人决策入口
+
+在 OPC 验收通过后，案例复用现有 Attention Inbox 的 `batch` 命令。新增三个本地产物：`publish-gate.json`（模拟发布审核门，状态 OPEN）、`attention-events.jsonl`（四条合成事件）、`attention-output.txt`（原 CLI 输出）。审核门关联草稿 SHA256，不表示已授权发布。
+
+预期输出：
+
+```text
+SUPPRESS reason=no_concrete_user_decision
+SUPPRESS reason=routine_completion
+ACTION_REQUIRED task=synthetic-ai-tool-trial gate=synthetic_publish_review
+SUPPRESS reason=duplicate event=synthetic-ai-tool-trial:review-duplicate
+```
+
+仅演示内部等待、例行完成、模拟人工审核与同批次同 revision 去重。没有真实通知、审批执行或跨次持久去重；任何动作均不会发布内容。非法事件会使验收失败，保留检查点，不提交 `result/`。

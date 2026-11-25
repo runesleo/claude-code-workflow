@@ -10,6 +10,7 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parent
 VERIFIER = ROOT.parent.parent / "labs/opc-company/scripts/opc.py"
+INBOX = ROOT.parent.parent / "labs/attention-inbox/scripts/inbox.py"
 STAMP = "2026-01-01T00:00:00Z"
 INTERRUPTED = 75
 NAMES = ("research.md", "content-draft.md", "decision.json")
@@ -100,6 +101,50 @@ def downstream_ack(task, adopted):
             "handoff_id": adopted["handoff_id"], "evidence": adopted["body"]}
 
 
+def attention_events(stage, task, receipt):
+    """Derive a synthetic attention batch from the verified preparation result."""
+    gate = {"schema_version": 1, "gate_id": "synthetic_publish_review",
+            "kind": "publish", "status": "OPEN",
+            "evidence": ["content-draft.md sha256=" + digest(stage / "content-draft.md")]}
+    write_json(stage / "publish-gate.json", gate)
+    task_id = task["id"]
+
+    def event(event_id, kind, severity, summary, key, revision, evidence, decision):
+        return {"schema_version": 1, "event_id": task_id + ":" + event_id,
+                "task_ref": task_id, "source": "synthetic-offline-replay", "owner": task["owner"],
+                "kind": kind, "severity": severity, "summary": summary, "occurred_at": STAMP,
+                "dedupe_key": task_id + ":" + key, "source_revision": revision,
+                "evidence": evidence, "decision": decision}
+
+    receipt_ref = [{"type": "receipt", "ref": "receipt.json", "label": receipt["receipt_id"]}]
+    revision = digest(stage / "receipt.json")
+    internal = event("internal-wait", "blocked", "low", "Synthetic worker handoff; no founder decision.",
+                     "internal-wait", revision, receipt_ref, {"required": False})
+    routine = event("prepared", "completion", "low", "Synthetic preparation completed and verified.",
+                    "prepared", revision, receipt_ref, {"required": False})
+    review = event("review", "decision_required", "medium",
+                   "Synthetic draft ready for human review; no real publication is possible.",
+                   gate["gate_id"], digest(stage / "publish-gate.json"),
+                   [{"type": "artifact", "ref": "content-draft.md"},
+                    {"type": "artifact", "ref": "publish-gate.json"}],
+                   {"required": True, "gate_id": gate["gate_id"],
+                    "question": "Review the fictional draft for a hypothetical release, or hold?",
+                    "allowed_actions": ["review_draft", "hold"]})
+    duplicate = dict(review, event_id=task_id + ":review-duplicate")
+    return [internal, routine, review, duplicate]
+
+
+def render_attention(stage, task, receipt):
+    events = attention_events(stage, task, receipt)
+    path = stage / "attention-events.jsonl"
+    path.write_text("".join(json.dumps(event, ensure_ascii=False) + "\n" for event in events),
+                    encoding="utf-8")
+    output = subprocess.run([sys.executable, str(INBOX), "batch", str(path)],
+                            check=True, capture_output=True, text=True).stdout
+    (stage / "attention-output.txt").write_text(output, encoding="utf-8")
+    return output
+
+
 def resume(data, out):
     validate_sample(data)
     checkpoint = out / "checkpoint"
@@ -145,8 +190,10 @@ def resume(data, out):
         opc("lint", stage / "task.json")
         opc("verify", "--task", stage / "task.json", "--receipt", stage / "receipt.json")
         verify_artifacts(stage, manifest)
+        attention_output = render_attention(stage, task, receipt)
         # Atomic rename on the same filesystem: consumers only accept result/.
         stage.rename(result)
+    print(attention_output, end="")
     print("OPC_FIRST_WORKFLOW_PASS")
 
 

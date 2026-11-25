@@ -25,4 +25,19 @@ Alternatively, pass `--simulate-failover` without specifying a phase to run both
 
 Failure may leave checkpoint/ but does not publish result/; a finished result cannot be resumed again. Successful replay exits zero and prints OPC_FIRST_WORKFLOW_PASS; tests print FIRST_WORKFLOW_FOCUSED_TESTS_OK.
 
-This is a real local process test of simulated interruption and handoff acknowledgement, not independent model collaboration or editorial review. Attention Inbox integration and live Agent runs are not yet verified.
+This is a real local process test of simulated interruption and handoff acknowledgement, not independent model collaboration or editorial review. Attention Inbox is integrated into the offline example; live Agent runs are not yet verified.
+
+## Founder attention
+
+After OPC verification, the example calls the existing Attention Inbox `batch` command. Three local outputs are added: `publish-gate.json` (synthetic release review gate, OPEN), `attention-events.jsonl` (four synthetic events) and `attention-output.txt` (original CLI output). The gate references the draft SHA256 and is not publication authorization.
+
+Expected output:
+
+```text
+SUPPRESS reason=no_concrete_user_decision
+SUPPRESS reason=routine_completion
+ACTION_REQUIRED task=synthetic-ai-tool-trial gate=synthetic_publish_review
+SUPPRESS reason=duplicate event=synthetic-ai-tool-trial:review-duplicate
+```
+
+This demonstrates internal waiting, routine completion, synthetic human review and deduplication of the same revision within one batch. There is no real notification, approval execution, or persistent deduplication across runs. No action publishes anything. Invalid events fail verification, leaving the checkpoint without committing `result/`.

@@ -32,7 +32,8 @@ def assert_result(out):
     result = out / "result"
     assert {p.name for p in result.iterdir()} == {
         "artifact-manifest.json", "content-draft.md", "decision.json", "failover.after.json",
-        "receipt.json", "research.md", "task.json"}
+        "receipt.json", "research.md", "task.json", "publish-gate.json",
+        "attention-events.jsonl", "attention-output.txt"}
     before = workflow.read_json(out / "checkpoint/task.json")
     after = workflow.read_json(result / "failover.after.json")
     task = workflow.read_json(result / "task.json")
@@ -50,6 +51,27 @@ def assert_result(out):
     workflow.verify_artifacts(result, manifest)
     assert manifest["research.md"] == workflow.digest(out / "checkpoint/research.md")
     assert workflow.read_json(result / "decision.json")["release_authorized"] is False
+    gate = workflow.read_json(result / "publish-gate.json")
+    assert gate["kind"] == "publish" and gate["status"] == "OPEN"
+    assert gate["evidence"] == ["content-draft.md sha256=" + workflow.digest(result / "content-draft.md")]
+    events = [json.loads(line) for line in (result / "attention-events.jsonl").read_text().splitlines()]
+    assert len(events) == 4 and all(e["task_ref"] == task["id"] and e["owner"] == task["owner"] for e in events)
+    assert events[0]["decision"]["required"] is False and events[1]["decision"]["required"] is False
+    assert events[2]["decision"]["gate_id"] == gate["gate_id"]
+    assert events[2]["decision"]["allowed_actions"] == ["review_draft", "hold"]
+    assert events[2]["source_revision"] == workflow.digest(result / "publish-gate.json")
+    assert events[2]["dedupe_key"] == events[3]["dedupe_key"]
+    assert events[2]["source_revision"] == events[3]["source_revision"]
+    assert events[2]["event_id"] != events[3]["event_id"]
+    for event in events:
+        assert all((result / item["ref"]).is_file() for item in event["evidence"])
+    lines = (result / "attention-output.txt").read_text().splitlines()
+    assert lines == [
+        "SUPPRESS reason=no_concrete_user_decision",
+        "SUPPRESS reason=routine_completion",
+        "ACTION_REQUIRED task=" + task["id"] + " gate=" + gate["gate_id"],
+        "SUPPRESS reason=duplicate event=" + events[3]["event_id"],
+    ], lines
     return result, manifest
 
 
@@ -63,6 +85,7 @@ def main():
         assert "OPC_VERIFY_PASS" in result.stdout and "OPC_FAILOVER_PASS" in result.stdout
         assert_result(normal)
         print("NORMAL_REPLAY_OK")
+        print("ATTENTION_DECISION_AND_DEDUPE_OK")
 
         out = root / "interrupted"
         first = cli(out, "--phase", "prepare", "--simulate-failover")
@@ -108,6 +131,16 @@ def main():
         workflow.resume(data, no_ack)
         assert_result(no_ack)
         print("MISSING_ACK_REJECT_AND_RECOVER_OK")
+
+        invalid_attention = root / "invalid-attention"
+        workflow.prepare(data, invalid_attention)
+        with patch.object(workflow, "attention_events", return_value=[{"kind": "decision_required"}]):
+            expect_reject(lambda: workflow.resume(data, invalid_attention))
+        assert not (invalid_attention / "result").exists()
+        assert workflow.read_json(invalid_attention / "checkpoint/task.json")["status"] == "active"
+        workflow.resume(data, invalid_attention)
+        assert_result(invalid_attention)
+        print("ATTENTION_INVALID_REJECT_AND_RECOVER_OK")
     print("FIRST_WORKFLOW_FOCUSED_TESTS_OK")
 
 
