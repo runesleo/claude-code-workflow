@@ -97,7 +97,15 @@ def strict_proof_errors(args, task, receipt):
             except (OSError, ValueError):
                 handoff=None
                 errors.append("handoff_unreadable")
+            if not isinstance(handoff, dict):
+                errors.append("invalid_handoff_object")
+            elif any(not isinstance(handoff.get(k), str) or not handoff[k].strip()
+                     for k in ("handoff_id", "task_id", "from", "to", "body", "created_at")) or handoff.get("schema_version") != 1:
+                errors.append("invalid_handoff_identity")
             if isinstance(ack, dict) and isinstance(handoff, dict):
+                if any(not isinstance(ack.get(k), str) or not ack[k].strip()
+                       for k in ("task_id", "handoff_id", "by")):
+                    errors.append("invalid_ack_identity")
                 if ack.get("status") != "ADOPTED":
                     errors.append("semantic_ack_not_adopted")
                 if ack.get("task_id") != task.get("id") or handoff.get("task_id") != task.get("id"):

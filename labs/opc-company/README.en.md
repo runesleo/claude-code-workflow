@@ -32,10 +32,10 @@ python3 scripts/opc.py verify   --task fixtures/false-completion/task.json   --r
 # OPC_VERIFY_REJECT missing_validation
 # OPC_VERIFY_REJECT missing_owner_writeback
 
-# 3) Valid receipt
+# 3) Valid receipt declarations (no artifact verification)
 python3 scripts/opc.py verify   --task examples/synthetic-company/tasks/product-release.json   --receipt examples/synthetic-company/receipts/product-release.valid.json
 # exit 0
-# exact token: OPC_VERIFY_PASS
+# exact output: OPC_VERIFY_PASS scope=declarations_only
 
 # 4) Worker failover preserves the canonical task and owner
 python3 scripts/opc.py failover   --before fixtures/quota-failover/task.before.json   --after fixtures/quota-failover/task.after.json

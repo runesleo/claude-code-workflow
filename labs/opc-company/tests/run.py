@@ -11,7 +11,7 @@ for p in ROOT.rglob("*.json"): json.loads(p.read_text())
 out=run(["status",str(ROOT/"examples/synthetic-company")],0); assert '"work_continuing": true' in out
 out=run(["verify","--task",str(ROOT/"fixtures/false-completion/task.json"),"--receipt",str(ROOT/"fixtures/false-completion/receipt.json")],1); assert "missing_artifact" in out and "missing_validation" in out and "missing_owner_writeback" in out
 out=run(["verify","--task",str(ROOT/"fixtures/missing-ack/task.json"),"--receipt",str(ROOT/"fixtures/missing-ack/receipt.json")],1); assert "missing_semantic_ack" in out
-out=run(["verify","--task",str(ROOT/"examples/synthetic-company/tasks/product-release.json"),"--receipt",str(ROOT/"examples/synthetic-company/receipts/product-release.valid.json")],0); assert "OPC_VERIFY_PASS" in out
+out=run(["verify","--task",str(ROOT/"examples/synthetic-company/tasks/product-release.json"),"--receipt",str(ROOT/"examples/synthetic-company/receipts/product-release.valid.json")],0); assert out.strip() == "OPC_VERIFY_PASS scope=declarations_only"
 out=run(["failover","--before",str(ROOT/"fixtures/quota-failover/task.before.json"),"--after",str(ROOT/"fixtures/quota-failover/task.after.json")],0); assert "OPC_FAILOVER_PASS" in out
 out=run(["continuation","--before",str(ROOT/"fixtures/continuation/before.json"),"--after",str(ROOT/"fixtures/continuation/after.bad-leaf-stop.json")],1); assert "leaf_blocker_promoted_global" in out and "premature_global_stop" in out
 out=run(["continuation","--before",str(ROOT/"fixtures/continuation/before.json"),"--after",str(ROOT/"fixtures/continuation/after.bad-scope-drift.json")],1); assert "scope_drift_without_handoff" in out
@@ -64,6 +64,18 @@ with tempfile.TemporaryDirectory(prefix="opc-proof-test-") as tmp:
         (d/"receipt.json").write_text(json.dumps(receipt),encoding="utf-8")
         assert "semantic_ack_not_adopted" in run(strict,1), not_adopted
     receipt["downstream_ack"]["status"]="ADOPTED"
+    (d/"receipt.json").write_text(json.dumps(receipt),encoding="utf-8")
+    assert "scope=local_artifacts_and_ack" in run(strict,0)
+    (d/"handoff.json").write_text("[]",encoding="utf-8")
+    assert "invalid_handoff_object" in run(strict,1)
+    incomplete=dict(handoff); incomplete.pop("handoff_id"); incomplete.pop("to")
+    ack=receipt["downstream_ack"]; ack.pop("handoff_id"); ack.pop("by")
+    (d/"handoff.json").write_text(json.dumps(incomplete),encoding="utf-8")
+    (d/"receipt.json").write_text(json.dumps(receipt),encoding="utf-8")
+    rejected=run(strict,1)
+    assert "invalid_handoff_identity" in rejected and "invalid_ack_identity" in rejected
+    ack.update({"handoff_id":handoff["handoff_id"],"by":handoff["to"]})
+    (d/"handoff.json").write_text(json.dumps(handoff),encoding="utf-8")
     (d/"receipt.json").write_text(json.dumps(receipt),encoding="utf-8")
     assert "scope=local_artifacts_and_ack" in run(strict,0)
 print("OPC_STRICT_PROOF_TEST_OK")
