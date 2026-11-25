@@ -14,6 +14,7 @@
 |---|---|
 | 看懂整家公司如何工作 | [AI 一人公司模块地图与开源路线](docs/ONE-PERSON-COMPANY.md) |
 | 让正在使用的 Agent 更可靠 | [QuietHarness Core：隔离试用](#先在一个隔离项目试用) |
+| 跑通第一条一人公司业务闭环 | [OPC First Workflow Preview（离线实验）](examples/opc-first-workflow/README.md) |
 | 管理多 Agent 的任务、接力与验收 | [OPC Company Layer（实验）](labs/opc-company/README.md) |
 | 减少无效打扰、沉淀跨工具上下文 | [Attention Inbox](labs/attention-inbox/README.md) · [Chat Export](labs/chat-export/README.md) |
 | 选择研究、内容、视频等真实业务工具 | [开源业务模块目录](docs/ONE-PERSON-COMPANY.md#业务模块) |
@@ -21,6 +22,17 @@
 **目前已经公开的**是可独立试用的 Core、若干治理实验和独立业务仓库；完整公司级组合仍按模块逐步开放。各模块成熟度见目录。原仓库地址、Git 历史和现有安装契约保持不变。
 
 ---
+
+## OPC First Workflow Preview
+
+从一条虚构机会信号出发，生成研究简报和待审内容，演示进程接力、严格本地产物验收，以及哪些事项才需要创始人关注。只需 Git 和 Python 3 标准库，无需 API Key、账户或网络请求（取得源码后）。这是确定性离线实验，不是自主 AI 公司或真实多模型执行。
+
+```bash
+python3 examples/opc-first-workflow/run.py --out "$(mktemp -d)/opc-output" --simulate-failover
+python3 examples/opc-first-workflow/test.py
+```
+
+[查看步骤、输出和限制](examples/opc-first-workflow/README.md)。
 
 ## QuietHarness Core：可靠执行基础层
 
