@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Isolated positive and negative checks of the deterministic replay."""
+"""Isolated positive and negative checks of the synthetic process handoff."""
 import importlib.util
 import json
 from pathlib import Path
 import subprocess
 import sys
 import tempfile
+from unittest.mock import patch
 
 sys.dont_write_bytecode = True
 ROOT = Path(__file__).resolve().parent
@@ -17,34 +18,96 @@ spec.loader.exec_module(workflow)
 def expect_reject(fn):
     try:
         fn()
-    except ValueError:
+    except (ValueError, subprocess.CalledProcessError):
         return
     raise AssertionError("invalid evidence or artifact accepted")
 
 
+def cli(out, *args):
+    return subprocess.run([sys.executable, str(ROOT / "run.py"), "--out", str(out), *args],
+                          capture_output=True, text=True)
+
+
+def assert_result(out):
+    result = out / "result"
+    assert {p.name for p in result.iterdir()} == {
+        "artifact-manifest.json", "content-draft.md", "decision.json", "failover.after.json",
+        "receipt.json", "research.md", "task.json"}
+    before = workflow.read_json(out / "checkpoint/task.json")
+    after = workflow.read_json(result / "failover.after.json")
+    task = workflow.read_json(result / "task.json")
+    receipt = workflow.read_json(result / "receipt.json")
+    assert before["status"] == "active" and before["primary_worker"] == "worker-a"
+    assert after["primary_worker"] == task["primary_worker"] == "worker-b"
+    assert before["id"] == after["id"] == task["id"] == receipt["task_id"]
+    assert before["owner"] == after["owner"] == task["owner"]
+    assert before["artifacts"] == after["artifacts"]
+    assert task["status"] == "archived" and receipt["outcome"] == "completed"
+    assert receipt["downstream_ack"]["status"] == "ADOPTED"
+    assert receipt["downstream_ack"]["task_id"] == task["id"]
+    assert receipt["downstream_ack"]["evidence"] == workflow.read_json(out / "checkpoint/handoff.json")["body"]
+    manifest = workflow.read_json(result / "artifact-manifest.json")
+    workflow.verify_artifacts(result, manifest)
+    assert manifest["research.md"] == workflow.digest(out / "checkpoint/research.md")
+    assert workflow.read_json(result / "decision.json")["release_authorized"] is False
+    return result, manifest
+
+
 def main():
+    data = workflow.read_json(ROOT / "opportunity.json")
     with tempfile.TemporaryDirectory(prefix="opc-first-workflow-test-") as tmp:
         root = Path(tmp)
-        out = root / "normal"
-        result = subprocess.run([sys.executable, str(ROOT / "run.py"), "--out", str(out)],
-                                capture_output=True, text=True)
+        normal = root / "normal"
+        result = cli(normal)
         assert result.returncode == 0 and "OPC_FIRST_WORKFLOW_PASS" in result.stdout, result.stderr
-        assert "OPC_VERIFY_PASS" in result.stdout
-        assert {p.name for p in out.iterdir()} == {
-            "artifact-manifest.json", "content-draft.md", "decision.json",
-            "receipt.json", "research.md", "task.json"}
-        manifest = json.loads((out / "artifact-manifest.json").read_text())
-        workflow.verify_artifacts(out, manifest)
-        assert json.loads((out / "decision.json").read_text())["release_authorized"] is False
-        bad = json.loads((ROOT / "opportunity.json").read_text())
+        assert "OPC_VERIFY_PASS" in result.stdout and "OPC_FAILOVER_PASS" in result.stdout
+        assert_result(normal)
+        print("NORMAL_REPLAY_OK")
+
+        out = root / "interrupted"
+        first = cli(out, "--phase", "prepare", "--simulate-failover")
+        assert first.returncode == 75 and "OPC_CHECKPOINT_READY" in first.stdout
+        assert not (out / "result").exists()
+        second = cli(out, "--phase", "resume")
+        assert second.returncode == 0 and "OPC_FIRST_WORKFLOW_PASS" in second.stdout, second.stderr
+        final, manifest = assert_result(out)
+        assert cli(out, "--phase", "resume").returncode == 1
+        print("PROCESS_FAILOVER_OK")
+
+        automatic = root / "automatic"
+        result = cli(automatic, "--simulate-failover")
+        assert result.returncode == 0 and "OPC_FIRST_WORKFLOW_PASS" in result.stdout, result.stderr
+        assert "OPC_WORKER_A_INTERRUPTED" in result.stderr
+        assert_result(automatic)
+        print("ONE_COMMAND_FAILOVER_OK")
+
+        (final / "research.md").write_text("tampered")
+        expect_reject(lambda: workflow.verify_artifacts(final, manifest))
+        (final / "research.md").unlink()
+        expect_reject(lambda: workflow.verify_artifacts(final, manifest))
+
+        bad = json.loads(json.dumps(data))
         bad["facts"][0]["source_ids"] = ["MISSING"]
         bad_out = root / "bad-out"
-        expect_reject(lambda: workflow.replay(bad, bad_out))
+        expect_reject(lambda: workflow.prepare(bad, bad_out))
         assert not bad_out.exists()
-        (out / "research.md").write_text("tampered")
-        expect_reject(lambda: workflow.verify_artifacts(out, manifest))
-        (out / "research.md").unlink()
-        expect_reject(lambda: workflow.verify_artifacts(out, manifest))
+
+        damaged = root / "damaged"
+        workflow.prepare(data, damaged)
+        (damaged / "checkpoint/research.md").write_text("tampered")
+        expect_reject(lambda: workflow.resume(data, damaged))
+        assert not (damaged / "result").exists()
+        print("EVIDENCE_REJECTION_OK")
+
+        no_ack = root / "no-ack"
+        workflow.prepare(data, no_ack)
+        with patch.object(workflow, "downstream_ack", return_value=None):
+            expect_reject(lambda: workflow.resume(data, no_ack))
+        assert not (no_ack / "result").exists()
+        assert workflow.read_json(no_ack / "checkpoint/task.json")["status"] == "active"
+        workflow.resume(data, no_ack)
+        assert_result(no_ack)
+        print("MISSING_ACK_REJECT_AND_RECOVER_OK")
     print("FIRST_WORKFLOW_FOCUSED_TESTS_OK")
 
 
