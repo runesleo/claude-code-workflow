@@ -47,7 +47,7 @@ Maturity: **Try now** = an independent entry point and demo in this repository; 
 1. Use the existing [Core first-success exercise](../examples/first-success/README.en.md) to check basic execution boundaries.
 2. When cross-agent handoffs or false completion become a problem, run the [OPC Lab](../labs/opc-company/README.en.md) synthetic cases; no real company task database is required.
 3. Choose an independent business tool from the catalog that matches your actual need. Follow its own installation and permission instructions.
-4. Compose modules as synthetic end-to-end examples become available. Do not add a layer without an actual need.
+4. Run [OPC First Workflow Preview](../examples/opc-first-workflow/README.en.md) to see the offline loop from a fictional signal to an unpublished draft, process handoff, strict local verification, and human decision surfacing. Do not add a layer without an actual need.
 
 ## Staged open-source roadmap
 
@@ -55,8 +55,8 @@ Every new module should explain its problem, independent usage, dependencies, pe
 
 | Stage | Deliverable | Acceptance gate |
 |---|---|---|
-| 1. Public entry point (this stage) | Bilingual introduction, business map, navigation to existing tools and governance labs; unchanged installation | Working links, existing installation regressions pass, explicit maturity labels |
-| 2. First business loop | Synthetic public signal → evidence-backed research brief → content draft or product candidate; reuse existing components and keep human approvals | No private data or real external action; repeatable execution; source, decision, and delivery evidence |
+| 1. Public entry point | Bilingual introduction, business map, navigation to existing tools and governance labs; unchanged installation | Working links, existing installation regressions pass, explicit maturity labels |
+| 2. First business loop (offline Preview) | Fictional synthetic signal → evidence-backed research brief → content draft or product candidate; reuse existing components and keep human approvals | No private data or real external action; repeatable execution; source, decision, and delivery evidence |
 | 3. Content and product workflows | Independently usable modules and sanitized cases for topic selection, writing, video, product validation, and distribution preparation | Each module has reproducible inputs and outputs, instructions, failure tests; human approval for publication |
 | 4. Company-level collaboration | Composable demos of the existing OPC Lab, task continuity, and reliability capabilities; synthetic user-feedback and commercial cases | Verify handoffs, recovery, duplicate prevention, and real acceptance; at least one non-author completes a meaningful workflow without verbal guidance |
 

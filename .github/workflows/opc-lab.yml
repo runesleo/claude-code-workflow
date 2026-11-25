@@ -4,6 +4,9 @@ on:
   pull_request:
     paths:
       - 'labs/opc-company/**'
+      - 'labs/attention-inbox/**'
+      - 'examples/opc-first-workflow/**'
+      - 'docs/ONE-PERSON-COMPANY*.md'
       - 'labs/chat-export/**'
       - 'labs/session-hooks/**'
       - 'examples/leo-system/**'
@@ -23,6 +26,10 @@ jobs:
         run: ./scripts/verify.sh
       - name: Verify OPC fixtures
         run: python3 labs/opc-company/tests/run.py
+      - name: Verify first OPC workflow
+        run: python3 examples/opc-first-workflow/test.py
+      - name: Verify Attention Inbox fixtures
+        run: python3 labs/attention-inbox/tests/run.py
       - name: Verify Chat Export fixtures
         run: python3 labs/chat-export/tests/run.py
       - name: Verify Session Hooks fixtures
@@ -34,7 +41,7 @@ jobs:
           done
       - name: Reject private or production identifiers
         run: |
-          hits="$(grep -REn '(/(Users|home)/[^/]+|leo[-]vault|_[i]nventory|active[-]tasks|T[0-9]{3,}|thread[_ -]?id|session[_ -]?id|0x[a-fA-F0-9]{40})' labs/opc-company 2>/dev/null || true)"
+          hits="$(grep -REn '(/(Users|home)/[^/]+|leo[-]vault|_[i]nventory|active[-]tasks|T[0-9]{3,}|thread[_ -]?id|session[_ -]?id|0x[a-fA-F0-9]{40})' labs/opc-company examples/opc-first-workflow 2>/dev/null || true)"
           if [ -n "$hits" ]; then
             echo 'OPC_VERIFY_FAIL private or production pattern detected' >&2
             echo "$hits" >&2
