@@ -96,11 +96,11 @@ def prepare(data, out):
     print("OPC_CHECKPOINT_READY")
 
 
-def downstream_ack(task, adopted, manifest_path, handoff_path):
+def downstream_ack(task, adopted, manifest_sha256, handoff_sha256):
     return {"status": "ADOPTED", "by": "worker-b", "task_id": task["id"],
             "handoff_id": adopted["handoff_id"], "evidence": adopted["body"],
-            "artifact_manifest_sha256": digest(manifest_path),
-            "handoff_sha256": digest(handoff_path)}
+            "artifact_manifest_sha256": manifest_sha256,
+            "handoff_sha256": handoff_sha256}
 
 
 def attention_events(stage, task, receipt):
@@ -160,7 +160,9 @@ def resume(data, out):
     before = read_json(checkpoint / "task.json")
     if before != initial_task(data):
         raise ValueError("checkpoint task identity or state changed")
-    adopted = read_json(checkpoint / "handoff.json")
+    adopted_bytes = (checkpoint / "handoff.json").read_bytes()
+    adopted = json.loads(adopted_bytes.decode("utf-8"))
+    adopted_sha256 = hashlib.sha256(adopted_bytes).hexdigest()
     if adopted != handoff(before, metadata["research_sha256"]):
         raise ValueError("handoff does not match checkpoint")
     after = dict(before, primary_worker="worker-b", next_action="Produce and verify draft.")
@@ -177,7 +179,9 @@ def resume(data, out):
         if manifest["research.md"] != metadata["research_sha256"]:
             raise ValueError("research changed during handoff")
         verify_artifacts(stage, manifest)
-        write_json(stage / "artifact-manifest.json", manifest)
+        manifest_bytes = (json.dumps(manifest, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
+        (stage / "artifact-manifest.json").write_bytes(manifest_bytes)
+        manifest_sha256 = hashlib.sha256(manifest_bytes).hexdigest()
         # OPC task lifecycle uses archived, not completed. Completion is a receipt outcome.
         task = dict(after, status="archived", artifacts=list(NAMES),
                     next_action="Separate human review of unpublished draft; no external action.")
@@ -188,7 +192,7 @@ def resume(data, out):
                    "worker": task["primary_worker"], "outcome": "completed", "artifacts": list(NAMES),
                    "validation": ["source references resolve", "checkpoint and artifact digests match"],
                    "owner_writeback": True, "downstream_ack": downstream_ack(
-                       task, adopted, stage / "artifact-manifest.json", checkpoint / "handoff.json"),
+                       task, adopted, manifest_sha256, adopted_sha256),
                    "created_at": STAMP}
         write_json(stage / "receipt.json", receipt)
         opc("lint", stage / "task.json")

@@ -134,6 +134,26 @@ def main():
         assert_result(no_ack)
         print("MISSING_ACK_REJECT_AND_RECOVER_OK")
 
+        changed_handoff = root / "changed-handoff"
+        workflow.prepare(data, changed_handoff)
+        handoff_path = changed_handoff / "checkpoint/handoff.json"
+        original_bytes = handoff_path.read_bytes()
+        original_ack = workflow.downstream_ack
+
+        def replace_after_adoption(*args):
+            changed = json.loads(original_bytes)
+            changed["body"] += " Changed after validation."
+            workflow.write_json(handoff_path, changed)
+            return original_ack(*args)
+
+        with patch.object(workflow, "downstream_ack", side_effect=replace_after_adoption):
+            expect_reject(lambda: workflow.resume(data, changed_handoff))
+        assert not (changed_handoff / "result").exists()
+        handoff_path.write_bytes(original_bytes)
+        workflow.resume(data, changed_handoff)
+        assert_result(changed_handoff)
+        print("HANDOFF_SNAPSHOT_REJECT_AND_RECOVER_OK")
+
         invalid_attention = root / "invalid-attention"
         workflow.prepare(data, invalid_attention)
         with patch.object(workflow, "attention_events", return_value=[{"kind": "decision_required"}]):

@@ -50,7 +50,7 @@ def cmd_status(args):
     print(json.dumps(out, indent=2)); return 0
 
 def requires_handoff(args, task, receipt):
-    return bool(task.get("downstream_requires_ack") or args.handoff or receipt.get("downstream_ack") is not None)
+    return bool(task.get("downstream_requires_ack") or args.handoff is not None or receipt.get("downstream_ack") is not None)
 
 
 def strict_proof_errors(args, task, receipt):

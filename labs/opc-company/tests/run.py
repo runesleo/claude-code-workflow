@@ -105,6 +105,7 @@ with tempfile.TemporaryDirectory(prefix="opc-proof-test-") as tmp:
     receipt["downstream_ack"]=None
     (d/"receipt.json").write_text(json.dumps(receipt),encoding="utf-8")
     assert "missing_semantic_ack" in run(strict,1)
+    assert "handoff_proof_missing" in run(strict[:-1]+[""],1)
     assert run(strict[:-2],0).strip()=="OPC_VERIFY_PASS scope=local_artifacts_only"
     task.pop("id"); task.pop("primary_worker"); receipt.pop("task_id"); receipt.pop("worker")
     (d/"task.json").write_text(json.dumps(task),encoding="utf-8")
