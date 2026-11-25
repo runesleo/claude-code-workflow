@@ -35,7 +35,8 @@ python3 scripts/opc.py verify   --task fixtures/false-completion/task.json   --r
 # 3) 合法 receipt 声明（不验证产物）
 python3 scripts/opc.py verify   --task examples/synthetic-company/tasks/product-release.json   --receipt examples/synthetic-company/receipts/product-release.valid.json
 # exit 0
-# 精确输出：OPC_VERIFY_PASS scope=declarations_only
+# stdout 精确输出：OPC_VERIFY_PASS
+# stderr：OPC_VERIFY_SCOPE declarations_only
 
 # 4) Worker failover：canonical task 与 owner 不变，只替换 worker
 python3 scripts/opc.py failover   --before fixtures/quota-failover/task.before.json   --after fixtures/quota-failover/task.after.json
@@ -80,9 +81,9 @@ python3 tests/run.py
 
 ## 验收强度
 
-默认 `verify --task ... --receipt ...` **只检查声明字段**，其通过输出为 `OPC_VERIFY_PASS scope=declarations_only`。它不能证明产物文件真实存在、摘要匹配或交接确认属于同一任务；不得把这个结果当成实际交付完成。
+默认 `verify --task ... --receipt ...` **只检查声明字段**，为兼容旧调用方，其 stdout 仍为 `OPC_VERIFY_PASS`，stderr 标明 `OPC_VERIFY_SCOPE declarations_only`。它不能证明产物文件真实存在、摘要匹配或交接确认属于同一任务；不得把这个结果当成实际交付完成。
 
-对本地合成案例，应使用 `--strict-proof --artifact-root <result目录> --manifest <artifact-manifest.json> --handoff <handoff.json>`。严格模式校验所列产物的真实文件及 SHA256、任务/worker 一致性、交接 ID 与接收者，并返回 `OPC_VERIFY_PASS scope=local_artifacts_and_ack`。它**仍不认证外部真实来源、语义事实、真实 Owner 事实源写回或任何资金/公开发布授权**。
+对本地合成案例，应使用 `--strict-proof --artifact-root <result目录> --manifest <artifact-manifest.json> --handoff <handoff.json>`。严格模式校验所列产物的真实文件及 SHA256、任务/worker 一致性、交接 ID 与接收者，要求 ACK 为 ADOPTED 并携带当前 `artifact-manifest.json` 和 `handoff.json` 精确字节的 SHA256（分别为 `artifact_manifest_sha256` 与 `handoff_sha256`），通过时输出 `OPC_VERIFY_PASS scope=local_artifacts_and_ack`。如果无须且未提交任何 ACK 或交接，则只验本地产物，输出 `OPC_VERIFY_PASS scope=local_artifacts_only`；显式提供交接或声明 ACK 时必须验交接。它**仍不认证外部真实来源、语义事实、真实 Owner 事实源写回或任何资金/公开发布授权**。
 
 ## 公开边界
 

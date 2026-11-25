@@ -35,7 +35,8 @@ python3 scripts/opc.py verify   --task fixtures/false-completion/task.json   --r
 # 3) Valid receipt declarations (no artifact verification)
 python3 scripts/opc.py verify   --task examples/synthetic-company/tasks/product-release.json   --receipt examples/synthetic-company/receipts/product-release.valid.json
 # exit 0
-# exact output: OPC_VERIFY_PASS scope=declarations_only
+# exact stdout: OPC_VERIFY_PASS
+# stderr: OPC_VERIFY_SCOPE declarations_only
 
 # 4) Worker failover preserves the canonical task and owner
 python3 scripts/opc.py failover   --before fixtures/quota-failover/task.before.json   --after fixtures/quota-failover/task.after.json
@@ -80,9 +81,9 @@ All fixture paths above are relative to `labs/opc-company`. If an agent runs fro
 
 ## Verification strength
 
-Plain `verify --task ... --receipt ...` checks **declarations only** and returns `OPC_VERIFY_PASS scope=declarations_only`. It does not prove artifacts exist, match a digest, or belong to the asserted downstream handoff. Do not treat that token alone as proof of completed work.
+Plain `verify --task ... --receipt ...` checks **declarations only** and preserves `OPC_VERIFY_PASS` on stdout; stderr reports `OPC_VERIFY_SCOPE declarations_only`. It does not prove artifacts exist, match a digest, or belong to the asserted downstream handoff. Do not treat that token alone as proof of completed work.
 
-For local synthetic workflows, pass `--strict-proof --artifact-root <result-directory> --manifest <artifact-manifest.json> --handoff <handoff.json>`. Strict mode verifies actual local artifact bytes and SHA256, worker/task consistency, and handoff/recipient binding. It returns `OPC_VERIFY_PASS scope=local_artifacts_and_ack`. It **does not** attest external source truth, semantic accuracy, durable owner-system writes, or authorization to pay or publish.
+For local synthetic workflows, pass `--strict-proof --artifact-root <result-directory> --manifest <artifact-manifest.json> --handoff <handoff.json>`. Strict mode verifies actual local artifact bytes and SHA256, worker/task consistency, and handoff/recipient binding. An ADOPTED ACK must carry SHA256 of the exact current manifest and handoff file bytes (`artifact_manifest_sha256` and `handoff_sha256`). Success returns `OPC_VERIFY_PASS scope=local_artifacts_and_ack`. If no ACK or handoff is required or supplied, it checks only artifacts and returns `OPC_VERIFY_PASS scope=local_artifacts_only`; an explicitly supplied handoff or asserted ACK must be verified. It **does not** attest external source truth, semantic accuracy, durable owner-system writes, or authorization to pay or publish.
 
 Public: protocols, schemas, synthetic fixtures, verifier.
 Private: live business tasks, production topology, account bindings, schedulers, exact quota routing, trading alpha, credentials.

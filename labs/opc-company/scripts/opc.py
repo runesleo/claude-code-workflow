@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import argparse, hashlib, json, re
+import argparse, hashlib, json, re, sys
 from pathlib import Path
 
 VALID_STATUSES = {"active","waiting","monitoring","parked","archived"}
@@ -49,11 +49,19 @@ def cmd_status(args):
     out={"task_count":len(tasks),"active_tasks":[t["id"] for t in active],"active_owners":sorted(set(t.get("owner") for t in active)),"pending_ack_tasks":[t["id"] for t in tasks if t.get("downstream_requires_ack")],"work_continuing":bool(active)}
     print(json.dumps(out, indent=2)); return 0
 
+def requires_handoff(args, task, receipt):
+    return bool(task.get("downstream_requires_ack") or args.handoff or receipt.get("downstream_ack") is not None)
+
+
 def strict_proof_errors(args, task, receipt):
     """Check local artifact bytes and handoff linkage; does not attest external owner state."""
     errors=[]
     if receipt.get("outcome") != "completed": errors.append("strict_proof_requires_completed")
     if task.get("status") != "archived": errors.append("strict_task_not_archived")
+    if any(not isinstance(value, str) or not value.strip()
+           for value in (task.get("id"), task.get("owner"), task.get("primary_worker"),
+                         receipt.get("task_id"), receipt.get("worker"))):
+        errors.append("strict_identity_missing")
     if receipt.get("worker") != task.get("primary_worker"): errors.append("worker_mismatch")
     names=receipt.get("artifacts")
     if not isinstance(names, list) or not names or any(not isinstance(n, str) or not n for n in names):
@@ -64,7 +72,9 @@ def strict_proof_errors(args, task, receipt):
         return errors + ["strict_artifact_proof_missing"]
     root=Path(args.artifact_root).resolve()
     try:
-        manifest=read_json(args.manifest)
+        manifest_bytes=Path(args.manifest).read_bytes()
+        manifest=json.loads(manifest_bytes.decode("utf-8"))
+        manifest_sha256=hashlib.sha256(manifest_bytes).hexdigest()
     except (OSError, ValueError):
         return errors + ["manifest_unreadable"]
     if not isinstance(manifest, dict) or set(manifest) != set(names):
@@ -87,13 +97,17 @@ def strict_proof_errors(args, task, receipt):
             continue
         actual=hashlib.sha256(path.read_bytes()).hexdigest()
         if actual != expected: errors.append("artifact_digest_mismatch:" + name)
-    if task.get("downstream_requires_ack"):
+    if requires_handoff(args, task, receipt):
         ack=receipt.get("downstream_ack")
+        if not isinstance(ack, dict):
+            errors.append("missing_semantic_ack")
         if not args.handoff:
             errors.append("handoff_proof_missing")
         else:
             try:
-                handoff=read_json(args.handoff)
+                handoff_bytes=Path(args.handoff).read_bytes()
+                handoff=json.loads(handoff_bytes.decode("utf-8"))
+                handoff_sha256=hashlib.sha256(handoff_bytes).hexdigest()
             except (OSError, ValueError):
                 handoff=None
                 errors.append("handoff_unreadable")
@@ -114,6 +128,10 @@ def strict_proof_errors(args, task, receipt):
                     errors.append("semantic_ack_handoff_mismatch")
                 if ack.get("by") != handoff.get("to"):
                     errors.append("semantic_ack_consumer_mismatch")
+                if ack.get("artifact_manifest_sha256") != manifest_sha256:
+                    errors.append("semantic_ack_manifest_mismatch")
+                if ack.get("handoff_sha256") != handoff_sha256:
+                    errors.append("semantic_ack_handoff_digest_mismatch")
     return errors
 
 
@@ -132,7 +150,13 @@ def cmd_verify(args):
     if errors:
         for e in errors: print("OPC_VERIFY_REJECT", e)
         return 1
-    print("OPC_VERIFY_PASS scope=" + ("local_artifacts_and_ack" if args.strict_proof else "declarations_only"))
+    if args.strict_proof:
+        scope="local_artifacts_and_ack" if requires_handoff(args,task,receipt) else "local_artifacts_only"
+        print("OPC_VERIFY_PASS scope=" + scope)
+    else:
+        # Preserve the documented legacy stdout token for exact-match consumers.
+        print("OPC_VERIFY_PASS")
+        print("OPC_VERIFY_SCOPE declarations_only", file=sys.stderr)
     return 0
 
 def cmd_failover(args):

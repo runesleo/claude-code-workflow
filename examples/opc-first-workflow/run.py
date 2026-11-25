@@ -96,9 +96,11 @@ def prepare(data, out):
     print("OPC_CHECKPOINT_READY")
 
 
-def downstream_ack(task, adopted):
+def downstream_ack(task, adopted, manifest_path, handoff_path):
     return {"status": "ADOPTED", "by": "worker-b", "task_id": task["id"],
-            "handoff_id": adopted["handoff_id"], "evidence": adopted["body"]}
+            "handoff_id": adopted["handoff_id"], "evidence": adopted["body"],
+            "artifact_manifest_sha256": digest(manifest_path),
+            "handoff_sha256": digest(handoff_path)}
 
 
 def attention_events(stage, task, receipt):
@@ -185,7 +187,9 @@ def resume(data, out):
         receipt = {"schema_version": 1, "receipt_id": "synthetic-replay-1", "task_id": task["id"],
                    "worker": task["primary_worker"], "outcome": "completed", "artifacts": list(NAMES),
                    "validation": ["source references resolve", "checkpoint and artifact digests match"],
-                   "owner_writeback": True, "downstream_ack": downstream_ack(task, adopted), "created_at": STAMP}
+                   "owner_writeback": True, "downstream_ack": downstream_ack(
+                       task, adopted, stage / "artifact-manifest.json", checkpoint / "handoff.json"),
+                   "created_at": STAMP}
         write_json(stage / "receipt.json", receipt)
         opc("lint", stage / "task.json")
         opc("verify", "--task", stage / "task.json", "--receipt", stage / "receipt.json",

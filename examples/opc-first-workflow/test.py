@@ -47,6 +47,8 @@ def assert_result(out):
     assert receipt["downstream_ack"]["status"] == "ADOPTED"
     assert receipt["downstream_ack"]["task_id"] == task["id"]
     assert receipt["downstream_ack"]["evidence"] == workflow.read_json(out / "checkpoint/handoff.json")["body"]
+    assert receipt["downstream_ack"]["artifact_manifest_sha256"] == workflow.digest(result / "artifact-manifest.json")
+    assert receipt["downstream_ack"]["handoff_sha256"] == workflow.digest(out / "checkpoint/handoff.json")
     manifest = workflow.read_json(result / "artifact-manifest.json")
     workflow.verify_artifacts(result, manifest)
     assert manifest["research.md"] == workflow.digest(out / "checkpoint/research.md")

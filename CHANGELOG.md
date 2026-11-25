@@ -7,7 +7,7 @@
 ### Added
 
 - `examples/opc-first-workflow/`：首条业务闭环离线 Preview，使用虚构样本演示研究、待审交付、进程接力、严格本地产物验收和创始人决策降噪，附双语说明及正负例。
-- OPC verifier 提供可选 `--strict-proof`，校验本地产物 SHA256 与下游交接绑定；旧默认模式仍只检查声明，输出明确标注验收范围。此版本不认证外部事实、真实模型身份或发布授权。
+- OPC verifier 提供可选 `--strict-proof`，校验本地产物 SHA256 与下游交接绑定；旧默认模式仍只检查声明，保持原 stdout、在 stderr 标注范围；严格模式明确区分仅产物检查与绑定当前清单及交接字节的 ACK 验收。此版本不认证外部事实、真实模型身份或发布授权。
 
 - `examples/leo-system/AGENTS.public.example*.md`：新增可选的中英文脱敏 AGENTS 协作规则，不影响默认 Core，并纳入仓库验证及隐私检查。
 
