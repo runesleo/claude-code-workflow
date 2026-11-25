@@ -18,4 +18,47 @@ out=run(["continuation","--before",str(ROOT/"fixtures/continuation/before.json")
 out=run(["continuation","--before",str(ROOT/"fixtures/continuation/before.json"),"--after",str(ROOT/"fixtures/continuation/after.good-leaf-continue.json")],0); assert "OPC_CONTINUATION_PASS" in out
 task_files=[str(p) for p in (ROOT/"examples/synthetic-company/tasks").glob("*.json")]; out=run(["lint",*task_files],0); assert "OPC_LINT_OK" in out
 out=run(["lint",str(ROOT/"examples/synthetic-company")],0); assert "OPC_LINT_OK" in out
+# Strict proof is opt-in; the legacy receipt checker only validates declarations.
+import tempfile, hashlib
+with tempfile.TemporaryDirectory(prefix="opc-proof-test-") as tmp:
+    d=Path(tmp)
+    proof=d/"proof.txt"
+    proof.write_text("synthetic evidence",encoding="utf-8")
+    task={"schema_version":1,"id":"synthetic-proof-task","title":"Synthetic",
+          "status":"archived","owner":"synthetic-owner","primary_worker":"worker-b",
+          "next_action":"Review only","updated_at":"2026-01-01T00:00:00Z",
+          "artifacts":["proof.txt"],"downstream_requires_ack":True}
+    handoff={"schema_version":1,"handoff_id":"synthetic-handoff","task_id":task["id"],
+             "from":"worker-a","to":"worker-b","body":"Synthetic handoff",
+             "created_at":"2026-01-01T00:00:00Z"}
+    receipt={"schema_version":1,"receipt_id":"synthetic-receipt","task_id":task["id"],
+             "worker":"worker-b","outcome":"completed","artifacts":["proof.txt"],
+             "validation":["synthetic local check"],"owner_writeback":True,
+             "downstream_ack":{"status":"ADOPTED","task_id":task["id"],
+                               "handoff_id":handoff["handoff_id"],"by":"worker-b"},
+             "created_at":"2026-01-01T00:00:00Z"}
+    for name,value in (("task.json",task),("handoff.json",handoff),("receipt.json",receipt)):
+        (d/name).write_text(json.dumps(value),encoding="utf-8")
+    (d/"manifest.json").write_text(json.dumps({"proof.txt":hashlib.sha256(proof.read_bytes()).hexdigest()}),encoding="utf-8")
+    base=["verify","--task",str(d/"task.json"),"--receipt",str(d/"receipt.json")]
+    strict=base+["--strict-proof","--artifact-root",str(d),"--manifest",str(d/"manifest.json"),"--handoff",str(d/"handoff.json")]
+    assert "scope=declarations_only" in run(base,0)
+    assert "scope=local_artifacts_and_ack" in run(strict,0)
+    proof.write_text("tampered",encoding="utf-8")
+    assert "artifact_digest_mismatch" in run(strict,1)
+    proof.unlink()
+    assert "artifact_missing" in run(strict,1)
+    proof.write_text("synthetic evidence",encoding="utf-8")
+    receipt["downstream_ack"]["task_id"]="wrong-task"
+    (d/"receipt.json").write_text(json.dumps(receipt),encoding="utf-8")
+    assert "semantic_ack_task_mismatch" in run(strict,1)
+    receipt["downstream_ack"]["task_id"]=task["id"]
+    (d/"receipt.json").write_text(json.dumps(receipt),encoding="utf-8")
+    handoff["to"]="wrong-worker"
+    (d/"handoff.json").write_text(json.dumps(handoff),encoding="utf-8")
+    assert "semantic_ack_consumer_mismatch" in run(strict,1)
+    handoff["to"]="worker-b"
+    (d/"handoff.json").write_text(json.dumps(handoff),encoding="utf-8")
+    assert "scope=local_artifacts_and_ack" in run(strict,0)
+print("OPC_STRICT_PROOF_TEST_OK")
 print("OPC_TEST_OK")

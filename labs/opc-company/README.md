@@ -78,6 +78,12 @@ python3 tests/run.py
 
 以上 fixture 路径都相对于 `labs/opc-company`。如果 Agent 从仓库根目录执行，应先 `cd labs/opc-company`，或自行补齐路径前缀。
 
+## 验收强度
+
+默认 `verify --task ... --receipt ...` **只检查声明字段**，其通过输出为 `OPC_VERIFY_PASS scope=declarations_only`。它不能证明产物文件真实存在、摘要匹配或交接确认属于同一任务；不得把这个结果当成实际交付完成。
+
+对本地合成案例，应使用 `--strict-proof --artifact-root <result目录> --manifest <artifact-manifest.json> --handoff <handoff.json>`。严格模式校验所列产物的真实文件及 SHA256、任务/worker 一致性、交接 ID 与接收者，并返回 `OPC_VERIFY_PASS scope=local_artifacts_and_ack`。它**仍不认证外部真实来源、语义事实、真实 Owner 事实源写回或任何资金/公开发布授权**。
+
 ## 公开边界
 
 公开的是协议、schema、synthetic fixture 和 verifier。

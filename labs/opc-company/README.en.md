@@ -78,5 +78,11 @@ python3 tests/run.py
 
 All fixture paths above are relative to `labs/opc-company`. If an agent runs from the repository root, either `cd labs/opc-company` first or prefix the paths accordingly.
 
+## Verification strength
+
+Plain `verify --task ... --receipt ...` checks **declarations only** and returns `OPC_VERIFY_PASS scope=declarations_only`. It does not prove artifacts exist, match a digest, or belong to the asserted downstream handoff. Do not treat that token alone as proof of completed work.
+
+For local synthetic workflows, pass `--strict-proof --artifact-root <result-directory> --manifest <artifact-manifest.json> --handoff <handoff.json>`. Strict mode verifies actual local artifact bytes and SHA256, worker/task consistency, and handoff/recipient binding. It returns `OPC_VERIFY_PASS scope=local_artifacts_and_ack`. It **does not** attest external source truth, semantic accuracy, durable owner-system writes, or authorization to pay or publish.
+
 Public: protocols, schemas, synthetic fixtures, verifier.
 Private: live business tasks, production topology, account bindings, schedulers, exact quota routing, trading alpha, credentials.

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import argparse, json
+import argparse, hashlib, json, re
 from pathlib import Path
 
 VALID_STATUSES = {"active","waiting","monitoring","parked","archived"}
@@ -49,6 +49,64 @@ def cmd_status(args):
     out={"task_count":len(tasks),"active_tasks":[t["id"] for t in active],"active_owners":sorted(set(t.get("owner") for t in active)),"pending_ack_tasks":[t["id"] for t in tasks if t.get("downstream_requires_ack")],"work_continuing":bool(active)}
     print(json.dumps(out, indent=2)); return 0
 
+def strict_proof_errors(args, task, receipt):
+    """Check local artifact bytes and handoff linkage; does not attest external owner state."""
+    errors=[]
+    if receipt.get("outcome") != "completed": errors.append("strict_proof_requires_completed")
+    if task.get("status") != "archived": errors.append("strict_task_not_archived")
+    if receipt.get("worker") != task.get("primary_worker"): errors.append("worker_mismatch")
+    names=receipt.get("artifacts")
+    if not isinstance(names, list) or not names or any(not isinstance(n, str) or not n for n in names):
+        return errors + ["invalid_artifact_list"]
+    if len(names) != len(set(names)) or set(names) != set(task.get("artifacts") or []):
+        errors.append("artifact_list_mismatch")
+    if not args.artifact_root or not args.manifest:
+        return errors + ["strict_artifact_proof_missing"]
+    root=Path(args.artifact_root).resolve()
+    try:
+        manifest=read_json(args.manifest)
+    except (OSError, ValueError):
+        return errors + ["manifest_unreadable"]
+    if not isinstance(manifest, dict) or set(manifest) != set(names):
+        return errors + ["manifest_entries_mismatch"]
+    for name in names:
+        relative=Path(name)
+        if relative.is_absolute() or ".." in relative.parts:
+            errors.append("artifact_path_unsafe:" + name)
+            continue
+        path=(root / relative).resolve()
+        if path == root or root not in path.parents:
+            errors.append("artifact_path_unsafe:" + name)
+            continue
+        if not path.is_file():
+            errors.append("artifact_missing:" + name)
+            continue
+        expected=manifest.get(name)
+        if not isinstance(expected, str) or not re.fullmatch(r"[0-9a-f]{64}", expected):
+            errors.append("artifact_digest_invalid:" + name)
+            continue
+        actual=hashlib.sha256(path.read_bytes()).hexdigest()
+        if actual != expected: errors.append("artifact_digest_mismatch:" + name)
+    if task.get("downstream_requires_ack"):
+        ack=receipt.get("downstream_ack")
+        if not args.handoff:
+            errors.append("handoff_proof_missing")
+        else:
+            try:
+                handoff=read_json(args.handoff)
+            except (OSError, ValueError):
+                handoff=None
+                errors.append("handoff_unreadable")
+            if isinstance(ack, dict) and isinstance(handoff, dict):
+                if ack.get("task_id") != task.get("id") or handoff.get("task_id") != task.get("id"):
+                    errors.append("semantic_ack_task_mismatch")
+                if ack.get("handoff_id") != handoff.get("handoff_id"):
+                    errors.append("semantic_ack_handoff_mismatch")
+                if ack.get("by") != handoff.get("to"):
+                    errors.append("semantic_ack_consumer_mismatch")
+    return errors
+
+
 def cmd_verify(args):
     task=read_json(args.task); receipt=read_json(args.receipt); errors=[]
     if receipt.get("task_id") != task.get("id"): errors.append("task_id_mismatch")
@@ -59,10 +117,13 @@ def cmd_verify(args):
         if task.get("downstream_requires_ack"):
             ack=receipt.get("downstream_ack")
             if not isinstance(ack, dict) or ack.get("status") not in {"ADOPTED","REJECTED","DEFERRED","DUPLICATE"}: errors.append("missing_semantic_ack")
+    if args.strict_proof:
+        errors.extend(strict_proof_errors(args,task,receipt))
     if errors:
         for e in errors: print("OPC_VERIFY_REJECT", e)
         return 1
-    print("OPC_VERIFY_PASS"); return 0
+    print("OPC_VERIFY_PASS scope=" + ("local_artifacts_and_ack" if args.strict_proof else "declarations_only"))
+    return 0
 
 def cmd_failover(args):
     before=read_json(args.before); after=read_json(args.after); errors=[]
@@ -99,7 +160,8 @@ def main():
     ap=argparse.ArgumentParser(prog="opc"); sp=ap.add_subparsers(dest="cmd",required=True)
     p=sp.add_parser("lint"); p.add_argument("files",nargs="+"); p.set_defaults(fn=cmd_lint)
     p=sp.add_parser("status"); p.add_argument("company"); p.set_defaults(fn=cmd_status)
-    p=sp.add_parser("verify"); p.add_argument("--task",required=True); p.add_argument("--receipt",required=True); p.set_defaults(fn=cmd_verify)
+    p=sp.add_parser("verify"); p.add_argument("--task",required=True); p.add_argument("--receipt",required=True)
+    p.add_argument("--strict-proof",action="store_true"); p.add_argument("--artifact-root"); p.add_argument("--manifest"); p.add_argument("--handoff"); p.set_defaults(fn=cmd_verify)
     p=sp.add_parser("failover"); p.add_argument("--before",required=True); p.add_argument("--after",required=True); p.set_defaults(fn=cmd_failover)
     p=sp.add_parser("continuation"); p.add_argument("--before",required=True); p.add_argument("--after",required=True); p.set_defaults(fn=cmd_continuation)
     args=ap.parse_args(); raise SystemExit(args.fn(args))

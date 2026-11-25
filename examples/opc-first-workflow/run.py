@@ -188,7 +188,10 @@ def resume(data, out):
                    "owner_writeback": True, "downstream_ack": downstream_ack(task, adopted), "created_at": STAMP}
         write_json(stage / "receipt.json", receipt)
         opc("lint", stage / "task.json")
-        opc("verify", "--task", stage / "task.json", "--receipt", stage / "receipt.json")
+        opc("verify", "--task", stage / "task.json", "--receipt", stage / "receipt.json",
+            "--strict-proof", "--artifact-root", stage,
+            "--manifest", stage / "artifact-manifest.json",
+            "--handoff", checkpoint / "handoff.json")
         verify_artifacts(stage, manifest)
         attention_output = render_attention(stage, task, receipt)
         # Atomic rename on the same filesystem: consumers only accept result/.

@@ -82,7 +82,7 @@ def main():
         normal = root / "normal"
         result = cli(normal)
         assert result.returncode == 0 and "OPC_FIRST_WORKFLOW_PASS" in result.stdout, result.stderr
-        assert "OPC_VERIFY_PASS" in result.stdout and "OPC_FAILOVER_PASS" in result.stdout
+        assert "OPC_VERIFY_PASS scope=local_artifacts_and_ack" in result.stdout and "OPC_FAILOVER_PASS" in result.stdout
         assert_result(normal)
         print("NORMAL_REPLAY_OK")
         print("ATTENTION_DECISION_AND_DEDUPE_OK")
