@@ -98,6 +98,8 @@ def strict_proof_errors(args, task, receipt):
                 handoff=None
                 errors.append("handoff_unreadable")
             if isinstance(ack, dict) and isinstance(handoff, dict):
+                if ack.get("status") != "ADOPTED":
+                    errors.append("semantic_ack_not_adopted")
                 if ack.get("task_id") != task.get("id") or handoff.get("task_id") != task.get("id"):
                     errors.append("semantic_ack_task_mismatch")
                 if ack.get("handoff_id") != handoff.get("handoff_id"):

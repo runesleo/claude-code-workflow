@@ -59,6 +59,12 @@ with tempfile.TemporaryDirectory(prefix="opc-proof-test-") as tmp:
     assert "semantic_ack_consumer_mismatch" in run(strict,1)
     handoff["to"]="worker-b"
     (d/"handoff.json").write_text(json.dumps(handoff),encoding="utf-8")
+    for not_adopted in ("REJECTED", "DEFERRED", "DUPLICATE"):
+        receipt["downstream_ack"]["status"]=not_adopted
+        (d/"receipt.json").write_text(json.dumps(receipt),encoding="utf-8")
+        assert "semantic_ack_not_adopted" in run(strict,1), not_adopted
+    receipt["downstream_ack"]["status"]="ADOPTED"
+    (d/"receipt.json").write_text(json.dumps(receipt),encoding="utf-8")
     assert "scope=local_artifacts_and_ack" in run(strict,0)
 print("OPC_STRICT_PROOF_TEST_OK")
 print("OPC_TEST_OK")
