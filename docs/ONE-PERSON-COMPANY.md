@@ -31,15 +31,38 @@
 
 | 模块 | 解决什么问题 | 公开入口与成熟度 |
 |---|---|---|
-| 机会雷达与研究 | 把分散信号变成有来源、有判断、有下一步的机会 | [资产与机会研究](https://github.com/runesleo/asset-dd-and-opportunity-evaluation)（独立仓库）；综合雷达流程（待开放） |
+| 机会雷达与研究 | 把分散信号变成有来源、有判断、有下一步的机会 | [资产与机会研究](https://github.com/runesleo/asset-dd-and-opportunity-evaluation)、[Signal Digest Loop](https://github.com/runesleo/x-signal-digest)（独立仓库）；综合雷达流程（待开放） |
 | 信息摄入与数据 | 读取链接、社交内容、长视频、播客并保留来源 | [X Reader](https://github.com/runesleo/x-reader)、[TG Reader MCP](https://github.com/runesleo/tg-reader-mcp)、[Long Media CLI](https://github.com/runesleo/long-media-cli)（独立仓库） |
-| 文字内容与分发 | 选题、来源核实、草稿、审稿、分发和复盘 | 信息摄入工具可独立复用；完整内容与增长流程（待开放） |
+| 文字内容与分发 | 选题、来源核实、草稿、审稿、分发和复盘 | [Content Pipeline Skill](https://github.com/runesleo/content-pipeline-skill)、[Talk Human](https://github.com/runesleo/talk-human)（独立仓库）；完整内容与增长流程（待开放） |
 | 视频制作 | 将研究或产品成果做成可审核的脚本与视频 | [Video Kit](https://github.com/runesleo/claude-video-kit)（独立仓库）；组合工作流（待开放） |
 | 产品研发 | 需求取舍、实现、回归、可验证交付 | [QuietHarness Core](../examples/first-success/README.md)（可试用）；[OPC Company Layer](../labs/opc-company/README.md)（实验） |
 | 商业与用户运营 | 把真实需求、反馈、定价、履约与获客连接起来 | 可复用的合成案例与模块模板（待开放） |
 | 投资与策略研究 | 数据、假设、反证、风险与研究记录 | [Polymarket Toolkit](https://github.com/runesleo/polymarket-toolkit)、[资产与机会研究](https://github.com/runesleo/asset-dd-and-opportunity-evaluation)（独立仓库）；不提供默认真钱执行 |
 | 个人运营与健康 | 降低日常信息整理、提醒和管理负担 | [AI Health Vault](https://github.com/runesleo/ai-health-vault)（独立仓库）；[Attention Inbox](../labs/attention-inbox/README.md)、[Session Hooks](../labs/session-hooks/README.md)（实验） |
-| AI 协作与可靠性 | 任务接续、权限、验收、上下文、资源、监控和故障处理 | [Core](../examples/first-success/README.md)（可试用）；[OPC Layer](../labs/opc-company/README.md)、[Chat Export](../labs/chat-export/README.md)（实验）；[Skill Audit](https://github.com/runesleo/claude-skill-audit)（独立仓库）；完整运行保障组合（待开放） |
+| AI 协作与可靠性 | 任务接续、权限、验收、上下文、资源、监控和故障处理 | [Core](../examples/first-success/README.md)（可试用）；[OPC Layer](../labs/opc-company/README.md)、[Chat Export](../labs/chat-export/README.md)（实验）；[Skill Audit](https://github.com/runesleo/claude-skill-audit)、[Multi AI Sync](https://github.com/runesleo/multi-ai-sync)、[AI Handoff Check](https://github.com/runesleo/ai-handoff-check)、[Skill Drift](https://github.com/runesleo/skill-drift)（独立仓库）；完整运行保障组合（待开放） |
+
+## 新成果归到哪里
+
+QuietHarness 是统一的公开入口，不是所有代码的单体仓库。新增成果先按它解决的问题归入现有业务模块，再判断维护位置：
+
+| 成果类型 | 归属与处理 |
+|---|---|
+| 跨业务、跨 Agent 都需要的最小可靠性边界 | 在有重复实际需求和验证的前提下更新既有 Core；不让常驻模板承担业务细节 |
+| 任务、协作、验收、注意力与恢复方法 | 更新已有 `docs/`、对应 `labs/` 或 `examples/`；未验证的机制明确标为实验 |
+| 有独立用户、安装入口和维护需求的工具 | 保留原独立仓库、版本和 Issues；在本页链接，必要时提供组合案例，不复制源码或另立事实源 |
+| 可复用的真实经验、失败和修复 | 先在原模块修正并验证，再向本页补充案例入口；引用原产物、PR 或文档，不复制私人运行记录 |
+
+没有独立需求时不新建仓库。案例至少说明问题、可复用步骤、输入与输出、实际验证和未验证边界；公开前检查授权、许可证及隐私。没有新成果时不为了每日更新而制造提交。
+
+## 案例索引
+
+| 案例 | 可以如何复用 | 证据与边界 |
+|---|---|---|
+| 任务已提交，成功回执却丢失（真实开源改进，合成故障验证） | 保留原输出路径；检查点完整才恢复；已有结果先严格复验，不换目录重复执行 | [PR #27](https://github.com/runesleo/claude-code-workflow/pull/27) · [恢复说明](../examples/opc-first-workflow/README.md#提交后回执丢失先对账不重跑)；验证本地产物与交接确认，不认证外部副作用或真实模型执行 |
+| 从机会信号到待审交付（离线合成实验） | 运行现有示例，观察证据、进程接力、严格验收与人工决策入口 | [OPC First Workflow Preview](../examples/opc-first-workflow/README.md)；不调用真实 AI、不自动发布 |
+| 从公开来源到个人观点（真实公开产物） | 阅读来源，结合自身工作形成观点；可借用 [X Reader](https://github.com/runesleo/x-reader) 的来源读取与缺口标记方法 | [公开来源](https://x.com/xiaohuiyuan/status/2125549864239136986) · [公开回应](https://x.com/runes_leo/status/2125928807949369633)；链接只证明公开产物，不提供整条私人工作流的可复现性或自动化证明 |
+
+未来有新的可复用交付时，优先把证据和步骤落到原模块，再更新本索引。用户反馈与公开复现结果应回到原仓库 Issues，不另造队列。
 
 ## 先从一个业务问题开始
 

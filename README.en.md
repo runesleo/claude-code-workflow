@@ -18,6 +18,7 @@ You do not need to copy my private operating environment, and this repository do
 | Coordinate tasks, handoffs, and acceptance across agents | [OPC Company Layer (experimental)](labs/opc-company/README.en.md) |
 | Reduce interruptions and preserve cross-tool context | [Attention Inbox](labs/attention-inbox/README.md) · [Chat Export](labs/chat-export/README.md) |
 | Choose real tools for research, content, video, and more | [Business module catalog](docs/ONE-PERSON-COMPANY.en.md#business-modules) |
+| Find reusable methods from real work | [Case index](docs/ONE-PERSON-COMPANY.en.md#case-index) · [Where new work belongs](docs/ONE-PERSON-COMPANY.en.md#where-new-work-belongs) |
 
 **What is public today:** the independently usable Core, several governance labs, and separate business-tool repositories. The complete company composition is a staged open-source effort; see each module's maturity in the catalog. The existing repository URL, Git history, and installation contract are preserved.
 
@@ -28,7 +29,14 @@ You do not need to copy my private operating environment, and this repository do
 Turn a fictional opportunity signal into a research brief and an unpublished draft, demonstrating process handoff, strict local artifact verification, and which events warrant founder attention. Requires only Git and the Python 3 standard library. After obtaining the source, no API keys, accounts, or network requests are needed. This is a deterministic offline experiment, not an autonomous AI company or live multi-model execution.
 
 ```bash
-python3 examples/opc-first-workflow/run.py --out "$(mktemp -d)/opc-output" --simulate-failover
+out="$(mktemp -d)/opc-output"
+printf 'Keep this output path: %s\n' "$out"
+```
+
+Save the full output path in a durable record outside the terminal before starting. After confirming it is saved, run in the same terminal:
+
+```bash
+python3 examples/opc-first-workflow/run.py --out "$out" --simulate-failover
 python3 examples/opc-first-workflow/test.py
 ```
 
@@ -232,7 +240,7 @@ The six steps, the problem each one solves, and why "just write a PROJECT_STATUS
 | Health records | [ai-health-vault](https://github.com/runesleo/ai-health-vault) | private AI + Obsidian health workflow |
 | System audit | [claude-skill-audit](https://github.com/runesleo/claude-skill-audit) | skill usage, conflicts, and dead configuration |
 
-These repositories were extracted from real branches of the system after they became independently useful. New public projects can continue to attach to the same map.
+These repositories were extracted from real branches of the system after they became independently useful. The [company module map](docs/ONE-PERSON-COMPANY.en.md#business-modules) is the unified catalog for all listed business modules and future public outcomes; independent repositories stay independently maintained.
 
 ## Extend only when you need it
 
