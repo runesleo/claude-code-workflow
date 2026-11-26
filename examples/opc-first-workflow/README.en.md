@@ -23,7 +23,25 @@ python3 examples/opc-first-workflow/run.py --out "$out" --phase resume
 
 Alternatively, pass `--simulate-failover` without specifying a phase to run both steps. Use a new output directory for the initial run. The second process validates the sample, research digest and task identity, accepts the synthetic handoff and generates the brief, draft, decision, artifact manifest, failover snapshot, final task and receipt. Only after all checks pass does it atomically rename the staged directory to `result/`. The final task status is `archived`; the preparation receipt outcome is `completed`, not publication authorization.
 
-Failure may leave checkpoint/ but does not publish result/; a finished result cannot be resumed again. Successful replay exits zero and prints OPC_FIRST_WORKFLOW_PASS; tests print FIRST_WORKFLOW_FOCUSED_TESTS_OK.
+A failure before the atomic commit may leave `checkpoint/` without creating `result/`; an existing result cannot be resumed again. A successful run exits zero and prints `OPC_FIRST_WORKFLOW_PASS`; tests print `FIRST_WORKFLOW_FOCUSED_TESTS_OK`.
+
+### Lost acknowledgement after commit: reconcile before replaying
+
+A nonzero exit or missing success marker does not establish that the result was never committed. Once the previous worker has stopped, inspect the original `$out`:
+
+- `checkpoint/` exists but `result/` does not: resume the original task using the `--phase resume` command above.
+- `result/` already exists: do not replay the same task in a new directory or overwrite the existing artifacts. Use the original directory, its checkpoint and the existing read-only strict verifier:
+
+```bash
+python3 labs/opc-company/scripts/opc.py verify \
+  --task "$out/result/task.json" \
+  --receipt "$out/result/receipt.json" \
+  --strict-proof --artifact-root "$out/result" \
+  --manifest "$out/result/artifact-manifest.json" \
+  --handoff "$out/checkpoint/handoff.json"
+```
+
+Exit zero with `OPC_VERIFY_PASS scope=local_artifacts_and_ack` revalidates the manifest-listed local artifacts and handoff acknowledgement, allowing you to reconcile the committed result. If verification fails or evidence is missing, preserve the state, mark it as requiring verification and do not replay automatically. This does not establish the integrity of every file in the result directory, real model collaboration, semantic truth or external effects, and is not publication authorization.
 
 This is a real local process test of simulated interruption and handoff acknowledgement, not independent model collaboration or editorial review. Attention Inbox is integrated into the offline example; live Agent runs are not yet verified.
 
