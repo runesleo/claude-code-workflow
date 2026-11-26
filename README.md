@@ -20,7 +20,7 @@
 | 选择研究、内容、视频等真实业务工具 | [开源业务模块目录](docs/ONE-PERSON-COMPANY.md#业务模块) |
 | 从真实工作经验找到可复用的方法 | [案例索引](docs/ONE-PERSON-COMPANY.md#案例索引) · [新成果归属](docs/ONE-PERSON-COMPANY.md#新成果归到哪里) |
 
-**目前已经公开的**是可独立试用的 Core、若干治理实验和独立业务仓库；完整公司级组合仍按模块逐步开放。各模块成熟度见目录。原仓库地址、Git 历史和现有安装契约保持不变。
+**目前已经公开的**是可独立试用的 Core、若干治理实验和独立业务仓库；完整公司级组合仍按模块逐步开放。各模块成熟度见目录。Git 历史和现有安装契约保持不变；官方仓库地址已更新为 `runesleo/quietharness`。
 
 ---
 
@@ -79,8 +79,8 @@ QuietHarness 不会给每个请求套一层仪式，也不是要求你复制我�
 ## 先在一个隔离项目试用
 
 ```bash
-git clone https://github.com/runesleo/claude-code-workflow.git
-cd claude-code-workflow
+git clone https://github.com/runesleo/quietharness.git
+cd quietharness
 ./scripts/inventory.sh
 
 demo_dir="$(mktemp -d "${TMPDIR:-/tmp}/quiet-harness-first-success.XXXXXX")"
@@ -132,7 +132,7 @@ Read TASK.md and complete the task.
 
 [查看完整首次成功步骤与验收标准 →](examples/first-success/README.md)
 
-完成或卡住后，请用 2 分钟提交一份 [公开使用回执](https://github.com/runesleo/claude-code-workflow/issues/new?template=quiet-harness-usage-receipt.yml)。它只用来测量安装结果、首次成功耗时、支持摩擦和 7 天复用；7 天未到时，之后直接编辑同一条 issue。不要提交私有代码、仓库名、绝对路径、凭证或账号信息。
+完成或卡住后，请用 2 分钟提交一份 [公开使用回执](https://github.com/runesleo/quietharness/issues/new?template=quiet-harness-usage-receipt.yml)。它只用来测量安装结果、首次成功耗时、支持摩擦和 7 天复用；7 天未到时，之后直接编辑同一条 issue。不要提交私有代码、仓库名、绝对路径、凭证或账号信息。
 
 ## 通过后再安装到日常环境（可选）
 
@@ -170,7 +170,7 @@ Claude 用户级安装影响 `~/AGENTS.md` 与 `~/.claude/CLAUDE.md`；Codex 影
 
 我把这个版本叫 **QuietHarness**：Harness 仍然在，但没有相关任务时，它应该安静。
 
-> 仓库地址和 Git 历史继续保留 `claude-code-workflow`。QuietHarness 是同一套系统的 v3，不是另起炉灶。
+> 2026-11-26，原 `claude-code-workflow` 仓库正式更名为 `quietharness`，保留原仓库及 Git 历史。旧地址仍可重定向；已有本地 checkout 无需改目录或重新安装。QuietHarness 不是另起炉灶。
 
 ## 一张图看懂
 

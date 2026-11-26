@@ -11,8 +11,8 @@ QuietHarness 解决单个或少量 Agent 的可靠执行；OPC Company Layer 解
 从干净 checkout 开始：
 
 ```bash
-git clone https://github.com/runesleo/claude-code-workflow.git
-cd claude-code-workflow/labs/opc-company
+git clone https://github.com/runesleo/quietharness.git
+cd quietharness/labs/opc-company
 python3 scripts/opc.py --help
 ```
 

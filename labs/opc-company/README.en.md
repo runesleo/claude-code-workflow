@@ -11,8 +11,8 @@ Requirements: Git and Python 3. The OPC lab uses only the Python standard librar
 From a clean checkout:
 
 ```bash
-git clone https://github.com/runesleo/claude-code-workflow.git
-cd claude-code-workflow/labs/opc-company
+git clone https://github.com/runesleo/quietharness.git
+cd quietharness/labs/opc-company
 python3 scripts/opc.py --help
 ```
 
