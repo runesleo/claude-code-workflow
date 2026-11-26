@@ -32,15 +32,38 @@ Maturity: **Try now** = an independent entry point and demo in this repository; 
 
 | Module | Problem it solves | Public entry and maturity |
 |---|---|---|
-| Opportunity discovery and research | Turn scattered signals into evidence-backed opportunities and next actions | [Asset and Opportunity Research](https://github.com/runesleo/asset-dd-and-opportunity-evaluation) (Separate repo); integrated opportunity radar workflow (Planned) |
+| Opportunity discovery and research | Turn scattered signals into evidence-backed opportunities and next actions | [Asset and Opportunity Research](https://github.com/runesleo/asset-dd-and-opportunity-evaluation), [Signal Digest Loop](https://github.com/runesleo/x-signal-digest) (Separate repos); integrated opportunity radar workflow (Planned) |
 | Information intake and data | Read links, social content, long videos, and podcasts while preserving sources | [X Reader](https://github.com/runesleo/x-reader), [TG Reader MCP](https://github.com/runesleo/tg-reader-mcp), [Long Media CLI](https://github.com/runesleo/long-media-cli) (Separate repos) |
-| Written content and distribution | Select topics, verify facts, draft, review, distribute, and learn | Intake tools are independently reusable; complete content and growth workflow (Planned) |
+| Written content and distribution | Select topics, verify facts, draft, review, distribute, and learn | [Content Pipeline Skill](https://github.com/runesleo/content-pipeline-skill), [Talk Human](https://github.com/runesleo/talk-human) (Separate repos); complete content and growth workflow (Planned) |
 | Video production | Turn research or product work into reviewable scripts and video | [Video Kit](https://github.com/runesleo/claude-video-kit) (Separate repo); composition workflow (Planned) |
 | Product development | Scope needs, implement, test, and deliver verifiable results | [QuietHarness Core](../examples/first-success/README.en.md) (Try now); [OPC Company Layer](../labs/opc-company/README.en.md) (Experimental) |
 | Commercial and user operations | Connect real needs, feedback, pricing, fulfillment, and acquisition | Reusable synthetic cases and module templates (Planned) |
 | Investing and strategy research | Data, hypotheses, counterevidence, risk, and research records | [Polymarket Toolkit](https://github.com/runesleo/polymarket-toolkit), [Asset and Opportunity Research](https://github.com/runesleo/asset-dd-and-opportunity-evaluation) (Separate repos); no default live financial execution |
 | Personal operations and health | Reduce routine information, reminder, and management burden | [AI Health Vault](https://github.com/runesleo/ai-health-vault) (Separate repo); [Attention Inbox](../labs/attention-inbox/README.md), [Session Hooks](../labs/session-hooks/README.en.md) (Experimental) |
-| AI collaboration and reliability | Continuity, permissions, acceptance, context, resources, monitoring, and recovery | [Core](../examples/first-success/README.en.md) (Try now); [OPC Layer](../labs/opc-company/README.en.md), [Chat Export](../labs/chat-export/README.md) (Experimental); [Skill Audit](https://github.com/runesleo/claude-skill-audit) (Separate repo); complete operational reliability composition (Planned) |
+| AI collaboration and reliability | Continuity, permissions, acceptance, context, resources, monitoring, and recovery | [Core](../examples/first-success/README.en.md) (Try now); [OPC Layer](../labs/opc-company/README.en.md), [Chat Export](../labs/chat-export/README.md) (Experimental); [Skill Audit](https://github.com/runesleo/claude-skill-audit), [Multi AI Sync](https://github.com/runesleo/multi-ai-sync), [AI Handoff Check](https://github.com/runesleo/ai-handoff-check), [Skill Drift](https://github.com/runesleo/skill-drift) (Separate repos); complete operational reliability composition (Planned) |
+
+## Where new work belongs
+
+QuietHarness is a unified public entry point, not a monorepo containing every tool. First classify an outcome by the business problem it solves, then decide where it should be maintained:
+
+| Outcome | Where it belongs |
+|---|---|
+| Minimal reliability boundaries needed across business lines and agents | Update the existing Core only when repeated real needs and verification justify it; keep business details out of always-loaded templates |
+| Task continuity, collaboration, acceptance, attention, and recovery methods | Update the existing `docs/`, relevant `labs/` or `examples/`; mark unverified mechanisms as experimental |
+| Tools with independent users, installation paths, and maintenance needs | Keep their original repositories, versions, and Issues; link them here and add composition examples when useful, without copying their source or creating another source of truth |
+| Reusable lessons, failures, and fixes from real work | Fix and verify the original module first, then link the case here; cite the original artifact, PR, or documentation instead of copying private operating records |
+
+Do not create another repository without an independent need. A case should explain the problem, reusable steps, inputs and outputs, actual verification, and what remains unverified. Review authorization, licensing, and privacy before publishing. Do not manufacture commits merely to update every day.
+
+## Case index
+
+| Case | How to reuse it | Evidence and limits |
+|---|---|---|
+| Result committed but success acknowledgement lost (real open-source improvement, synthetic fault test) | Preserve the original output path; confirm the previous worker has stopped before inspecting; resume only from a complete checkpoint with no result; strictly revalidate an existing result rather than replaying in a new directory | [PR #27](https://github.com/runesleo/claude-code-workflow/pull/27) · [Recovery guide](../examples/opc-first-workflow/README.en.md#lost-acknowledgement-after-commit-reconcile-before-replaying); validates listed local artifacts and handoff acknowledgement, not external effects or real model execution |
+| Opportunity signal to unpublished deliverable (offline synthetic experiment) | Run the existing example to inspect evidence, process handoff, strict verification and human decision surfacing | [OPC First Workflow Preview](../examples/opc-first-workflow/README.en.md); no real model calls or automatic publication |
+| Public source to personal commentary (real public artifacts) | Read the source and connect it to your own work; reuse the source-reading and gap-marking approach in [X Reader](https://github.com/runesleo/x-reader) | [Public source](https://x.com/xiaohuiyuan/status/2125549864239136986) · [Public response](https://x.com/runes_leo/status/2125928807949369633); the links establish public artifacts only, not reproducibility or automation of the private workflow |
+
+When a new reusable deliverable exists, put its evidence and steps in the original module first, then update this index. User feedback and public reproduction results belong in the original repository's Issues, not another queue.
 
 ## Start with one real problem
 

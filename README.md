@@ -18,6 +18,7 @@
 | 管理多 Agent 的任务、接力与验收 | [OPC Company Layer（实验）](labs/opc-company/README.md) |
 | 减少无效打扰、沉淀跨工具上下文 | [Attention Inbox](labs/attention-inbox/README.md) · [Chat Export](labs/chat-export/README.md) |
 | 选择研究、内容、视频等真实业务工具 | [开源业务模块目录](docs/ONE-PERSON-COMPANY.md#业务模块) |
+| 从真实工作经验找到可复用的方法 | [案例索引](docs/ONE-PERSON-COMPANY.md#案例索引) · [新成果归属](docs/ONE-PERSON-COMPANY.md#新成果归到哪里) |
 
 **目前已经公开的**是可独立试用的 Core、若干治理实验和独立业务仓库；完整公司级组合仍按模块逐步开放。各模块成熟度见目录。原仓库地址、Git 历史和现有安装契约保持不变。
 
@@ -28,8 +29,21 @@
 从一条虚构机会信号出发，生成研究简报和待审内容，演示进程接力、严格本地产物验收，以及哪些事项才需要创始人关注。只需 Git 和 Python 3 标准库，无需 API Key、账户或网络请求（取得源码后）。这是确定性离线实验，不是自主 AI 公司或真实多模型执行。
 
 ```bash
-python3 examples/opc-first-workflow/run.py --out "$(mktemp -d)/opc-output" --simulate-failover
-python3 examples/opc-first-workflow/test.py
+unset out
+if run_dir="$(mktemp -d)" && [ -d "$run_dir" ]; then
+  out="$run_dir/opc-output"
+  printf 'Keep this output path: %s\n' "$out"
+else
+  printf 'Unable to create a temporary directory; stop here.\n' >&2
+  false
+fi
+```
+
+仅在上一步成功并打印完整路径后继续。先将路径保存到终端之外的持久记录，确认已保存后，再在同一终端执行：
+
+```bash
+python3 examples/opc-first-workflow/run.py --out "${out:?Prepare and save the output path first}" --simulate-failover &&
+  python3 examples/opc-first-workflow/test.py
 ```
 
 [查看步骤、输出和限制](examples/opc-first-workflow/README.md)。
@@ -284,7 +298,7 @@ QuietHarness 是主干。我的一些真实业务能力已经长成独立仓库�
 | 健康资料 | [ai-health-vault](https://github.com/runesleo/ai-health-vault) | 私有健康记录与 AI/Obsidian 工作流 |
 | 系统体检 | [claude-skill-audit](https://github.com/runesleo/claude-skill-audit) | Skill 使用率、冲突与死亡配置审计 |
 
-它们不是为了凑一个“AI OS”目录，而是先在真实业务里使用，再把有独立价值的分支拆出去。未来新的公开仓库也会继续挂回这张地图。
+它们不是为了凑一个“AI OS”目录，而是先在真实业务里使用，再把有独立价值的分支拆出去。完整业务模块及后续公开成果的统一导航见[一人公司能力地图](docs/ONE-PERSON-COMPANY.md#业务模块)；独立仓库仍独立维护。
 
 ## 需要时再扩展
 
