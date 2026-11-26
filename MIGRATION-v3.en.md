@@ -6,7 +6,7 @@ v3 is intentionally breaking. It removes the assumption that every AI session mu
 
 The migration is reversible: disable first, use QuietHarness for real work, and restore only the capability you actually miss.
 
-QuietHarness is the new product name for this repository's v3 direction. The repository URL remains unchanged for continuity; no Git history or prior attribution is discarded.
+QuietHarness is v3 of the same project. On November 26, 2026, the original `claude-code-workflow` repository was renamed to [`runesleo/quietharness`](https://github.com/runesleo/quietharness). The old URL still redirects; Git history and prior attribution are preserved. Existing local checkouts do not need to be renamed or reinstalled.
 
 ## 1. Take an inventory
 

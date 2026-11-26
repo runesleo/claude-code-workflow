@@ -6,7 +6,7 @@ v3 是一次有意的 breaking change。它取消了“每个 AI 对话都必须
 
 迁移应该可逆：先停用，用 QuietHarness 做真实工作，只恢复那些你确实缺失的能力。
 
-QuietHarness 是这个仓库 v3 的新名字。仓库 URL、Git 历史和过去的署名都继续保留。
+QuietHarness 是同一项目的 v3。原 `claude-code-workflow` 仓库已于 2026-11-26 更名为 [`runesleo/quietharness`](https://github.com/runesleo/quietharness)，旧 URL 仍可重定向；Git 历史和过去的署名继续保留。已有本地 checkout 不必改目录或重新安装。
 
 ## 1. 先做只读盘点
 
