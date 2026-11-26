@@ -7,7 +7,9 @@ A deterministic replay of a fictional signal into a research brief and an unpubl
 From the repository root:
 
 ```bash
-python3 examples/opc-first-workflow/run.py --out "$(mktemp -d)/opc-output"
+out="$(mktemp -d)/opc-output"
+printf 'Keep this output path: %s\n' "$out"
+python3 examples/opc-first-workflow/run.py --out "$out"
 python3 examples/opc-first-workflow/test.py
 ```
 
@@ -15,6 +17,7 @@ Demonstrate interruption and recovery:
 
 ```bash
 out="$(mktemp -d)/opc-output"
+printf 'Keep this output path: %s\n' "$out"
 python3 examples/opc-first-workflow/run.py --out "$out" --phase prepare --simulate-failover
 # Expected exit 75; checkpoint/ retains the brief, task, handoff and integrity metadata.
 python3 examples/opc-first-workflow/run.py --out "$out" --phase resume
@@ -27,9 +30,9 @@ A failure before the atomic commit may leave `checkpoint/` without creating `res
 
 ### Lost acknowledgement after commit: reconcile before replaying
 
-A nonzero exit or missing success marker does not establish that the result was never committed. Once the previous worker has stopped, inspect the original `$out`:
+A nonzero exit or missing success marker does not establish that the result was never committed. Record and retain each run's `$out` path before starting (as shown above), so you can recover it after losing the terminal. If you used the root README's quick-start command and cannot establish the original output directory, do not guess or reconcile another run's result; preserve the state and mark it as requiring verification. Once the previous worker has stopped, set `$out` to the recorded original path and inspect it:
 
-- `checkpoint/` exists but `result/` does not: resume the original task using the `--phase resume` command above.
+- No `result/` and a complete `checkpoint/` (containing `checkpoint.json`, `task.json`, `handoff.json`, `research.md`): resume the original task with the original sample using the `--phase resume` command above; the built-in checks must still pass. If the checkpoint is missing or incomplete, or resume is rejected, preserve the state, mark it as requiring verification and do not replay automatically.
 - `result/` already exists: do not replay the same task in a new directory or overwrite the existing artifacts. Use the original directory, its checkpoint and the existing read-only strict verifier:
 
 ```bash

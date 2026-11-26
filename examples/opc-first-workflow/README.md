@@ -7,7 +7,9 @@
 从仓库根目录运行：
 
 ```bash
-python3 examples/opc-first-workflow/run.py --out "$(mktemp -d)/opc-output"
+out="$(mktemp -d)/opc-output"
+printf 'Keep this output path: %s\n' "$out"
+python3 examples/opc-first-workflow/run.py --out "$out"
 python3 examples/opc-first-workflow/test.py
 ```
 
@@ -15,6 +17,7 @@ python3 examples/opc-first-workflow/test.py
 
 ```bash
 out="$(mktemp -d)/opc-output"
+printf 'Keep this output path: %s\n' "$out"
 python3 examples/opc-first-workflow/run.py --out "$out" --phase prepare --simulate-failover
 # 预期退出码 75；checkpoint/ 保留研究简报、任务、交接和校验信息。
 python3 examples/opc-first-workflow/run.py --out "$out" --phase resume
@@ -27,9 +30,9 @@ python3 examples/opc-first-workflow/run.py --out "$out" --phase resume
 
 ### 提交后回执丢失：先对账，不重跑
 
-进程退出异常或没有收到成功标记，并不能证明结果没有提交。确认旧 Worker 已停止后，检查原来的 `$out`：
+进程退出异常或没有收到成功标记，并不能证明结果没有提交。运行前记录并保留每次的 `$out` 路径（如上所示），以便在终端断开后找回。如果通过仓库首页的快捷命令启动，且无法确定原始输出目录，则不要猜测目录或使用另一轮结果对账；保留现场，标记待核验。确认旧 Worker 已停止后，将 `$out` 设为已记录的原始路径并检查：
 
-- 只有 `checkpoint/`、没有 `result/`：可以按上面的 `--phase resume` 命令恢复原任务。
+- 没有 `result/`，且 `checkpoint/` 完整（包含 `checkpoint.json`、`task.json`、`handoff.json`、`research.md`）：使用原样本和上面的 `--phase resume` 命令恢复原任务，仍须通过内置检查。检查点缺失、不完整或恢复被拒绝时，保留现场，标记待核验，不自动重跑。
 - 已有 `result/`：不要为同一任务改用新目录重跑，也不要覆盖现有产物。使用原目录、原检查点和现有严格验收器只读复验：
 
 ```bash
