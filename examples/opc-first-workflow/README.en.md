@@ -9,6 +9,11 @@ From the repository root:
 ```bash
 out="$(mktemp -d)/opc-output"
 printf 'Keep this output path: %s\n' "$out"
+```
+
+**Before starting the worker, save the full printed path in a durable record outside the terminal (for example, a task note or text file). After confirming it is saved, run the next command in the same terminal.**
+
+```bash
 python3 examples/opc-first-workflow/run.py --out "$out"
 python3 examples/opc-first-workflow/test.py
 ```
@@ -18,6 +23,11 @@ Demonstrate interruption and recovery:
 ```bash
 out="$(mktemp -d)/opc-output"
 printf 'Keep this output path: %s\n' "$out"
+```
+
+**Before starting the worker, save the full printed path in a durable record outside the terminal (for example, a task note or text file). After confirming it is saved, run the next command in the same terminal.**
+
+```bash
 python3 examples/opc-first-workflow/run.py --out "$out" --phase prepare --simulate-failover
 # Expected exit 75; checkpoint/ retains the brief, task, handoff and integrity metadata.
 python3 examples/opc-first-workflow/run.py --out "$out" --phase resume

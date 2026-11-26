@@ -9,6 +9,11 @@
 ```bash
 out="$(mktemp -d)/opc-output"
 printf 'Keep this output path: %s\n' "$out"
+```
+
+**先将打印出的完整路径保存到终端之外的持久记录（例如任务笔记或文本文件），确认已保存后，再在同一终端运行下面的命令。**
+
+```bash
 python3 examples/opc-first-workflow/run.py --out "$out"
 python3 examples/opc-first-workflow/test.py
 ```
@@ -18,6 +23,11 @@ python3 examples/opc-first-workflow/test.py
 ```bash
 out="$(mktemp -d)/opc-output"
 printf 'Keep this output path: %s\n' "$out"
+```
+
+**先将打印出的完整路径保存到终端之外的持久记录（例如任务笔记或文本文件），确认已保存后，再在同一终端运行下面的命令。**
+
+```bash
 python3 examples/opc-first-workflow/run.py --out "$out" --phase prepare --simulate-failover
 # 预期退出码 75；checkpoint/ 保留研究简报、任务、交接和校验信息。
 python3 examples/opc-first-workflow/run.py --out "$out" --phase resume
