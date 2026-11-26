@@ -20,7 +20,7 @@ You do not need to copy my private operating environment, and this repository do
 | Choose real tools for research, content, video, and more | [Business module catalog](docs/ONE-PERSON-COMPANY.en.md#business-modules) |
 | Find reusable methods from real work | [Case index](docs/ONE-PERSON-COMPANY.en.md#case-index) · [Where new work belongs](docs/ONE-PERSON-COMPANY.en.md#where-new-work-belongs) |
 
-**What is public today:** the independently usable Core, several governance labs, and separate business-tool repositories. The complete company composition is a staged open-source effort; see each module's maturity in the catalog. The existing repository URL, Git history, and installation contract are preserved.
+**What is public today:** the independently usable Core, several governance labs, and separate business-tool repositories. The complete company composition is a staged open-source effort; see each module's maturity in the catalog. The Git history and installation contract are preserved; the official repository URL is now `runesleo/quietharness`.
 
 ---
 
@@ -79,8 +79,8 @@ If your Claude Code sessions keep multiplying, with titles that no longer match 
 ## Try it inside one isolated project
 
 ```bash
-git clone https://github.com/runesleo/claude-code-workflow.git
-cd claude-code-workflow
+git clone https://github.com/runesleo/quietharness.git
+cd quietharness
 ./scripts/inventory.sh
 
 demo_dir="$(mktemp -d "${TMPDIR:-/tmp}/quiet-harness-first-success.XXXXXX")"
@@ -132,7 +132,7 @@ This is an onboarding behavior check, not a causal experiment proving that Quiet
 
 [Open the complete first-success guide and acceptance criteria →](examples/first-success/README.en.md)
 
-Whether you complete the trial or get blocked, spend two minutes on a [public usage receipt](https://github.com/runesleo/claude-code-workflow/issues/new?template=quiet-harness-usage-receipt.yml). It measures install outcome, time to first success, support friction, and 7-day reuse; if day 7 has not arrived, edit the same issue later. Do not include private code, repository names, absolute paths, credentials, or account details.
+Whether you complete the trial or get blocked, spend two minutes on a [public usage receipt](https://github.com/runesleo/quietharness/issues/new?template=quiet-harness-usage-receipt.yml). It measures install outcome, time to first success, support friction, and 7-day reuse; if day 7 has not arrived, edit the same issue later. Do not include private code, repository names, absolute paths, credentials, or account details.
 
 ## Install for everyday use after the trial (optional)
 
@@ -162,7 +162,7 @@ After using today's highest-reasoning modes in production work, I found that par
 
 I call this version **QuietHarness**: the harness still exists, but it stays quiet until the current task needs it.
 
-The repository URL and Git history remain `claude-code-workflow`. QuietHarness is v3 of the same system, not a replacement project.
+On November 26, 2026, the original `claude-code-workflow` repository was renamed to `quietharness`, preserving the repository and Git history. The old URL still redirects; existing local checkouts do not need to be renamed or reinstalled. QuietHarness is the same project, not a replacement.
 
 ## System map
 

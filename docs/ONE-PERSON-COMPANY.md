@@ -58,7 +58,7 @@ QuietHarness 是统一的公开入口，不是所有代码的单体仓库。新�
 
 | 案例 | 可以如何复用 | 证据与边界 |
 |---|---|---|
-| 任务已提交，成功回执却丢失（真实开源改进，合成故障验证） | 保留原输出路径；确认旧 Worker 已停止后再检查；仅在检查点完整且无结果时恢复；已有结果先严格复验，不换目录重复执行 | [PR #27](https://github.com/runesleo/claude-code-workflow/pull/27) · [恢复说明](../examples/opc-first-workflow/README.md#提交后回执丢失先对账不重跑)；验证本地产物与交接确认，不认证外部副作用或真实模型执行 |
+| 任务已提交，成功回执却丢失（真实开源改进，合成故障验证） | 保留原输出路径；确认旧 Worker 已停止后再检查；仅在检查点完整且无结果时恢复；已有结果先严格复验，不换目录重复执行 | [PR #27](https://github.com/runesleo/quietharness/pull/27) · [恢复说明](../examples/opc-first-workflow/README.md#提交后回执丢失先对账不重跑)；验证本地产物与交接确认，不认证外部副作用或真实模型执行 |
 | 从机会信号到待审交付（离线合成实验） | 运行现有示例，观察证据、进程接力、严格验收与人工决策入口 | [OPC First Workflow Preview](../examples/opc-first-workflow/README.md)；不调用真实 AI、不自动发布 |
 | 从公开来源到个人观点（真实公开产物） | 阅读来源，结合自身工作形成观点；可借用 [X Reader](https://github.com/runesleo/x-reader) 的来源读取与缺口标记方法 | [公开来源](https://x.com/xiaohuiyuan/status/2125549864239136986) · [公开回应](https://x.com/runes_leo/status/2125928807949369633)；链接只证明公开产物，不提供整条私人工作流的可复现性或自动化证明 |
 
