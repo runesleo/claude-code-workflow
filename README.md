@@ -29,15 +29,21 @@
 从一条虚构机会信号出发，生成研究简报和待审内容，演示进程接力、严格本地产物验收，以及哪些事项才需要创始人关注。只需 Git 和 Python 3 标准库，无需 API Key、账户或网络请求（取得源码后）。这是确定性离线实验，不是自主 AI 公司或真实多模型执行。
 
 ```bash
-out="$(mktemp -d)/opc-output"
-printf 'Keep this output path: %s\n' "$out"
+unset out
+if run_dir="$(mktemp -d)" && [ -d "$run_dir" ]; then
+  out="$run_dir/opc-output"
+  printf 'Keep this output path: %s\n' "$out"
+else
+  printf 'Unable to create a temporary directory; stop here.\n' >&2
+  false
+fi
 ```
 
-先将完整输出路径保存到终端之外的持久记录，确认已保存后，再在同一终端执行：
+仅在上一步成功并打印完整路径后继续。先将路径保存到终端之外的持久记录，确认已保存后，再在同一终端执行：
 
 ```bash
-python3 examples/opc-first-workflow/run.py --out "$out" --simulate-failover
-python3 examples/opc-first-workflow/test.py
+python3 examples/opc-first-workflow/run.py --out "${out:?Prepare and save the output path first}" --simulate-failover &&
+  python3 examples/opc-first-workflow/test.py
 ```
 
 [查看步骤、输出和限制](examples/opc-first-workflow/README.md)。

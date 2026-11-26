@@ -29,15 +29,21 @@ You do not need to copy my private operating environment, and this repository do
 Turn a fictional opportunity signal into a research brief and an unpublished draft, demonstrating process handoff, strict local artifact verification, and which events warrant founder attention. Requires only Git and the Python 3 standard library. After obtaining the source, no API keys, accounts, or network requests are needed. This is a deterministic offline experiment, not an autonomous AI company or live multi-model execution.
 
 ```bash
-out="$(mktemp -d)/opc-output"
-printf 'Keep this output path: %s\n' "$out"
+unset out
+if run_dir="$(mktemp -d)" && [ -d "$run_dir" ]; then
+  out="$run_dir/opc-output"
+  printf 'Keep this output path: %s\n' "$out"
+else
+  printf 'Unable to create a temporary directory; stop here.\n' >&2
+  false
+fi
 ```
 
-Save the full output path in a durable record outside the terminal before starting. After confirming it is saved, run in the same terminal:
+Continue only if the previous step succeeded and printed the full path. Save that path in a durable record outside the terminal before starting. After confirming it is saved, run in the same terminal:
 
 ```bash
-python3 examples/opc-first-workflow/run.py --out "$out" --simulate-failover
-python3 examples/opc-first-workflow/test.py
+python3 examples/opc-first-workflow/run.py --out "${out:?Prepare and save the output path first}" --simulate-failover &&
+  python3 examples/opc-first-workflow/test.py
 ```
 
 [See the steps, outputs and limitations](examples/opc-first-workflow/README.en.md).
