@@ -244,7 +244,7 @@ The six steps, the problem each one solves, and why "just write a PROJECT_STATUS
 | Long media | [long-media-cli](https://github.com/runesleo/long-media-cli) | video, podcast, and X Space transcription |
 | Video production | [claude-video-kit](https://github.com/runesleo/claude-video-kit) | script, review, narration, and Remotion video |
 | Health records | [ai-health-vault](https://github.com/runesleo/ai-health-vault) | private AI + Obsidian health workflow |
-| System audit | [claude-skill-audit](https://github.com/runesleo/claude-skill-audit) | skill usage, conflicts, and dead configuration |
+| System audit | [Skill Audit](https://github.com/runesleo/skill-audit) | observed Skill usage, rule-execution gaps, and conflict candidates |
 
 These repositories were extracted from real branches of the system after they became independently useful. The [company module map](docs/ONE-PERSON-COMPANY.en.md#business-modules) is the unified catalog for all listed business modules and future public outcomes; independent repositories stay independently maintained.
 

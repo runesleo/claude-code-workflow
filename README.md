@@ -296,7 +296,7 @@ QuietHarness 是主干。我的一些真实业务能力已经长成独立仓库�
 | 长音视频 | [long-media-cli](https://github.com/runesleo/long-media-cli) | 长视频、播客与 X Space 转录 |
 | 视频制作 | [claude-video-kit](https://github.com/runesleo/claude-video-kit) | 脚本、审稿、配音与 Remotion 竖屏视频 |
 | 健康资料 | [ai-health-vault](https://github.com/runesleo/ai-health-vault) | 私有健康记录与 AI/Obsidian 工作流 |
-| 系统体检 | [claude-skill-audit](https://github.com/runesleo/claude-skill-audit) | Skill 使用率、冲突与死亡配置审计 |
+| 系统体检 | [Skill Audit](https://github.com/runesleo/skill-audit) | Skill 调用观测、规则执行缺口与冲突候选 |
 
 它们不是为了凑一个“AI OS”目录，而是先在真实业务里使用，再把有独立价值的分支拆出去。完整业务模块及后续公开成果的统一导航见[一人公司能力地图](docs/ONE-PERSON-COMPANY.md#业务模块)；独立仓库仍独立维护。
 

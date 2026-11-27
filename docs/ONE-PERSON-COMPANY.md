@@ -39,7 +39,7 @@
 | 商业与用户运营 | 把真实需求、反馈、定价、履约与获客连接起来 | 可复用的合成案例与模块模板（待开放） |
 | 投资与策略研究 | 数据、假设、反证、风险与研究记录 | [Polymarket Toolkit](https://github.com/runesleo/polymarket-toolkit)、[资产与机会研究](https://github.com/runesleo/asset-dd-and-opportunity-evaluation)（独立仓库）；不提供默认真钱执行 |
 | 个人运营与健康 | 降低日常信息整理、提醒和管理负担 | [AI Health Vault](https://github.com/runesleo/ai-health-vault)（独立仓库）；[Attention Inbox](../labs/attention-inbox/README.md)、[Session Hooks](../labs/session-hooks/README.md)（实验） |
-| AI 协作与可靠性 | 任务接续、权限、验收、上下文、资源、监控和故障处理 | [Core](../examples/first-success/README.md)（可试用）；[OPC Layer](../labs/opc-company/README.md)、[Chat Export](../labs/chat-export/README.md)（实验）；[Skill Audit](https://github.com/runesleo/claude-skill-audit)、[Multi AI Sync](https://github.com/runesleo/multi-ai-sync)、[AI Handoff Check](https://github.com/runesleo/ai-handoff-check)、[Skill Drift](https://github.com/runesleo/skill-drift)（独立仓库）；完整运行保障组合（待开放） |
+| AI 协作与可靠性 | 任务接续、权限、验收、上下文、资源、监控和故障处理 | [Core](../examples/first-success/README.md)（可试用）；[OPC Layer](../labs/opc-company/README.md)、[Chat Export](../labs/chat-export/README.md)（实验）；[Skill Audit](https://github.com/runesleo/skill-audit)、[Multi AI Sync](https://github.com/runesleo/multi-ai-sync)、[AI Handoff Check](https://github.com/runesleo/ai-handoff-check)、[Skill Drift](https://github.com/runesleo/skill-drift)（独立仓库）；完整运行保障组合（待开放） |
 
 ## 新成果归到哪里
 

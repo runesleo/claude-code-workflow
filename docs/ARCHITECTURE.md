@@ -212,7 +212,7 @@ scheduler / monitor
 | Content Intake | `x-reader`、`tg-reader-mcp`、`long-media-cli` |
 | Video Production | `claude-video-kit` |
 | Health Ops | `ai-health-vault` |
-| Personal Ops / Audit | `claude-skill-audit` |
+| Personal Ops / Audit | `skill-audit` |
 
 QuietHarness 不复制这些仓库的实现，只展示它们在整个系统里的位置。
 
