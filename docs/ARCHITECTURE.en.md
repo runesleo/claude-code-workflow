@@ -95,7 +95,7 @@ Parts of the private system became independently useful repositories:
 - content intake: `x-reader`, `tg-reader-mcp`, `long-media-cli`;
 - video: `claude-video-kit`;
 - health: `ai-health-vault`;
-- system audit: `claude-skill-audit`.
+- system audit: `skill-audit`.
 
 QuietHarness shows how these branches connect; it does not duplicate their implementations.
 
